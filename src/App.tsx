@@ -16,28 +16,34 @@ import CreateGroupPage from "./pages/CreateGroupPage";
 import CreateRecipePage from "./pages/CreateRecipePage";
 import CreateRoutinePage from "./pages/CreateRoutinePage";
 import SharePostScreen from "./pages/SharePostScreen";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const AppRoutes = () => (
-  <AppLayout>
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/daily-log" element={<DailyLogPage />} />
-      <Route path="/discover" element={<DiscoverPage />} />
-      <Route path="/messages" element={<MessagesPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/create/workout" element={<CreateWorkoutPage />} />
-      <Route path="/create/meal" element={<CreateMealPage />} />
-      <Route path="/create/post" element={<CreatePostPage />} />
-      <Route path="/create/group" element={<CreateGroupPage />} />
-      <Route path="/create/recipe" element={<CreateRecipePage />} />
-      <Route path="/create/routine" element={<CreateRoutinePage />} />
-      <Route path="/share" element={<SharePostScreen />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </AppLayout>
+  <Routes>
+    <Route path="/onboarding" element={<OnboardingPage />} />
+    <Route path="/*" element={
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/daily-log" element={<DailyLogPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create/workout" element={<CreateWorkoutPage />} />
+          <Route path="/create/meal" element={<CreateMealPage />} />
+          <Route path="/create/post" element={<CreatePostPage />} />
+          <Route path="/create/group" element={<CreateGroupPage />} />
+          <Route path="/create/recipe" element={<CreateRecipePage />} />
+          <Route path="/create/routine" element={<CreateRoutinePage />} />
+          <Route path="/share" element={<SharePostScreen />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AppLayout>
+    } />
+  </Routes>
 );
 
 const App = () => (
