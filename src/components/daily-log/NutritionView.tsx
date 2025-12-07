@@ -42,7 +42,11 @@ const MealLog = ({ name, calories, foods, time }: MealLogProps) => (
   </div>
 );
 
-export const NutritionView = () => {
+interface NutritionViewProps {
+  selectedDate?: Date;
+}
+
+export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
   const caloriesConsumed = 1450;
   const caloriesGoal = 2200;
   const caloriesLeft = caloriesGoal - caloriesConsumed;
