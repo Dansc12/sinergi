@@ -58,7 +58,11 @@ const WorkoutItem = ({ title, time, duration, exercises, completed }: WorkoutIte
   </div>
 );
 
-export const FitnessView = () => {
+interface FitnessViewProps {
+  selectedDate?: Date;
+}
+
+export const FitnessView = ({ selectedDate }: FitnessViewProps) => {
   const steps = 7842;
   const stepsGoal = 10000;
   const stepsLeft = stepsGoal - steps;
