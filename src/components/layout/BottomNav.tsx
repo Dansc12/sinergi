@@ -1,4 +1,4 @@
-import { Home, ListTodo, Search, MessageCircle, Plus } from "lucide-react";
+import { Home, ListTodo, Users, MessageCircle, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export const BottomNav = ({ onCreateClick }: BottomNavProps) => {
   const navItems = [
     { icon: <Home size={22} />, label: "Home", path: "/" },
     { icon: <ListTodo size={22} />, label: "Log", path: "/daily-log" },
-    { icon: <Search size={22} />, label: "Discover", path: "/discover" },
+    { icon: <Users size={22} />, label: "Connect", path: "/discover" },
     { icon: <MessageCircle size={22} />, label: "Messages", path: "/messages" },
   ];
 
