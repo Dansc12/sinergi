@@ -5,6 +5,7 @@ import { ArrowLeft, Utensils, X, Camera, ChevronRight, Clock } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { FoodSearchInput, FoodItem } from "@/components/FoodSearchInput";
+import { FoodDetailModal } from "@/components/FoodDetailModal";
 import { CameraCapture } from "@/components/CameraCapture";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -15,6 +16,8 @@ interface SelectedFood {
   protein: number;
   carbs: number;
   fats: number;
+  servings?: number;
+  servingSize?: string;
 }
 
 interface RestoredState {
@@ -43,6 +46,8 @@ const CreateMealPage = () => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [showFoodsList, setShowFoodsList] = useState(false);
+  const [pendingFood, setPendingFood] = useState<FoodItem | null>(null);
+  const [isFoodDetailOpen, setIsFoodDetailOpen] = useState(false);
 
   // Restore state if coming back from share screen
   useEffect(() => {
@@ -59,17 +64,31 @@ const CreateMealPage = () => {
   };
 
   const handleFoodSelect = (food: FoodItem) => {
+    setPendingFood(food);
+    setIsFoodDetailOpen(true);
+  };
+
+  const handleFoodConfirm = (food: FoodItem, servings: number, servingSize: string) => {
     const newFood: SelectedFood = {
       id: Date.now().toString(),
       name: food.description,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fats: food.fats,
+      calories: Math.round(food.calories * servings),
+      protein: food.protein * servings,
+      carbs: food.carbs * servings,
+      fats: food.fats * servings,
+      servings,
+      servingSize,
     };
     setSelectedFoods([...selectedFoods, newFood]);
     setSearchValue("");
-    toast({ title: "Food added!", description: food.description });
+    setIsFoodDetailOpen(false);
+    setPendingFood(null);
+    toast({ title: "Food added!", description: `${servings} ${servingSize} of ${food.description}` });
+  };
+
+  const handleFoodDetailClose = () => {
+    setIsFoodDetailOpen(false);
+    setPendingFood(null);
   };
 
   const removeFood = (id: string) => {
@@ -386,6 +405,14 @@ const CreateMealPage = () => {
         onClose={() => setIsCameraOpen(false)}
         onCapture={handleCapturePhoto}
         onSelectFromGallery={handleSelectFromGallery}
+      />
+
+      {/* Food Detail Modal */}
+      <FoodDetailModal
+        isOpen={isFoodDetailOpen}
+        food={pendingFood}
+        onClose={handleFoodDetailClose}
+        onConfirm={handleFoodConfirm}
       />
     </div>
   );
