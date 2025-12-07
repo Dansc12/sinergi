@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          activity_level: string | null
+          avatar_url: string | null
+          biological_sex: string | null
+          birthdate: string | null
+          created_at: string
+          current_weight: number | null
+          daily_calorie_target: number | null
+          exercise_frequency: string | null
+          first_name: string | null
+          goal_weight: number | null
+          height_feet: number | null
+          height_inches: number | null
+          hobbies: string[] | null
+          id: string
+          last_name: string | null
+          onboarding_completed: boolean | null
+          primary_goal: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          weight_loss_rate: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          activity_level?: string | null
+          avatar_url?: string | null
+          biological_sex?: string | null
+          birthdate?: string | null
+          created_at?: string
+          current_weight?: number | null
+          daily_calorie_target?: number | null
+          exercise_frequency?: string | null
+          first_name?: string | null
+          goal_weight?: number | null
+          height_feet?: number | null
+          height_inches?: number | null
+          hobbies?: string[] | null
+          id?: string
+          last_name?: string | null
+          onboarding_completed?: boolean | null
+          primary_goal?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          weight_loss_rate?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          activity_level?: string | null
+          avatar_url?: string | null
+          biological_sex?: string | null
+          birthdate?: string | null
+          created_at?: string
+          current_weight?: number | null
+          daily_calorie_target?: number | null
+          exercise_frequency?: string | null
+          first_name?: string | null
+          goal_weight?: number | null
+          height_feet?: number | null
+          height_inches?: number | null
+          hobbies?: string[] | null
+          id?: string
+          last_name?: string | null
+          onboarding_completed?: boolean | null
+          primary_goal?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          weight_loss_rate?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
