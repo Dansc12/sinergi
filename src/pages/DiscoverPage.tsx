@@ -2,15 +2,8 @@ import { useState, useRef, useCallback } from "react";
 import { Search, MoreHorizontal, Users, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-
-interface ReactionCounts {
-  handsUp: number;
-  hundred: number;
-  heart: number;
-  muscle: number;
-  party: number;
-}
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface FeedPost {
   id: string;
@@ -20,9 +13,8 @@ interface FeedPost {
     handle: string;
   };
   content: string;
-  image?: string;
+  images?: string[];
   type: "workout" | "meal" | "recipe" | "post";
-  reactions: ReactionCounts;
   timeAgo: string;
 }
 
@@ -44,45 +36,47 @@ const feedPosts: FeedPost[] = [
     id: "1",
     user: { name: "Sarah Chen", handle: "@sarahfitness", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" },
     content: "Just crushed my first 5K in under 25 minutes! 🏃‍♀️ All those morning runs are finally paying off. Who else is training for a race?",
-    image: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600",
+    images: [
+      "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600",
+      "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600",
+      "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600"
+    ],
     type: "workout",
-    reactions: { handsUp: 42, hundred: 28, heart: 15, muscle: 38, party: 19 },
     timeAgo: "2h"
   },
   {
     id: "2",
     user: { name: "Mike Johnson", handle: "@mikej", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" },
     content: "Meal prep Sunday complete! 🥗 Got my protein-packed lunches ready for the week. Sharing the recipe in my stories!",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
+    images: ["https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600"],
     type: "meal",
-    reactions: { handsUp: 12, hundred: 45, heart: 32, muscle: 0, party: 0 },
     timeAgo: "4h"
   },
   {
     id: "3",
     user: { name: "Emma Wilson", handle: "@emmawellness", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" },
     content: "Morning yoga flow to start the day right ☀️🧘‍♀️ Remember: progress, not perfection!",
-    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600",
+    images: [
+      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600",
+      "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600"
+    ],
     type: "post",
-    reactions: { handsUp: 67, hundred: 23, heart: 89, muscle: 12, party: 43 },
     timeAgo: "5h"
   },
   {
     id: "4",
     user: { name: "Alex Rivera", handle: "@alexlifts", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100" },
     content: "New PR on deadlift today! 💪 315 lbs felt smooth. Thanks to everyone in the powerlifting group for the tips!",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600",
+    images: ["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600"],
     type: "workout",
-    reactions: { handsUp: 156, hundred: 89, heart: 34, muscle: 201, party: 32 },
     timeAgo: "6h"
   },
   {
     id: "5",
     user: { name: "Sofia Garcia", handle: "@sofiacooks", avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100" },
     content: "Made this high-protein overnight oats recipe! Perfect for busy mornings. Full recipe in my profile 🥣",
-    image: "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=600",
+    images: ["https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=600"],
     type: "recipe",
-    reactions: { handsUp: 23, hundred: 56, heart: 78, muscle: 12, party: 9 },
     timeAgo: "8h"
   },
 ];
@@ -107,21 +101,13 @@ const typeLabels = {
   post: { label: "Post", color: "bg-accent/20 text-accent" },
 };
 
-const reactionTypes = [
-  { key: "handsUp" as keyof ReactionCounts, emoji: "🙌" },
-  { key: "hundred" as keyof ReactionCounts, emoji: "💯" },
-  { key: "heart" as keyof ReactionCounts, emoji: "❤️" },
-  { key: "muscle" as keyof ReactionCounts, emoji: "💪" },
-  { key: "party" as keyof ReactionCounts, emoji: "🎉" },
-];
+const reactionEmojis = ["🙌", "💯", "❤️", "💪", "🎉"];
 
 const ReactionButton = ({ 
   emoji, 
-  count, 
   onReact 
 }: { 
   emoji: string; 
-  count: number; 
   onReact: () => void;
 }) => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,7 +131,7 @@ const ReactionButton = ({
 
   return (
     <motion.button
-      className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors select-none ${
+      className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors select-none ${
         isPressed ? "bg-primary/20" : "hover:bg-muted"
       }`}
       onMouseDown={startReacting}
@@ -153,18 +139,102 @@ const ReactionButton = ({
       onMouseLeave={stopReacting}
       onTouchStart={startReacting}
       onTouchEnd={stopReacting}
-      whileTap={{ scale: 1.1 }}
+      whileTap={{ scale: 1.2 }}
     >
-      <span className="text-lg opacity-70 hover:opacity-100 transition-opacity">{emoji}</span>
-      {count > 0 && (
-        <span className="text-xs text-muted-foreground font-medium">{count}</span>
-      )}
+      <span className="text-2xl opacity-80 hover:opacity-100 transition-opacity">{emoji}</span>
     </motion.button>
   );
 };
 
-const PostCard = ({ post, onReact }: { post: FeedPost; onReact: (reactionKey: keyof ReactionCounts) => void }) => {
-  const totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+const ImageCarousel = ({ images }: { images: string[] }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const goToNext = () => {
+    if (currentIndex < images.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrev();
+      }
+    }
+    setTouchStart(null);
+  };
+
+  if (images.length === 1) {
+    return (
+      <div className="relative aspect-[4/3] bg-muted rounded-xl overflow-hidden">
+        <img src={images[0]} alt="Post" className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      ref={containerRef}
+      className="relative overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div 
+        className="flex transition-transform duration-300 ease-out"
+        style={{ transform: `translateX(-${currentIndex * 85}%)` }}
+      >
+        {images.map((image, index) => (
+          <div 
+            key={index} 
+            className="flex-shrink-0 pr-2"
+            style={{ width: '85%' }}
+          >
+            <div className="aspect-[4/3] bg-muted rounded-xl overflow-hidden">
+              <img src={image} alt={`Post ${index + 1}`} className="w-full h-full object-cover" />
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Pagination dots */}
+      <div className="flex justify-center gap-1.5 mt-3">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-1.5 h-1.5 rounded-full transition-colors ${
+              index === currentIndex ? "bg-primary" : "bg-muted-foreground/30"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const PostCard = ({ post }: { post: FeedPost }) => {
+  const handleReact = () => {
+    // Reaction logic - can be connected to backend later
+  };
   
   return (
     <motion.article
@@ -192,30 +262,26 @@ const PostCard = ({ post, onReact }: { post: FeedPost; onReact: (reactionKey: ke
         </Button>
       </div>
 
-      {/* Image */}
-      {post.image && (
+      {/* Images */}
+      {post.images && post.images.length > 0 && (
         <div className="px-4 py-2">
-          <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
-            <img src={post.image} alt="Post" className="w-full h-full object-cover" />
-          </div>
+          <ImageCarousel images={post.images} />
         </div>
       )}
 
       {/* Reactions */}
-      <div className="flex items-center justify-center gap-2 p-4">
-        {reactionTypes.map(({ key, emoji }) => (
+      <div className="flex items-center justify-center gap-4 p-4">
+        {reactionEmojis.map((emoji) => (
           <ReactionButton
-            key={key}
+            key={emoji}
             emoji={emoji}
-            count={post.reactions[key]}
-            onReact={() => onReact(key)}
+            onReact={handleReact}
           />
         ))}
       </div>
 
-      {/* Stats & Content */}
+      {/* Content */}
       <div className="px-4 pb-4">
-        <p className="font-semibold text-sm mb-1">{totalReactions.toLocaleString()} reactions</p>
         <p className="text-sm">
           <span className="font-semibold">{post.user.name}</span>{" "}
           {post.content}
@@ -275,16 +341,8 @@ const SuggestedUsersSection = () => (
 );
 
 const DiscoverPage = () => {
-  const [posts, setPosts] = useState(feedPosts);
+  const [posts] = useState(feedPosts);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const handleReact = (postId: string, reactionKey: keyof ReactionCounts) => {
-    setPosts(posts.map(post =>
-      post.id === postId
-        ? { ...post, reactions: { ...post.reactions, [reactionKey]: post.reactions[reactionKey] + 1 } }
-        : post
-    ));
-  };
 
   // Insert suggestion sections after certain posts
   const renderFeedWithSuggestions = () => {
@@ -295,7 +353,6 @@ const DiscoverPage = () => {
         <PostCard
           key={post.id}
           post={post}
-          onReact={(reactionKey) => handleReact(post.id, reactionKey)}
         />
       );
       
