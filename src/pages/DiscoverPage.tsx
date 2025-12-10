@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Search, MoreHorizontal, Users, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -204,13 +204,29 @@ const ReactionButton = ({
 const ImageCarousel = ({ images }: { images: string[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
   const touchStartXRef = useRef<number>(0);
   const touchEndXRef = useRef<number>(0);
 
-  // Image dimensions - consistent for all posts
-  const imageWidthPercent = 80;
-  const gapPercent = 4;
-  const sideOffset = (100 - imageWidthPercent) / 2; // 10%
+  // Image dimensions
+  const imageWidthRatio = 0.8; // 80% of container
+  const gapRatio = 0.04; // 4% gap
+
+  // Measure container width
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  const imageWidth = containerWidth * imageWidthRatio;
+  const gap = containerWidth * gapRatio;
+  const sideOffset = (containerWidth - imageWidth) / 2;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.targetTouches[0].clientX;
@@ -225,20 +241,18 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
     const diff = touchStartXRef.current - touchEndXRef.current;
     const threshold = 50;
     
-    if (diff > threshold) {
-      // Swiped left - go to next
-      setCurrentIndex(prev => Math.min(prev + 1, images.length - 1));
-    } else if (diff < -threshold) {
-      // Swiped right - go to previous
-      setCurrentIndex(prev => Math.max(prev - 1, 0));
+    if (diff > threshold && currentIndex < images.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else if (diff < -threshold && currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
     }
   };
   
-  // For single image, still use the same centered layout
+  // For single image, use same centered layout
   if (images.length === 1) {
     return (
       <div className="flex justify-center">
-        <div style={{ width: `${imageWidthPercent}%` }}>
+        <div className="w-[80%]">
           <div className="aspect-[4/3] bg-muted rounded-xl overflow-hidden">
             <img src={images[0]} alt="Post" className="w-full h-full object-cover" />
           </div>
@@ -247,11 +261,8 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
     );
   }
 
-  // Calculate the position for each image to be centered
-  // Using CSS calc to ensure proper viewport-relative positioning
-  // Each image position: sideOffset + index * (imageWidth + gap)
-  // To center current image, shift left by: currentIndex * (imageWidth + gap)
-  const shiftAmount = currentIndex * (imageWidthPercent + gapPercent);
+  // Calculate translation to center current image
+  const translateX = currentIndex * (imageWidth + gap) - sideOffset;
 
   return (
     <div 
@@ -264,16 +275,15 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
       <div 
         className="flex transition-transform duration-300 ease-out"
         style={{ 
-          marginLeft: `${sideOffset}%`,
-          gap: `${gapPercent}%`,
-          transform: `translateX(calc(-${shiftAmount}% * (100vw - 32px) / 100))`,
+          transform: `translateX(${-translateX}px)`,
+          gap: `${gap}px`,
         }}
       >
         {images.map((image, index) => (
           <div 
             key={index} 
             className="flex-shrink-0"
-            style={{ width: `calc(${imageWidthPercent}% * (100vw - 32px) / 100)` }}
+            style={{ width: `${imageWidth}px` }}
           >
             <div className="aspect-[4/3] bg-muted rounded-xl overflow-hidden">
               <img src={image} alt={`Post ${index + 1}`} className="w-full h-full object-cover" />
