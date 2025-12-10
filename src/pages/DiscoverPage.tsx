@@ -204,38 +204,34 @@ const ReactionButton = ({
 const ImageCarousel = ({ images }: { images: string[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const touchStartRef = useRef<number | null>(null);
+  const touchStartXRef = useRef<number>(0);
+  const touchEndXRef = useRef<number>(0);
 
   // Image dimensions - consistent for all posts
   const imageWidthPercent = 80;
   const gapPercent = 4;
-
-  const goToNext = useCallback(() => {
-    setCurrentIndex(prev => Math.min(prev + 1, images.length - 1));
-  }, [images.length]);
-
-  const goToPrev = useCallback(() => {
-    setCurrentIndex(prev => Math.max(prev - 1, 0));
-  }, []);
+  const sideOffset = (100 - imageWidthPercent) / 2;
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = e.touches[0].clientX;
+    touchStartXRef.current = e.targetTouches[0].clientX;
+    touchEndXRef.current = e.targetTouches[0].clientX;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartRef.current === null) return;
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartXRef.current - touchEndXRef.current;
+    const threshold = 50;
     
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStartRef.current - touchEnd;
-    
-    if (Math.abs(diff) > 30) {
-      if (diff > 0 && currentIndex < images.length - 1) {
-        goToNext();
-      } else if (diff < 0 && currentIndex > 0) {
-        goToPrev();
-      }
+    if (diff > threshold) {
+      // Swiped left - go to next
+      setCurrentIndex(prev => Math.min(prev + 1, images.length - 1));
+    } else if (diff < -threshold) {
+      // Swiped right - go to previous
+      setCurrentIndex(prev => Math.max(prev - 1, 0));
     }
-    touchStartRef.current = null;
   };
   
   // For single image, still use the same centered layout
@@ -251,23 +247,22 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
     );
   }
 
-  // Calculate the translate value to center the current image
-  // Each image takes imageWidthPercent% of container, plus gapPercent% gap
-  // To center: we need to offset by (100 - imageWidthPercent) / 2 = 10%
-  const sideOffset = (100 - imageWidthPercent) / 2;
-  const translateX = currentIndex * (imageWidthPercent + gapPercent) - sideOffset;
+  // Calculate translateX: for index 0, we want 0 offset (centered by paddingLeft)
+  // For each subsequent index, move by (imageWidth + gap)
+  const translateX = currentIndex * (imageWidthPercent + gapPercent);
 
   return (
     <div 
       ref={containerRef}
       className="relative overflow-hidden"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div 
         className="flex transition-transform duration-300 ease-out"
         style={{ 
-          transform: `translateX(calc(-${translateX}%))`,
+          transform: `translateX(-${translateX}%)`,
           gap: `${gapPercent}%`,
           paddingLeft: `${sideOffset}%`,
         }}
