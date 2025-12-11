@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 // Use proxy for token exchange, direct API for data requests
-const PROXY_TOKEN_URL = "http://157.245.113.89/connect/token";
+const PROXY_TOKEN_URL = "https://157.245.113.89/connect/token";
 const FATSECRET_API_URL = "https://platform.fatsecret.com/rest/server.api";
 
 interface TokenResponse {
@@ -39,6 +39,9 @@ async function getAccessToken(): Promise<string> {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: `grant_type=client_credentials&scope=basic&client_id=${clientId}&client_secret=${clientSecret}`, // <-- ADD credentials to the body
+
+    // --- CRITICAL ADDITION ---
+    allowInsecure: true,
   });
 
   if (!response.ok) {
