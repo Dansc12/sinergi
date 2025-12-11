@@ -39,9 +39,6 @@ async function getAccessToken(): Promise<string> {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: `grant_type=client_credentials&scope=basic&client_id=${clientId}&client_secret=${clientSecret}`, // <-- ADD credentials to the body
-
-    // --- CRITICAL ADDITION ---
-    allowInsecure: true,
   });
 
   if (!response.ok) {
