@@ -25,14 +25,13 @@ async function getAccessToken(): Promise<string> {
   }
 
   const clientId = Deno.env.get('FATSECRET_CLIENT_ID');
-  const clientSecret = Deno.env.get('FATSECRET_CLIENT_SECRET');
 
-  if (!clientId || !clientSecret) {
-    throw new Error('FatSecret credentials not configured');
+  if (!clientId) {
+    throw new Error('FatSecret client ID not configured');
   }
 
-  // Send credentials in body (URL encoded), NOT as Basic Auth header
-  const body = `grant_type=client_credentials&scope=basic&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
+  // Send credentials in body (URL encoded) - no client secret required
+  const body = `grant_type=client_credentials&scope=basic&client_id=${encodeURIComponent(clientId)}`;
   
   const response = await fetch(PROXY_TOKEN_URL, {
     method: 'POST',
