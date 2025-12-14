@@ -7,11 +7,30 @@ import { ChevronLeft, Camera, Upload, Loader2, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export function ProfilePhotoScreen() {
+interface ProfilePhotoScreenProps {
+  isAuthenticated?: boolean;
+}
+
+export function ProfilePhotoScreen({ isAuthenticated = false }: ProfilePhotoScreenProps) {
   const { data, updateData, setCurrentStep } = useOnboarding();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Determine correct step navigation based on auth status and goal
+  const getBackStep = () => {
+    if (isAuthenticated) {
+      return data.primaryGoal === 'weight_loss' ? 8 : 7;
+    }
+    return data.primaryGoal === 'weight_loss' ? 9 : 8;
+  };
+
+  const getNextStep = () => {
+    if (isAuthenticated) {
+      return data.primaryGoal === 'weight_loss' ? 10 : 9;
+    }
+    return data.primaryGoal === 'weight_loss' ? 11 : 10;
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -73,11 +92,11 @@ export function ProfilePhotoScreen() {
   };
 
   const handleContinue = () => {
-    setCurrentStep(11);
+    setCurrentStep(getNextStep());
   };
 
   const handleSkip = () => {
-    setCurrentStep(11);
+    setCurrentStep(getNextStep());
   };
 
   return (
@@ -91,7 +110,7 @@ export function ProfilePhotoScreen() {
       
       <div className="flex-1 px-6 py-8">
         <button 
-          onClick={() => setCurrentStep(9)}
+          onClick={() => setCurrentStep(getBackStep())}
           className="flex items-center gap-1 text-muted-foreground mb-6 hover:text-foreground transition-colors"
         >
           <ChevronLeft size={20} />
