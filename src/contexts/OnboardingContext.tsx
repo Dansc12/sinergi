@@ -69,12 +69,20 @@ const defaultData: OnboardingData = {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export function OnboardingProvider({ children }: { children: ReactNode }) {
+export function OnboardingProvider({ children, isAuthenticated = false }: { children: ReactNode; isAuthenticated?: boolean }) {
   const [data, setData] = useState<OnboardingData>(defaultData);
   const [currentStep, setCurrentStep] = useState(1);
   
-  // Total steps: 11, but step 7 is conditional
-  const totalSteps = data.primaryGoal === 'weight_loss' ? 11 : 10;
+  // Total steps depends on authentication status and goal
+  // Authenticated users skip account creation step
+  const getTotalSteps = () => {
+    if (isAuthenticated) {
+      return data.primaryGoal === 'weight_loss' ? 10 : 9;
+    }
+    return data.primaryGoal === 'weight_loss' ? 11 : 10;
+  };
+  
+  const totalSteps = getTotalSteps();
 
   const updateData = (updates: Partial<OnboardingData>) => {
     setData(prev => ({ ...prev, ...updates }));

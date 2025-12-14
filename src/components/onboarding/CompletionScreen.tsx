@@ -13,6 +13,7 @@ export function CompletionScreen() {
   const navigate = useNavigate();
   const [isCalculating, setIsCalculating] = useState(true);
   const [calorieTarget, setCalorieTarget] = useState<number | null>(null);
+  const [userName, setUserName] = useState(data.firstName || '');
 
   useEffect(() => {
     const calculateAndSave = async () => {
@@ -34,13 +35,53 @@ export function CompletionScreen() {
 
         setCalorieTarget(target);
 
+        // Build update object - for authenticated users from AuthPage, also save other profile data
+        const updateObj: Record<string, any> = {
+          daily_calorie_target: target,
+          onboarding_completed: true,
+          biological_sex: data.biologicalSex,
+          birthdate: data.birthdate?.toISOString().split('T')[0],
+          zip_code: data.zipCode || null,
+          height_feet: data.heightFeet,
+          height_inches: data.heightInches,
+          current_weight: data.currentWeight,
+          goal_weight: data.goalWeight,
+          primary_goal: data.primaryGoal,
+          activity_level: data.activityLevel,
+          exercise_frequency: data.exerciseFrequency,
+          weight_loss_rate: data.primaryGoal === 'weight_loss' ? data.weightLossRate : null,
+          hobbies: data.hobbies,
+        };
+
+        // Only update names if they were provided (not from AuthPage where they might be empty)
+        if (data.firstName) {
+          updateObj.first_name = data.firstName;
+          setUserName(data.firstName);
+        }
+        if (data.lastName) {
+          updateObj.last_name = data.lastName;
+        }
+        if (data.username) {
+          updateObj.username = data.username.toLowerCase();
+        }
+
+        // Get existing profile data to use for name if not in onboarding data
+        if (!data.firstName) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('first_name')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (profileData?.first_name) {
+            setUserName(profileData.first_name);
+          }
+        }
+
         // Save to database and mark onboarding as complete
         const { error } = await supabase
           .from('profiles')
-          .update({
-            daily_calorie_target: target,
-            onboarding_completed: true,
-          })
+          .update(updateObj)
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -103,7 +144,7 @@ export function CompletionScreen() {
             transition={{ delay: 0.3 }}
             className="text-lg text-muted-foreground mb-8"
           >
-            Welcome to Sinergi, {data.firstName}!
+            Welcome to Sinergi{userName ? `, ${userName}` : ''}!
           </motion.p>
 
           {calorieTarget && (
