@@ -1,6 +1,7 @@
 import { Droplets, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useDailyLogs } from "@/hooks/useDailyLogs";
 
 interface MacroBarProps {
   label: string;
@@ -21,7 +22,7 @@ const MacroBar = ({ label, current, goal, color }: MacroBarProps) => {
           style={{ width: `${percentage}%`, backgroundColor: color }}
         />
       </div>
-      <span className="text-xs font-medium w-16 text-right">{current}g / {goal}g</span>
+      <span className="text-xs font-medium w-16 text-right">{Math.round(current)}g / {goal}g</span>
     </div>
   );
 };
@@ -33,15 +34,23 @@ interface LoggedFood {
   calories: number;
 }
 
-interface MealLogProps {
+interface MealLog {
+  id: string;
+  meal_type: string;
+  foods: LoggedFood[];
+  total_calories: number;
+}
+
+interface MealLogDisplayProps {
   name: string;
   mealType: string;
-  foods: LoggedFood[];
+  mealLogs: MealLog[];
   onAddFood: () => void;
 }
 
-const MealLog = ({ name, mealType, foods, onAddFood }: MealLogProps) => {
-  const totalCalories = foods.reduce((sum, food) => sum + food.calories, 0);
+const MealLogDisplay = ({ name, mealLogs, onAddFood }: MealLogDisplayProps) => {
+  const allFoods = mealLogs.flatMap((log) => log.foods || []);
+  const totalCalories = mealLogs.reduce((sum, log) => sum + (log.total_calories || 0), 0);
   
   return (
     <div className="bg-card border border-border rounded-xl p-4">
@@ -57,11 +66,11 @@ const MealLog = ({ name, mealType, foods, onAddFood }: MealLogProps) => {
         </Button>
       </div>
       
-      {foods.length > 0 ? (
+      {allFoods.length > 0 ? (
         <>
           <p className="text-primary font-bold text-lg mb-2">{totalCalories} cal</p>
           <div className="space-y-1">
-            {foods.map((food, index) => (
+            {allFoods.map((food, index) => (
               <div key={index} className="text-sm text-muted-foreground flex justify-between">
                 <span>{food.name}</span>
                 <span className="text-xs">{food.servings} × {food.servingSize}</span>
@@ -82,29 +91,26 @@ interface NutritionViewProps {
 
 export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
   const navigate = useNavigate();
+  const { mealsByType, waterLog, totals, isLoading } = useDailyLogs(selectedDate || new Date());
   
-  // In production, these would come from the database based on selectedDate
-  const caloriesConsumed = 0;
   const caloriesGoal = 2200;
-  const caloriesLeft = caloriesGoal - caloriesConsumed;
-  const waterConsumed = 0;
-  const waterGoal = 8;
-
-  // Empty meal data - in production, this would come from the database
-  const meals = {
-    breakfast: [] as LoggedFood[],
-    lunch: [] as LoggedFood[],
-    dinner: [] as LoggedFood[],
-    snack: [] as LoggedFood[],
-  };
+  const caloriesConsumed = totals.calories;
+  const caloriesLeft = Math.max(caloriesGoal - caloriesConsumed, 0);
+  
+  const waterConsumed = waterLog?.glasses || 0;
+  const waterGoal = waterLog?.target_glasses || 8;
 
   const handleAddFood = (mealType: string) => {
     navigate("/create/meal", { state: { preselectedMealType: mealType } });
   };
 
-  const totalProtein = 0;
-  const totalCarbs = 0;
-  const totalFats = 0;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -129,7 +135,7 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
               stroke="url(#calorieGradient)"
               fill="none"
               strokeLinecap="round"
-              strokeDasharray={`${(caloriesConsumed / caloriesGoal) * 377} 377`}
+              strokeDasharray={`${Math.min((caloriesConsumed / caloriesGoal) * 377, 377)} 377`}
             />
             <defs>
               <linearGradient id="calorieGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -163,7 +169,7 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
               stroke="hsl(200, 90%, 55%)"
               fill="none"
               strokeLinecap="round"
-              strokeDasharray={`${(waterConsumed / waterGoal) * 377} 377`}
+              strokeDasharray={`${Math.min((waterConsumed / waterGoal) * 377, 377)} 377`}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -177,37 +183,37 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
       {/* Macros */}
       <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
         <h3 className="font-semibold mb-3">Macros</h3>
-        <MacroBar label="P" current={totalProtein} goal={150} color="hsl(270, 91%, 65%)" />
-        <MacroBar label="C" current={totalCarbs} goal={250} color="hsl(142, 76%, 45%)" />
-        <MacroBar label="F" current={totalFats} goal={70} color="hsl(38, 92%, 50%)" />
+        <MacroBar label="P" current={totals.protein} goal={150} color="hsl(270, 91%, 65%)" />
+        <MacroBar label="C" current={totals.carbs} goal={250} color="hsl(142, 76%, 45%)" />
+        <MacroBar label="F" current={totals.fat} goal={70} color="hsl(38, 92%, 50%)" />
       </div>
 
       {/* Logged Meals */}
       <div>
         <h3 className="font-semibold mb-3">Logged Meals</h3>
         <div className="space-y-3">
-          <MealLog 
+          <MealLogDisplay 
             name="Breakfast"
             mealType="breakfast"
-            foods={meals.breakfast}
+            mealLogs={mealsByType.breakfast}
             onAddFood={() => handleAddFood("breakfast")}
           />
-          <MealLog 
+          <MealLogDisplay 
             name="Lunch"
             mealType="lunch"
-            foods={meals.lunch}
+            mealLogs={mealsByType.lunch}
             onAddFood={() => handleAddFood("lunch")}
           />
-          <MealLog 
+          <MealLogDisplay 
             name="Dinner"
             mealType="dinner"
-            foods={meals.dinner}
+            mealLogs={mealsByType.dinner}
             onAddFood={() => handleAddFood("dinner")}
           />
-          <MealLog 
+          <MealLogDisplay 
             name="Snack"
             mealType="snack"
-            foods={meals.snack}
+            mealLogs={mealsByType.snack}
             onAddFood={() => handleAddFood("snack")}
           />
         </div>
