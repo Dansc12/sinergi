@@ -164,39 +164,28 @@ export const useWeightLogs = () => {
     fetchWeightLogs();
   }, [fetchWeightLogs]);
 
-  // Calculate chart data - include onboarding weight as first point
-  const chartData = (() => {
-    const logs = weightLogs.map(log => ({
-      date: log.log_date,
-      value: log.weight
-    }));
-
-    // If we have onboarding weight and date, prepend it if it's not already in logs
-    if (onboardingWeight && onboardingDate) {
-      const onboardingDateStr = onboardingDate.split('T')[0];
-      const hasOnboardingDateLog = logs.some(log => log.date === onboardingDateStr);
-      if (!hasOnboardingDateLog) {
-        return [{ date: onboardingDateStr, value: onboardingWeight }, ...logs];
-      }
-    }
-    return logs;
-  })();
+  // Calculate chart data - only use actual weight logs
+  // The first logged weight IS the user's starting point (they should log their onboarding weight)
+  const chartData = weightLogs.map(log => ({
+    date: log.log_date,
+    value: log.weight
+  }));
 
   // Get latest weight
   const latestWeight = weightLogs.length > 0 
     ? weightLogs[weightLogs.length - 1].weight 
     : onboardingWeight;
 
-  // Calculate weight change (from first point including onboarding to last)
-  const weightChange = chartData.length >= 2
-    ? chartData[chartData.length - 1].value - chartData[0].value
+  // Calculate weight change (from first logged to last logged)
+  const weightChange = weightLogs.length >= 2
+    ? weightLogs[weightLogs.length - 1].weight - weightLogs[0].weight
     : 0;
+
+  // Total weight entries from actual logs
+  const totalWeightEntries = weightLogs.length;
 
   // Calculate days until next weigh-in (whole days)
   const daysUntilNextWeighIn = Math.max(0, 7 - daysSinceLastWeighIn);
-
-  // Total weight entries (including onboarding weight as first)
-  const totalWeightEntries = chartData.length;
 
   return {
     weightLogs,
