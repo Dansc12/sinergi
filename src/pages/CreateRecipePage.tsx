@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { FoodSearchInput, FoodItem } from "@/components/FoodSearchInput";
 import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
 import { usePhotoPicker } from "@/hooks/useCamera";
+import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { FoodDetailModal } from "@/components/FoodDetailModal";
 
 interface Ingredient {
@@ -52,6 +53,7 @@ const CreateRecipePage = () => {
   const [ingredientSearchValue, setIngredientSearchValue] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isChoiceDialogOpen, setIsChoiceDialogOpen] = useState(false);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
@@ -115,6 +117,10 @@ const CreateRecipePage = () => {
   };
 
   const addInstruction = () => setInstructions([...instructions, ""]);
+
+  const removeAdditionalImage = (index: number) => {
+    setAdditionalImages(additionalImages.filter((_, i) => i !== index));
+  };
   const removeInstruction = (index: number) => {
     if (instructions.length > 1) {
       setInstructions(instructions.filter((_, i) => i !== index));
@@ -383,16 +389,26 @@ const CreateRecipePage = () => {
         </div>
       </motion.div>
 
-      {/* Fixed Bottom Camera Button */}
+      {/* Fixed Bottom Camera Buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent">
-        <Button 
-          variant="outline" 
-          className="w-full h-14 gap-2 border-border"
-          onClick={() => setIsChoiceDialogOpen(true)}
-        >
-          <Camera size={20} />
-          Add More Photos
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-[4] h-14 gap-2 border-border"
+            onClick={() => setIsChoiceDialogOpen(true)}
+          >
+            <Camera size={20} />
+            Add More Photos {additionalImages.length > 0 && `(${additionalImages.length})`}
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 h-14 border-border"
+            onClick={() => setIsPhotoGalleryOpen(true)}
+            disabled={additionalImages.length === 0}
+          >
+            View
+          </Button>
+        </div>
       </div>
 
       {/* Hidden file input for gallery */}
@@ -439,6 +455,14 @@ const CreateRecipePage = () => {
           setSelectedFood(null);
         }}
         onConfirm={handleFoodConfirm}
+      />
+
+      {/* Photo Gallery Sheet */}
+      <PhotoGallerySheet
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        photos={additionalImages}
+        onDeletePhoto={removeAdditionalImage}
       />
     </div>
   );

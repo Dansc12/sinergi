@@ -8,6 +8,7 @@ import { FoodSearchInput, FoodItem } from "@/components/FoodSearchInput";
 import { FoodDetailModal } from "@/components/FoodDetailModal";
 import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
 import { usePhotoPicker } from "@/hooks/useCamera";
+import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SelectedFood {
@@ -48,6 +49,7 @@ const CreateMealPage = () => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isChoiceDialogOpen, setIsChoiceDialogOpen] = useState(false);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [showFoodsList, setShowFoodsList] = useState(false);
   const [pendingFood, setPendingFood] = useState<FoodItem | null>(null);
   const [isFoodDetailOpen, setIsFoodDetailOpen] = useState(false);
@@ -430,15 +432,26 @@ const CreateMealPage = () => {
             View Foods ({selectedFoods.length})
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-full gap-2 rounded-xl border-border bg-card hover:bg-muted"
-          onClick={() => setIsChoiceDialogOpen(true)}
-        >
-          <Camera size={20} />
-          Take a Photo {photos.length > 0 && `(${photos.length})`}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-[4] gap-2 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setIsChoiceDialogOpen(true)}
+          >
+            <Camera size={20} />
+            Take a Photo {photos.length > 0 && `(${photos.length})`}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setIsPhotoGalleryOpen(true)}
+            disabled={photos.length === 0}
+          >
+            View
+          </Button>
+        </div>
       </div>
 
       {/* Hidden file input for gallery */}
@@ -479,6 +492,14 @@ const CreateMealPage = () => {
         food={pendingFood}
         onClose={handleFoodDetailClose}
         onConfirm={handleFoodConfirm}
+      />
+
+      {/* Photo Gallery Sheet */}
+      <PhotoGallerySheet
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        photos={photos}
+        onDeletePhoto={removePhoto}
       />
     </div>
   );
