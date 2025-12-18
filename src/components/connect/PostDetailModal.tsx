@@ -457,6 +457,11 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
               {isPublic ? 'Join Group' : 'Request Invite'}
             </Button>
           )}
+
+          {/* Share description - shown above "Add a comment" section */}
+          {post.hasDescription && post.content && (
+            <p className="text-sm text-foreground pt-2 border-t border-border mt-4">{post.content}</p>
+          )}
         </div>
       </div>
     );
@@ -499,8 +504,8 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
         
         <ScrollArea className="max-h-[calc(85vh-80px)]">
           <div className="p-4 space-y-4">
-            {/* Description if present - skip for recipe as it handles its own */}
-            {post.type !== "recipe" && post.hasDescription && post.content && (
+            {/* Description if present - skip for recipe and group as they handle their own */}
+            {post.type !== "recipe" && post.type !== "group" && post.hasDescription && post.content && (
               <p className="text-sm">{post.content}</p>
             )}
             
