@@ -135,10 +135,12 @@ const ContentCarousel = ({
         />
       );
     } else {
-      // Summary card - render full content in fixed container
+      // Summary card - force it to fill the exact same frame as images
       return (
-        <div className="w-full h-full flex items-center justify-center overflow-hidden p-2">
-          <div className={`w-full ${isPreview ? 'scale-[0.85] origin-center' : ''}`}>
+        <div className="w-full h-full">
+          <div
+            className={`w-full h-full ${isPreview ? "scale-[0.85] origin-center" : ""}`}
+          >
             {item.content}
           </div>
         </div>
@@ -239,27 +241,29 @@ const MealSummaryCard = ({ contentData }: { contentData: MealContentData }) => {
   const totalFat = contentData.totalFats || foods.reduce((sum, f) => sum + (f.fat || f.fats || 0), 0);
 
   return (
-    <div className="mx-4 my-2 bg-gradient-to-br from-success/10 to-success/5 border border-success/20 rounded-2xl p-4">
+    <div className="h-full w-full bg-gradient-to-br from-success/10 to-success/5 border border-success/20 rounded-xl p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">🍽️</span>
         <h4 className="font-semibold text-foreground">{mealType}</h4>
       </div>
-      
+
       {/* Food items */}
-      <div className="space-y-1.5 mb-4">
+      <div className="space-y-1.5 mb-4 flex-1 overflow-hidden">
         {foods.map((food, idx) => (
-          <div key={idx} className="flex items-center gap-2 text-sm">
+          <div key={idx} className="flex items-center gap-2 text-sm min-w-0">
             <span className="text-muted-foreground">•</span>
-            <span className="text-foreground">{food.name}</span>
+            <span className="text-foreground truncate">{food.name}</span>
             {food.servings && food.servings !== 1 && (
-              <span className="text-muted-foreground text-xs">({food.servings} {food.servingSize || 'servings'})</span>
+              <span className="text-muted-foreground text-xs shrink-0">
+                ({food.servings} {food.servingSize || "servings"})
+              </span>
             )}
           </div>
         ))}
       </div>
-      
+
       {/* Macros summary */}
-      <div className="grid grid-cols-4 gap-2 pt-3 border-t border-success/20">
+      <div className="mt-auto grid grid-cols-4 gap-2 pt-3 border-t border-success/20">
         <div className="text-center">
           <p className="text-lg font-bold text-foreground">{Math.round(totalCalories)}</p>
           <p className="text-xs text-muted-foreground">cal</p>
@@ -345,18 +349,18 @@ const WorkoutSummaryCard = ({ contentData, createdAt }: { contentData: WorkoutCo
   });
 
   return (
-    <div className="mx-4 my-2 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-4">
+    <div className="h-full w-full bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">💪</span>
         <h4 className="font-semibold text-foreground">{workoutName}</h4>
       </div>
-      
+
       {/* Exercises - simplified preview showing exercise name + per-exercise volume */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-4 flex-1 overflow-hidden">
         {exercises.map((exercise, idx) => {
           const exerciseVolume = calculateExerciseVolume(exercise);
           const isCardio = exercise.isCardio || (exercise.sets && exercise.sets.some(s => s.distance !== undefined));
-          
+
           // For cardio, show total distance/time summary
           let cardioSummary = "";
           if (isCardio && exercise.sets) {
@@ -368,7 +372,7 @@ const WorkoutSummaryCard = ({ contentData, createdAt }: { contentData: WorkoutCo
               cardioSummary = `${totalDistance} mi`;
             }
           }
-          
+
           return (
             <div key={idx} className="flex items-center justify-between py-1.5">
               <span className="text-sm font-medium text-foreground">{exercise.name}</span>
@@ -379,7 +383,7 @@ const WorkoutSummaryCard = ({ contentData, createdAt }: { contentData: WorkoutCo
           );
         })}
       </div>
-      
+
       {/* Total volume - only show if there are weight-based exercises */}
       {hasWeightExercises && (
         <div className="pt-3 border-t border-primary/20">
@@ -389,9 +393,9 @@ const WorkoutSummaryCard = ({ contentData, createdAt }: { contentData: WorkoutCo
           </div>
         </div>
       )}
-      
+
       {/* Tap to view details hint */}
-      <p className="text-xs text-center text-muted-foreground mt-3">Tap to view details</p>
+      <p className="text-xs text-center text-muted-foreground mt-auto pt-3">Tap to view details</p>
     </div>
   );
 };
@@ -430,28 +434,28 @@ const RoutineSummaryCard = ({ contentData }: { contentData: RoutineContentData }
     : null;
 
   return (
-    <div className="mx-4 my-2 bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20 rounded-2xl p-4">
+    <div className="h-full w-full bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20 rounded-xl p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">📋</span>
         <h4 className="font-semibold text-foreground">{routineName}</h4>
       </div>
-      
+
       {/* Schedule info - only show days, not duration */}
       {daysDisplay && (
         <div className="mb-3 text-sm text-muted-foreground">
           <span>{daysDisplay}</span>
         </div>
       )}
-      
+
       {/* Exercises */}
-      <div className="space-y-2 mb-2">
+      <div className="space-y-2 mb-2 flex-1 overflow-hidden">
         {exercises.slice(0, 4).map((exercise, idx) => {
           const setsArray = Array.isArray(exercise.sets) ? exercise.sets : [];
           const setCount = Array.isArray(exercise.sets) ? exercise.sets.length : (exercise.sets || 0);
           const firstSet = setsArray[0];
           const minReps = firstSet?.minReps || exercise.minReps || 0;
           const maxReps = firstSet?.maxReps || exercise.maxReps || 0;
-          
+
           return (
             <div key={idx} className="flex items-center justify-between py-1.5">
               <span className="text-sm font-medium text-foreground">{exercise.name}</span>
@@ -465,9 +469,9 @@ const RoutineSummaryCard = ({ contentData }: { contentData: RoutineContentData }
           <p className="text-xs text-muted-foreground">+{exercises.length - 4} more exercises</p>
         )}
       </div>
-      
+
       {/* Tap to view details hint */}
-      <p className="text-xs text-center text-muted-foreground mt-3">Tap to view details</p>
+      <p className="text-xs text-center text-muted-foreground mt-auto pt-3">Tap to view details</p>
     </div>
   );
 };
