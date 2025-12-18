@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileContentFeed } from "@/components/profile/ProfileContentFeed";
+import { ProfileGroupsFeed } from "@/components/profile/ProfileGroupsFeed";
 import { ProfileSettingsSheet } from "@/components/profile/ProfileSettingsSheet";
 
 type ContentTab = "posts" | "workouts" | "meals" | "recipes" | "routines" | "groups";
@@ -313,9 +314,10 @@ const ProfilePage = () => {
               emptyState={emptyStateMessages[activeTab]}
             />
           ) : (
-            <div className="col-span-3 py-12 text-center flex flex-col items-center">
-              <p className="text-sm text-muted-foreground">Groups coming soon</p>
-            </div>
+            <ProfileGroupsFeed
+              onEmptyAction={() => handleTabAction(activeTab)}
+              emptyState={emptyStateMessages[activeTab]}
+            />
           )}
         </div>
       </div>
