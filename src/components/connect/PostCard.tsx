@@ -381,12 +381,10 @@ const RoutineSummaryCard = ({ contentData }: { contentData: RoutineContentData }
         <h4 className="font-semibold text-foreground">{routineName}</h4>
       </div>
       
-      {/* Schedule info */}
-      {(daysDisplay || recurring) && (
+      {/* Schedule info - only show days, not duration */}
+      {daysDisplay && (
         <div className="mb-3 text-sm text-muted-foreground">
-          {daysDisplay && <span>{daysDisplay}</span>}
-          {daysDisplay && recurring && recurring !== "Currently not recurring" && <span> • </span>}
-          {recurring && recurring !== "Currently not recurring" && <span>{recurring}</span>}
+          <span>{daysDisplay}</span>
         </div>
       )}
       
