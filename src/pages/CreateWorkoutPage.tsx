@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import ExerciseSearchInput from "@/components/ExerciseSearchInput";
 import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
 import { usePhotoPicker } from "@/hooks/useCamera";
+import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 interface Set {
   id: string;
   weight: string;
@@ -50,6 +51,7 @@ const CreateWorkoutPage = () => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isChoiceDialogOpen, setIsChoiceDialogOpen] = useState(false);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [routineInstanceId, setRoutineInstanceId] = useState<string | null>(null);
 
   const { inputRef, openPicker, handleFileChange } = usePhotoPicker((urls) => {
@@ -458,17 +460,28 @@ const CreateWorkoutPage = () => {
         </div>
       )}
 
-      {/* Bottom Camera Button */}
+      {/* Bottom Camera Buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-full gap-2 rounded-xl border-border bg-card hover:bg-muted"
-          onClick={() => setIsChoiceDialogOpen(true)}
-        >
-          <Camera size={20} />
-          Take a Photo {photos.length > 0 && `(${photos.length})`}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-[4] gap-2 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setIsChoiceDialogOpen(true)}
+          >
+            <Camera size={20} />
+            Take a Photo {photos.length > 0 && `(${photos.length})`}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setIsPhotoGalleryOpen(true)}
+            disabled={photos.length === 0}
+          >
+            View
+          </Button>
+        </div>
       </div>
 
       {/* Hidden file input for gallery */}
@@ -501,6 +514,14 @@ const CreateWorkoutPage = () => {
         onClose={() => setIsCameraOpen(false)}
         onCapture={handleCapturePhoto}
         onSelectFromGallery={handleSelectFromGallery}
+      />
+
+      {/* Photo Gallery Sheet */}
+      <PhotoGallerySheet
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        photos={photos}
+        onDeletePhoto={removePhoto}
       />
     </div>
   );
