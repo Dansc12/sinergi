@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Dumbbell } from "lucide-react";
+import { Search, Dumbbell, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { AddCustomExerciseModal } from "@/components/AddCustomExerciseModal";
 
 export interface Exercise {
   id: string;
@@ -80,10 +82,43 @@ interface ExerciseSearchInputProps {
 const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: ExerciseSearchInputProps) => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Exercise[]>([]);
+  const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Fetch custom exercises on mount
+  useEffect(() => {
+    const fetchCustomExercises = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('custom_exercises')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error("Error fetching custom exercises:", error);
+        return;
+      }
+
+      const formatted: Exercise[] = (data || []).map(ex => ({
+        id: `custom-${ex.id}`,
+        name: ex.name,
+        category: ex.category,
+        muscleGroup: ex.muscle_group,
+        isCardio: ex.is_cardio,
+      }));
+
+      setCustomExercises(formatted);
+    };
+
+    fetchCustomExercises();
+  }, []);
+
+  // Combine and filter exercises
   useEffect(() => {
     if (query.length < 1) {
       setResults([]);
@@ -91,7 +126,8 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
       return;
     }
 
-    const filtered = exerciseDatabase.filter(
+    const allExercises = [...customExercises, ...exerciseDatabase];
+    const filtered = allExercises.filter(
       (exercise) =>
         exercise.name.toLowerCase().includes(query.toLowerCase()) ||
         exercise.muscleGroup.toLowerCase().includes(query.toLowerCase()) ||
@@ -99,7 +135,7 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
     );
     setResults(filtered.slice(0, 8));
     setIsOpen(true);
-  }, [query]);
+  }, [query, customExercises]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -117,48 +153,102 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
     setIsOpen(false);
   };
 
+  const handleAddCustom = () => {
+    setIsOpen(false);
+    setShowAddModal(true);
+  };
+
+  const handleCustomExerciseAdded = (exercise: Exercise) => {
+    setCustomExercises(prev => [exercise, ...prev]);
+    onSelect(exercise);
+    setQuery("");
+  };
+
   return (
-    <div ref={containerRef} className="relative">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        <Input
-          ref={inputRef}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="pl-10 bg-card border-border"
-        />
+    <>
+      <div ref={containerRef} className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={placeholder}
+            className="pl-10 bg-card border-border"
+          />
+        </div>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+            >
+              {results.length > 0 ? (
+                <>
+                  {results.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      onClick={() => handleSelect(exercise)}
+                      className="w-full p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${exercise.isCardio ? "bg-accent/20" : "bg-primary/20"}`}>
+                        <Dumbbell size={18} className={exercise.isCardio ? "text-accent" : "text-primary"} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">
+                          {exercise.name}
+                          {exercise.id.startsWith("custom-") && (
+                            <span className="ml-2 text-xs text-primary">(Custom)</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {exercise.category} • {exercise.muscleGroup}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleAddCustom}
+                    className="w-full p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left border-t border-border"
+                  >
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-muted">
+                      <Plus size={18} className="text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">Add Custom Exercise</p>
+                      <p className="text-xs text-muted-foreground">Create your own exercise</p>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleAddCustom}
+                  className="w-full p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20">
+                    <Plus size={18} className="text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">Add "{query}" as Custom Exercise</p>
+                    <p className="text-xs text-muted-foreground">Create your own exercise</p>
+                  </div>
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <AnimatePresence>
-        {isOpen && results.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
-          >
-            {results.map((exercise) => (
-              <button
-                key={exercise.id}
-                onClick={() => handleSelect(exercise)}
-                className="w-full p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
-              >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${exercise.isCardio ? "bg-accent/20" : "bg-primary/20"}`}>
-                  <Dumbbell size={18} className={exercise.isCardio ? "text-accent" : "text-primary"} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{exercise.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {exercise.category} • {exercise.muscleGroup}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      <AddCustomExerciseModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleCustomExerciseAdded}
+        initialName={query}
+      />
+    </>
   );
 };
 
