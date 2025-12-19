@@ -84,6 +84,39 @@ export type Database = {
           },
         ]
       }
+      custom_exercises: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_cardio: boolean
+          muscle_group: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_cardio?: boolean
+          muscle_group: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_cardio?: boolean
+          muscle_group?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_foods: {
         Row: {
           base_unit: string
