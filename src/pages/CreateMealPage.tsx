@@ -11,6 +11,7 @@ import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
 import { usePhotoPicker } from "@/hooks/useCamera";
 import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRecentFoods } from "@/hooks/useRecentFoods";
 
 interface SelectedFood {
   id: string;
@@ -30,15 +31,6 @@ interface RestoredState {
   preselectedMealType?: string;
 }
 
-// Mock recent foods - in production, this would come from the database
-const recentFoods: FoodItem[] = [
-  { fdcId: 1, description: "Grilled Chicken Breast", calories: 165, protein: 31, carbs: 0, fats: 3.6 },
-  { fdcId: 2, description: "Brown Rice, Cooked", calories: 216, protein: 5, carbs: 45, fats: 1.8 },
-  { fdcId: 3, description: "Scrambled Eggs", calories: 147, protein: 10, carbs: 2, fats: 11 },
-  { fdcId: 4, description: "Greek Yogurt, Plain", calories: 100, protein: 17, carbs: 6, fats: 0.7 },
-  { fdcId: 5, description: "Banana, Medium", calories: 105, protein: 1.3, carbs: 27, fats: 0.4 },
-];
-
 const CreateMealPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,6 +48,8 @@ const CreateMealPage = () => {
   const [isFoodDetailOpen, setIsFoodDetailOpen] = useState(false);
   const [isCustomFoodModalOpen, setIsCustomFoodModalOpen] = useState(false);
   const [customFoodInitialName, setCustomFoodInitialName] = useState("");
+
+  const { recentFoods, isLoading: isLoadingRecentFoods } = useRecentFoods(10);
 
   const { inputRef, openPicker, handleFileChange } = usePhotoPicker((urls) => {
     setPhotos([...photos, ...urls]);
@@ -220,29 +214,47 @@ const CreateMealPage = () => {
               <Clock size={16} />
               <span className="text-sm font-medium">Recent Foods</span>
             </div>
-            <div className="space-y-2">
-              {recentFoods.map((food) => (
-                <motion.button
-                  key={food.fdcId}
-                  onClick={() => handleFoodSelect(food)}
-                  className="w-full text-left p-4 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-foreground">{food.description}</div>
-                      <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
-                        <span>{food.calories} cal</span>
-                        <span>P: {food.protein}g</span>
-                        <span>C: {food.carbs}g</span>
-                        <span>F: {food.fats}g</span>
+            {isLoadingRecentFoods ? (
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            ) : recentFoods.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No recent foods yet. Start logging meals!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recentFoods.map((food, index) => (
+                  <motion.button
+                    key={`${food.fdcId}-${index}`}
+                    onClick={() => handleFoodSelect({
+                      fdcId: food.fdcId,
+                      description: food.description,
+                      calories: food.calories,
+                      protein: food.protein,
+                      carbs: food.carbs,
+                      fats: food.fats,
+                    })}
+                    className="w-full text-left p-4 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-foreground">{food.description}</div>
+                        <div className="text-xs text-primary mt-0.5">
+                          {food.servings} × {food.servingSize}
+                        </div>
+                        <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                          <span>{food.calories} cal</span>
+                          <span>P: {food.protein.toFixed(0)}g</span>
+                          <span>C: {food.carbs.toFixed(0)}g</span>
+                          <span>F: {food.fats.toFixed(0)}g</span>
+                        </div>
                       </div>
+                      <ChevronRight size={20} className="text-muted-foreground" />
                     </div>
-                    <ChevronRight size={20} className="text-muted-foreground" />
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -275,32 +287,44 @@ const CreateMealPage = () => {
             </div>
 
             {/* Recent Foods to add more */}
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock size={16} />
-                <span className="text-sm font-medium">Add More</span>
-              </div>
-              <div className="space-y-2">
-                {recentFoods.slice(0, 3).map((food) => (
-                  <motion.button
-                    key={food.fdcId}
-                    onClick={() => handleFoodSelect(food)}
-                    className="w-full text-left p-3 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-sm text-foreground">{food.description}</div>
-                        <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
-                          <span>{food.calories} cal</span>
+            {recentFoods.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock size={16} />
+                  <span className="text-sm font-medium">Add More</span>
+                </div>
+                <div className="space-y-2">
+                  {recentFoods.slice(0, 3).map((food, index) => (
+                    <motion.button
+                      key={`add-more-${food.fdcId}-${index}`}
+                      onClick={() => handleFoodSelect({
+                        fdcId: food.fdcId,
+                        description: food.description,
+                        calories: food.calories,
+                        protein: food.protein,
+                        carbs: food.carbs,
+                        fats: food.fats,
+                      })}
+                      className="w-full text-left p-3 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-sm text-foreground">{food.description}</div>
+                          <div className="text-xs text-primary">
+                            {food.servings} × {food.servingSize}
+                          </div>
+                          <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <span>{food.calories} cal</span>
+                          </div>
                         </div>
+                        <ChevronRight size={18} className="text-muted-foreground" />
                       </div>
-                      <ChevronRight size={18} className="text-muted-foreground" />
-                    </div>
-                  </motion.button>
-                ))}
+                    </motion.button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </motion.div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,13 @@ export const AddCustomFoodModal = ({
   const [fat, setFat] = useState("");
   const [baseUnit, setBaseUnit] = useState<"g" | "oz">("g");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync name with initialName when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialName);
+    }
+  }, [isOpen, initialName]);
 
   const handleSave = async () => {
     if (!name.trim()) {
