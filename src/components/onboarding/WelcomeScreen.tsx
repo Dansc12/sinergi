@@ -1,18 +1,34 @@
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 export function WelcomeScreen() {
   const { setCurrentStep } = useOnboarding();
+  const navigate = useNavigate();
+
+  const handleBack = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center"
+      className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center relative"
     >
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleBack}
+        className="absolute top-4 left-4"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
