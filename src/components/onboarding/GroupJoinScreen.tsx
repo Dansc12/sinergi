@@ -14,6 +14,7 @@ interface SystemGroup {
   slug: string;
   name: string;
   description: string;
+  avatar_url: string | null;
 }
 
 interface GroupJoinScreenProps {
@@ -53,7 +54,7 @@ export function GroupJoinScreen({ isAuthenticated = false }: GroupJoinScreenProp
     try {
       const { data: groupsData, error } = await supabase
         .from('groups')
-        .select('id, slug, name, description')
+        .select('id, slug, name, description, avatar_url')
         .eq('is_system', true)
         .eq('visibility', 'public');
 
@@ -179,10 +180,18 @@ export function GroupJoinScreen({ isAuthenticated = false }: GroupJoinScreenProp
                 >
                   <div className="flex items-start gap-3">
                     <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
+                      "w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden",
                       isJoined ? "bg-primary/20" : "bg-muted"
                     )}>
-                      <Users size={24} className={isJoined ? "text-primary" : "text-muted-foreground"} />
+                      {group.avatar_url ? (
+                        <img 
+                          src={group.avatar_url} 
+                          alt={group.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Users size={24} className={isJoined ? "text-primary" : "text-muted-foreground"} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
