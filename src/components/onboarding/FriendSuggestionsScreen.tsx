@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { OnboardingProgress } from './OnboardingProgress';
 import { motion } from 'framer-motion';
-import { ChevronLeft, User, UserPlus, Check, Loader2 } from 'lucide-react';
+import { ChevronLeft, User, UserPlus, Check, Loader2, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -142,11 +142,16 @@ export function FriendSuggestionsScreen({ isAuthenticated = false }: FriendSugge
         </button>
 
         <h1 className="text-2xl font-bold mb-2">Add a few people</h1>
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground mb-3">
           Following a few people makes the app more motivating — you'll see their check-ins and they'll see yours.
         </p>
-
-        {/* Progress indicator */}
+        
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 mb-4">
+          <Bell size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            Clicking "Friend" sends a Friend Request. They'll receive a notification in their inbox.
+          </p>
+        </div>
         <div className="flex items-center gap-2 mb-6">
           <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
             <motion.div 
