@@ -168,25 +168,25 @@ export const useSavedWorkouts = () => {
 
   const fetchCommunityContent = useCallback(async () => {
     try {
-      // Fetch public workout posts
+      // Fetch all visible workout posts (RLS handles visibility - public + friends posts user can see)
       const { data: workoutPosts, error: workoutError } = await supabase
         .from("posts")
         .select("id, description, content_data, created_at, user_id, visibility")
         .eq("content_type", "workout")
-        .eq("visibility", "public")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (workoutError) throw workoutError;
 
-      // Fetch public routine posts (if any - routines might be stored differently)
+      // Fetch all visible routine posts (RLS handles visibility)
       const { data: routinePosts, error: routineError } = await supabase
         .from("posts")
         .select("id, description, content_data, created_at, user_id, visibility")
         .eq("content_type", "routine")
-        .eq("visibility", "public")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
+
+      if (routineError) throw routineError;
 
       // Get unique user IDs
       const userIds = [
@@ -200,7 +200,7 @@ export const useSavedWorkouts = () => {
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, first_name, last_name, username, avatar_url")
-        .in("user_id", userIds);
+        .in("user_id", userIds.length > 0 ? userIds : ['no-users']);
 
       const profileMap = new Map(
         (profiles || []).map((p) => [
@@ -214,57 +214,53 @@ export const useSavedWorkouts = () => {
         ])
       );
 
-      // Map workout posts to community workouts
-      const communityWkts: CommunityWorkout[] = (workoutPosts || [])
-        .filter((p) => p.user_id !== user?.id)
-        .map((p) => {
-          const contentData = p.content_data as Record<string, unknown>;
-          const exercises = (contentData?.exercises as WorkoutExercise[]) || [];
-          return {
-            id: p.id,
-            title: (contentData?.title as string) || "Workout",
-            description: p.description,
-            exercises,
-            creator: profileMap.get(p.user_id) || {
-              id: p.user_id,
-              name: "Anonymous",
-              username: null,
-              avatar_url: null,
-            },
-            created_at: p.created_at,
-            exerciseCount: exercises.length,
-          };
-        });
+      // Map workout posts to community workouts (include all users, even current user)
+      const communityWkts: CommunityWorkout[] = (workoutPosts || []).map((p) => {
+        const contentData = p.content_data as Record<string, unknown>;
+        const exercises = (contentData?.exercises as WorkoutExercise[]) || [];
+        return {
+          id: p.id,
+          title: (contentData?.title as string) || "Workout",
+          description: p.description,
+          exercises,
+          creator: profileMap.get(p.user_id) || {
+            id: p.user_id,
+            name: "Anonymous",
+            username: null,
+            avatar_url: null,
+          },
+          created_at: p.created_at,
+          exerciseCount: exercises.length,
+        };
+      });
 
       setCommunityWorkouts(communityWkts);
 
-      // Map routine posts to community routines
-      const communityRtns: CommunityRoutine[] = (routinePosts || [])
-        .filter((p) => p.user_id !== user?.id)
-        .map((p) => {
-          const contentData = p.content_data as Record<string, unknown>;
-          const exercises = (contentData?.exercises as RoutineExercise[]) || [];
-          return {
-            id: p.id,
-            title: (contentData?.name as string) || "Routine",
-            description: p.description,
-            exercises,
-            creator: profileMap.get(p.user_id) || {
-              id: p.user_id,
-              name: "Anonymous",
-              username: null,
-              avatar_url: null,
-            },
-            created_at: p.created_at,
-            exerciseCount: exercises.length,
-          };
-        });
+      // Map routine posts to community routines (include all users, even current user)
+      const communityRtns: CommunityRoutine[] = (routinePosts || []).map((p) => {
+        const contentData = p.content_data as Record<string, unknown>;
+        const exercises = (contentData?.exercises as RoutineExercise[]) || [];
+        return {
+          id: p.id,
+          title: (contentData?.name as string) || "Routine",
+          description: p.description,
+          exercises,
+          creator: profileMap.get(p.user_id) || {
+            id: p.user_id,
+            name: "Anonymous",
+            username: null,
+            avatar_url: null,
+          },
+          created_at: p.created_at,
+          exerciseCount: exercises.length,
+        };
+      });
 
       setCommunityRoutines(communityRtns);
     } catch (err) {
       console.error("Error fetching community content:", err);
     }
-  }, [user]);
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
