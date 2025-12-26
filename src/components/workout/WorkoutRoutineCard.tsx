@@ -98,14 +98,13 @@ const WorkoutRoutineCard = ({
               <h4 className="font-semibold text-foreground truncate">{title}</h4>
               
               {/* Date */}
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground -mt-0.5 block">
                 {formatDate(createdAt)}
               </span>
 
               {/* Exercise Preview */}
-              <p className="text-xs text-muted-foreground/80 mt-1.5 line-clamp-2">
-                {exerciseNames.join(", ")}
-                {hasMore && `...`}
+              <p className="text-xs text-muted-foreground/80 mt-1.5 truncate">
+                {exercises.map((e) => e.name).join(", ")}
               </p>
             </div>
 
@@ -164,7 +163,7 @@ const WorkoutRoutineCard = ({
             </div>
 
             {/* Exercise Details */}
-            <div className="mt-4 pt-4 border-t border-border/50 space-y-3">
+            <div className="mt-4 space-y-3">
               {exercises.map((exercise, idx) => (
                 <div key={exercise.id || idx} className="space-y-1">
                   <h5 className="font-medium text-foreground text-sm">{exercise.name}</h5>
