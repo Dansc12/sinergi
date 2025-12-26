@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Users, Camera, Loader2, MessageCircle, UserPlus, Check } from "lucide-react";
+import { ChevronLeft, Users, Camera, Loader2, MessageCircle, UserPlus, Check, Flame, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileContentFeed } from "@/components/profile/ProfileContentFeed";
@@ -35,6 +41,7 @@ const UserProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [friendsCount, setFriendsCount] = useState(0);
+  const [streakCount, setStreakCount] = useState(0);
   const [stats, setStats] = useState({ meals: 0, days: 0, workouts: 0 });
   
   const { status, isFriend, sendFriendRequest, acceptFriendRequest, currentUserId } = useFriendship(userId || null);
@@ -61,6 +68,17 @@ const UserProfilePage = () => {
 
       if (profileData) {
         setProfile(profileData);
+      }
+
+      // Fetch streak data
+      const { data: streakData } = await supabase
+        .from('user_streaks')
+        .select('current_streak')
+        .eq('user_id', userId)
+        .single();
+
+      if (streakData) {
+        setStreakCount(streakData.current_streak);
       }
 
       // Fetch friends count
@@ -134,22 +152,68 @@ const UserProfilePage = () => {
       </header>
 
       <div className="px-4 py-6 animate-fade-in">
-        {/* Profile Header */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="relative mb-4">
-            <Avatar className="w-24 h-24 border-4 border-primary/30">
+        {/* Profile Header - Horizontal Layout */}
+        <div className="mb-6">
+          {/* Top Row: Avatar + Name/Username/Stats */}
+          <div className="flex items-start gap-4 mb-4">
+            <Avatar className="w-24 h-24 flex-shrink-0">
               <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback className="text-2xl bg-muted">
                 <Camera size={32} className="text-muted-foreground" />
               </AvatarFallback>
             </Avatar>
+            
+            <div className="flex flex-col justify-start flex-1">
+              <h2 className="text-xl font-bold">{fullName}</h2>
+              {profile.username && (
+                <p className="text-muted-foreground text-sm mb-2">@{profile.username}</p>
+              )}
+              
+              {/* Stats - Instagram style */}
+              <div className="flex gap-6">
+                <div className="text-center">
+                  <p className="text-base font-bold">{stats.meals}</p>
+                  <p className="text-xs text-muted-foreground">Meals</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-bold">{stats.days}</p>
+                  <p className="text-xs text-muted-foreground">Days</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-bold">{stats.workouts}</p>
+                  <p className="text-xs text-muted-foreground">Workouts</p>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <h2 className="text-2xl font-bold mb-1">{fullName}</h2>
-          {profile.username && (
-            <p className="text-muted-foreground text-sm mb-1">@{profile.username}</p>
-          )}
-          {userBio && <p className="text-muted-foreground text-sm mb-2">{userBio}</p>}
+
+          {/* Streak Badge + Hobbies Row */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-24 flex items-center justify-center gap-1 bg-streak text-primary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-md flex-shrink-0">
+              <Flame size={14} />
+              <span>{streakCount}</span>
+            </div>
+            
+            {interests.length > 0 && (
+              <div className="relative flex-1 min-w-0 overflow-hidden h-6">
+                <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-1 h-full">
+                  {interests.map((interest) => (
+                    <span
+                      key={interest}
+                      className="px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Bio */}
+          {userBio && <p className="text-muted-foreground text-sm mb-4">{userBio}</p>}
           
           {/* Friend Status / Actions */}
           <div className="flex items-center gap-3 mb-4">
@@ -194,59 +258,35 @@ const UserProfilePage = () => {
               Message
             </Button>
           </div>
-
-          {/* Interests */}
-          {interests.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
-              {interests.map((interest) => (
-                <span
-                  key={interest}
-                  className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-medium"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Stats */}
-          <div className="flex gap-6 w-full justify-center">
-            <div className="bg-card border border-border rounded-xl px-6 py-4 text-center">
-              <p className="text-2xl font-bold">{stats.meals}</p>
-              <p className="text-xs text-muted-foreground">Meals</p>
-            </div>
-            <div className="bg-card border border-border rounded-xl px-6 py-4 text-center">
-              <p className="text-2xl font-bold">{stats.days}</p>
-              <p className="text-xs text-muted-foreground">Days</p>
-            </div>
-            <div className="bg-card border border-border rounded-xl px-6 py-4 text-center">
-              <p className="text-2xl font-bold">{stats.workouts}</p>
-              <p className="text-xs text-muted-foreground">Workouts</p>
-            </div>
-          </div>
         </div>
 
-        {/* Content Tabs */}
-        <div className="border-b border-border mb-4">
-          <div className="flex overflow-x-auto hide-scrollbar -mx-4 px-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative",
-                  activeTab === tab.id
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+        {/* Content Type Selector */}
+        <div className="mb-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="w-full justify-between text-base font-medium"
               >
-                {tab.label}
-                {activeTab === tab.id && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                )}
-              </button>
-            ))}
-          </div>
+                {tabs.find(t => t.id === activeTab)?.label}
+                <ChevronDown size={18} className="text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[calc(100vw-2rem)] bg-card border border-border">
+              {tabs.map((tab) => (
+                <DropdownMenuItem
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "text-base py-3 cursor-pointer",
+                    activeTab === tab.id && "bg-primary/10 text-primary font-medium"
+                  )}
+                >
+                  {tab.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Content Feed - Show based on friendship */}
