@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Utensils, X, Camera, ChevronRight, Clock, Images, Loader2 } from "lucide-react";
@@ -13,7 +13,7 @@ import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRecentFoods } from "@/hooks/useRecentFoods";
 import { usePosts } from "@/hooks/usePosts";
-
+import CreationCongratsPopup from "@/components/CreationCongratsPopup";
 interface SelectedFood {
   id: string;
   name: string;
@@ -55,6 +55,8 @@ const CreateMealPage = () => {
   const [pendingFoodInitialQuantity, setPendingFoodInitialQuantity] = useState<number | undefined>();
   const [pendingFoodInitialUnit, setPendingFoodInitialUnit] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCongratsPopup, setShowCongratsPopup] = useState(false);
+  const savedPostIdRef = useRef<string | null>(null);
 
   const { recentFoods, isLoading: isLoadingRecentFoods } = useRecentFoods(10);
 
@@ -169,21 +171,39 @@ const CreateMealPage = () => {
     
     setIsSubmitting(true);
     try {
-      await createPost({
+      const newPost = await createPost({
         content_type: "meal",
         content_data: { mealType, foods: selectedFoods, totalCalories, totalProtein, totalCarbs, totalFats },
         images: photos,
         visibility: "private",
       });
 
-      toast({ title: "Meal logged!", description: "Your meal has been saved." });
-      navigate("/");
+      savedPostIdRef.current = newPost?.id || null;
+      setShowCongratsPopup(true);
     } catch (error) {
       console.error("Error saving meal:", error);
       toast({ title: "Error", description: "Failed to save meal. Please try again.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCongratsPost = () => {
+    setShowCongratsPopup(false);
+    navigate("/share", {
+      state: {
+        contentType: "meal",
+        contentData: { mealType, foods: selectedFoods, totalCalories, totalProtein, totalCarbs, totalFats },
+        images: photos,
+        returnTo: "/",
+        fromSelection: true,
+      },
+    });
+  };
+
+  const handleCongratsDismiss = () => {
+    setShowCongratsPopup(false);
+    navigate("/");
   };
 
   return (
@@ -542,6 +562,14 @@ const CreateMealPage = () => {
         onClose={() => setIsCustomFoodModalOpen(false)}
         onSuccess={handleCustomFoodCreated}
         initialName={customFoodInitialName}
+      />
+
+      {/* Congrats Popup */}
+      <CreationCongratsPopup
+        isVisible={showCongratsPopup}
+        contentType="meal"
+        onDismiss={handleCongratsDismiss}
+        onPost={handleCongratsPost}
       />
     </div>
   );
