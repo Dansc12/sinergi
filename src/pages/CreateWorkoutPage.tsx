@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Dumbbell, Plus, Trash2, Check, Bookmark, Compass, Loader2 } from "lucide-react";
@@ -15,7 +15,6 @@ import { SavedRoutine, PastWorkout, CommunityRoutine, CommunityWorkout } from "@
 import { usePosts } from "@/hooks/usePosts";
 import { supabase } from "@/integrations/supabase/client";
 import { useExerciseHistory } from "@/hooks/useExerciseHistory";
-import CreationCongratsPopup from "@/components/CreationCongratsPopup";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,8 +77,6 @@ const CreateWorkoutPage = () => {
   const [routineInstanceId, setRoutineInstanceId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
-  const [showCongratsPopup, setShowCongratsPopup] = useState(false);
-  const savedPostIdRef = useRef<string | null>(null);
 
   // Get the currently selected exercise
   const selectedExercise = exercises.find(e => e.id === selectedExerciseId);
@@ -375,7 +372,7 @@ const CreateWorkoutPage = () => {
     
     setIsSubmitting(true);
     try {
-      const newPost = await createPost({
+      await createPost({
         content_type: "workout",
         content_data: { title, exercises },
         images: photos,
@@ -393,32 +390,21 @@ const CreateWorkoutPage = () => {
           .eq("id", routineInstanceId);
       }
 
-      savedPostIdRef.current = newPost?.id || null;
-      setShowCongratsPopup(true);
+      // Navigate home and show congrats popup
+      navigate("/", {
+        state: {
+          showCongrats: true,
+          contentType: "workout",
+          contentData: { title, exercises },
+          images: photos,
+        },
+      });
     } catch (error) {
       console.error("Error saving workout:", error);
       toast({ title: "Error", description: "Failed to save workout. Please try again.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCongratsPost = () => {
-    setShowCongratsPopup(false);
-    navigate("/share", {
-      state: {
-        contentType: "workout",
-        contentData: { title, exercises },
-        images: photos,
-        returnTo: "/",
-        fromSelection: true,
-      },
-    });
-  };
-
-  const handleCongratsDismiss = () => {
-    setShowCongratsPopup(false);
-    navigate("/");
   };
 
   // Convert routine exercises to workout exercises
@@ -897,13 +883,6 @@ const CreateWorkoutPage = () => {
         itemName={pendingAutofill?.name || ""}
       />
 
-      {/* Congrats Popup */}
-      <CreationCongratsPopup
-        isVisible={showCongratsPopup}
-        contentType="workout"
-        onDismiss={handleCongratsDismiss}
-        onPost={handleCongratsPost}
-      />
     </div>
   );
 };

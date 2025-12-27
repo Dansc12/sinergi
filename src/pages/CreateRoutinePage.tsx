@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, RotateCcw, Trash2, Camera, Plus, ChevronDown, ChevronUp, Dumbbell, Images, Loader2 } from "lucide-react";
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePosts } from "@/hooks/usePosts";
-import CreationCongratsPopup from "@/components/CreationCongratsPopup";
 
 interface RoutineSet {
   id: string;
@@ -92,8 +91,6 @@ const CreateRoutinePage = () => {
   const [isChoiceDialogOpen, setIsChoiceDialogOpen] = useState(false);
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showCongratsPopup, setShowCongratsPopup] = useState(false);
-  const savedPostIdRef = useRef<string | null>(null);
   const { inputRef, openPicker, handleFileChange } = usePhotoPicker((urls) => {
     setPhotos([...photos, ...urls]);
     toast({ title: "Photos added!", description: `${urls.length} photo(s) added.` });
@@ -224,39 +221,28 @@ const CreateRoutinePage = () => {
     
     setIsSubmitting(true);
     try {
-      const newPost = await createPost({
+      await createPost({
         content_type: "routine",
         content_data: { routineName: name, description, selectedDays, exercises, recurring },
         images: photos,
         visibility: "private",
       });
 
-      savedPostIdRef.current = newPost?.id || null;
-      setShowCongratsPopup(true);
+      // Navigate home and show congrats popup
+      navigate("/", {
+        state: {
+          showCongrats: true,
+          contentType: "routine",
+          contentData: { routineName: name, description, selectedDays, exercises, recurring },
+          images: photos,
+        },
+      });
     } catch (error) {
       console.error("Error saving routine:", error);
       toast({ title: "Error", description: "Failed to save routine. Please try again.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCongratsPost = () => {
-    setShowCongratsPopup(false);
-    navigate("/share", {
-      state: {
-        contentType: "routine",
-        contentData: { routineName: name, description, selectedDays, exercises, recurring },
-        images: photos,
-        returnTo: "/",
-        fromSelection: true,
-      },
-    });
-  };
-
-  const handleCongratsDismiss = () => {
-    setShowCongratsPopup(false);
-    navigate("/");
   };
 
   return (
@@ -570,13 +556,6 @@ const CreateRoutinePage = () => {
         onDeletePhoto={removePhoto}
       />
 
-      {/* Congrats Popup */}
-      <CreationCongratsPopup
-        isVisible={showCongratsPopup}
-        contentType="routine"
-        onDismiss={handleCongratsDismiss}
-        onPost={handleCongratsPost}
-      />
     </div>
   );
 };
