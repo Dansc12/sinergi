@@ -99,8 +99,6 @@ const CreateWorkoutPage = () => {
   const [showSupersetModal, setShowSupersetModal] = useState(false);
   const [supersetSourceExerciseId, setSupersetSourceExerciseId] = useState<string | null>(null);
   const [selectedSupersetExercises, setSelectedSupersetExercises] = useState<string[]>([]);
-  const [draggingExerciseId, setDraggingExerciseId] = useState<string | null>(null);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Get the currently selected exercise
   const selectedExercise = exercises.find(e => e.id === selectedExerciseId);
@@ -943,19 +941,25 @@ const CreateWorkoutPage = () => {
                 const completedSets = exercise.sets.filter(s => s.completed).length;
                 const totalSets = exercise.sets.length;
                 const supersetBarColor = exercise.supersetGroupId ? getSupersetBarColor(exercise.supersetGroupId) : null;
-                const isDragging = draggingExerciseId === exercise.id;
+                
                 
                 return (
                   <motion.div
                     key={exercise.id}
                     layout
-                    drag={isDragging ? "x" : false}
+                    drag="x"
+                    dragDirectionLock
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={1}
+                    dragElastic={0.1}
+                    whileDrag={{ scale: 1.05, zIndex: 20 }}
+                    onDragStart={() => {
+                      // Haptic feedback if available
+                      if (navigator.vibrate) {
+                        navigator.vibrate(30);
+                      }
+                    }}
                     onDragEnd={(e, info) => {
-                      if (!isDragging) return;
-                      setDraggingExerciseId(null);
-                      const threshold = 50;
+                      const threshold = 60;
                       if (Math.abs(info.offset.x) > threshold) {
                         const direction = info.offset.x > 0 ? -1 : 1;
                         const newIndex = Math.max(0, Math.min(exercises.length - 1, index + direction));
@@ -964,57 +968,14 @@ const CreateWorkoutPage = () => {
                           const [removed] = newExercises.splice(index, 1);
                           newExercises.splice(newIndex, 0, removed);
                           setExercises(newExercises);
+                          if (navigator.vibrate) {
+                            navigator.vibrate(20);
+                          }
                         }
                       }
                     }}
-                    onTouchStart={() => {
-                      const timer = setTimeout(() => {
-                        setDraggingExerciseId(exercise.id);
-                        // Haptic feedback if available
-                        if (navigator.vibrate) {
-                          navigator.vibrate(50);
-                        }
-                      }, 400);
-                      longPressTimerRef.current = timer;
-                    }}
-                    onTouchEnd={() => {
-                      if (longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                      // Don't reset dragging here - let onDragEnd handle it
-                    }}
-                    onTouchMove={() => {
-                      // If not yet dragging, cancel the long press
-                      if (!isDragging && longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                    }}
-                    onMouseDown={() => {
-                      const timer = setTimeout(() => {
-                        setDraggingExerciseId(exercise.id);
-                      }, 400);
-                      longPressTimerRef.current = timer;
-                    }}
-                    onMouseUp={() => {
-                      if (longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                      if (!isDragging) {
-                        setDraggingExerciseId(null);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                    }}
-                    className={`flex-shrink-0 rounded-xl transition-all relative overflow-hidden ${
-                      isDragging ? "cursor-grabbing scale-105 shadow-xl z-20" : "cursor-pointer"
-                    } ${
+                    style={{ touchAction: "pan-y" }}
+                    className={`flex-shrink-0 rounded-xl transition-colors relative overflow-hidden cursor-grab active:cursor-grabbing ${
                       isSelected
                         ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                         : "bg-card border border-border text-foreground hover:border-primary/50"
@@ -1025,11 +986,7 @@ const CreateWorkoutPage = () => {
                       <div className={`absolute left-0 top-0 bottom-0 w-1 ${supersetBarColor}`} />
                     )}
                     <button
-                      onClick={() => {
-                        if (!isDragging) {
-                          setSelectedExerciseId(exercise.id);
-                        }
-                      }}
+                      onClick={() => setSelectedExerciseId(exercise.id)}
                       className={`px-4 py-3 pr-10 text-left ${supersetBarColor ? 'pl-4' : ''}`}
                     >
                       <div className="flex flex-col items-start gap-1 min-w-[100px]">
