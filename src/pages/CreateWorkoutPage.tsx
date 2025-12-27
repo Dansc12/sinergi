@@ -949,7 +949,7 @@ const CreateWorkoutPage = () => {
                     whileTap={{ scale: 0.95 }}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.1}
+                    dragElastic={1}
                     onDragEnd={(e, info) => {
                       const threshold = 50;
                       if (Math.abs(info.offset.x) > threshold) {
