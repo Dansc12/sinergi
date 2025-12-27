@@ -251,7 +251,22 @@ const CreateWorkoutPage = () => {
   };
 
   const removeExercise = (exerciseId: string) => {
-    const newExercises = exercises.filter((e) => e.id !== exerciseId);
+    const exerciseToRemove = exercises.find(e => e.id === exerciseId);
+    let newExercises = exercises.filter((e) => e.id !== exerciseId);
+    
+    // Check if the removed exercise was in a superset
+    if (exerciseToRemove?.supersetGroupId) {
+      const groupId = exerciseToRemove.supersetGroupId;
+      const remainingInSuperset = newExercises.filter(e => e.supersetGroupId === groupId);
+      
+      // If only 1 or 0 exercises remain in the superset, dissolve it
+      if (remainingInSuperset.length <= 1) {
+        newExercises = newExercises.map(e => 
+          e.supersetGroupId === groupId ? { ...e, supersetGroupId: undefined } : e
+        );
+      }
+    }
+    
     setExercises(newExercises);
     // If we removed the selected exercise, select another one
     if (selectedExerciseId === exerciseId) {
@@ -738,25 +753,16 @@ const CreateWorkoutPage = () => {
             className="mb-6"
           >
             {/* Exercise Title & Actions */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <Dumbbell size={18} className="text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-foreground">{selectedExercise.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedExercise.category} • {selectedExercise.muscleGroup}
-                  </p>
-                </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Dumbbell size={18} className="text-primary" />
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeExercise(selectedExercise.id)}
-              >
-                <Trash2 size={18} className="text-destructive" />
-              </Button>
+              <div>
+                <h3 className="font-semibold text-lg text-foreground">{selectedExercise.name}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {selectedExercise.category} • {selectedExercise.muscleGroup}
+                </p>
+              </div>
             </div>
 
             {/* Notes */}
@@ -995,10 +1001,25 @@ const CreateWorkoutPage = () => {
                         {exercise.supersetGroupId ? (
                           <DropdownMenuItem 
                             onClick={() => {
-                              setExercises(exercises.map(e => 
-                                e.id === exercise.id ? { ...e, supersetGroupId: undefined } : e
-                              ));
-                              toast({ title: "Removed from superset" });
+                              const groupId = exercise.supersetGroupId;
+                              // Count how many exercises are in this superset (excluding this one)
+                              const remainingInSuperset = exercises.filter(
+                                e => e.supersetGroupId === groupId && e.id !== exercise.id
+                              );
+                              
+                              if (remainingInSuperset.length <= 1) {
+                                // Only 1 or 0 remaining - dissolve the entire superset
+                                setExercises(exercises.map(e => 
+                                  e.supersetGroupId === groupId ? { ...e, supersetGroupId: undefined } : e
+                                ));
+                                toast({ title: "Superset dissolved", description: "A superset requires at least 2 exercises." });
+                              } else {
+                                // More than 1 remaining - just remove this exercise
+                                setExercises(exercises.map(e => 
+                                  e.id === exercise.id ? { ...e, supersetGroupId: undefined } : e
+                                ));
+                                toast({ title: "Removed from superset" });
+                              }
                             }}
                           >
                             <X size={14} className="mr-2" />
