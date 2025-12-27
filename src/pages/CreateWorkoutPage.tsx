@@ -1163,16 +1163,28 @@ const CreateWorkoutPage = () => {
             <AlertDialogAction 
               onClick={() => {
                 if (supersetSourceExerciseId && selectedSupersetExercises.length > 0) {
-                  const groupId = Date.now().toString();
+                  // Check if any selected exercise is already in a superset
+                  const existingGroupId = selectedSupersetExercises
+                    .map(id => exercises.find(e => e.id === id)?.supersetGroupId)
+                    .find(gid => gid !== undefined);
+                  
+                  const groupId = existingGroupId || Date.now().toString();
+                  
                   setExercises(exercises.map(e => {
                     if (e.id === supersetSourceExerciseId || selectedSupersetExercises.includes(e.id)) {
                       return { ...e, supersetGroupId: groupId };
                     }
                     return e;
                   }));
+                  
+                  const totalInSuperset = exercises.filter(e => e.supersetGroupId === groupId).length + 
+                    (existingGroupId ? 1 : selectedSupersetExercises.length + 1);
+                  
                   toast({ 
-                    title: "Superset created!", 
-                    description: `${selectedSupersetExercises.length + 1} exercises grouped together.` 
+                    title: existingGroupId ? "Added to superset!" : "Superset created!", 
+                    description: existingGroupId 
+                      ? `Exercise added to existing superset.`
+                      : `${selectedSupersetExercises.length + 1} exercises grouped together.`
                   });
                 }
                 setShowSupersetModal(false);
