@@ -955,13 +955,13 @@ const CreateWorkoutPage = () => {
                         : "bg-card border border-border text-foreground hover:border-primary/50"
                     }`}
                   >
-                    {/* Superset colored bar on left */}
+                    {/* Superset colored bar on top */}
                     {supersetBarColor && (
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${supersetBarColor}`} />
+                      <div className={`absolute left-0 right-0 top-0 h-1 ${supersetBarColor}`} />
                     )}
                     <button
                       onClick={() => setSelectedExerciseId(exercise.id)}
-                      className={`px-4 py-3 pr-10 text-left ${supersetBarColor ? 'pl-4' : ''}`}
+                      className={`px-4 py-3 pr-10 text-left ${supersetBarColor ? 'pt-4' : ''}`}
                     >
                       <div className="flex flex-col items-start gap-1 min-w-[100px]">
                         <span className={`text-xs ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
@@ -1202,7 +1202,7 @@ const CreateWorkoutPage = () => {
               Drag the highlighted exercise up or down to reorder
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4 space-y-1 max-h-72 overflow-y-auto">
+          <div className="py-4 space-y-1 max-h-72 overflow-y-auto overflow-x-hidden">
             {(() => {
               // Create a working list based on pendingReorderIndex
               const currentIdx = exercises.findIndex(e => e.id === reorderingExerciseId);
