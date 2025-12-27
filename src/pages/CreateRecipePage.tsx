@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ChefHat, Trash2, Camera, Images, Loader2 } from "lucide-react";
@@ -13,6 +13,7 @@ import { usePhotoPicker } from "@/hooks/useCamera";
 import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { FoodDetailModal } from "@/components/FoodDetailModal";
 import { usePosts } from "@/hooks/usePosts";
+import CreationCongratsPopup from "@/components/CreationCongratsPopup";
 
 interface Ingredient {
   id: string;
@@ -62,7 +63,8 @@ const CreateRecipePage = () => {
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [isCoverPhotoMode, setIsCoverPhotoMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [showCongratsPopup, setShowCongratsPopup] = useState(false);
+  const savedPostIdRef = useRef<string | null>(null);
   const { inputRef, openPicker, handleFileChange } = usePhotoPicker((urls) => {
     if (isCoverPhotoMode && urls.length > 0) {
       setCoverPhoto(urls[0]);
@@ -156,21 +158,40 @@ const CreateRecipePage = () => {
     
     setIsSubmitting(true);
     try {
-      await createPost({
+      const newPost = await createPost({
         content_type: "recipe",
         content_data: { title, description, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
         images: allImages,
         visibility: "private",
       });
 
-      toast({ title: "Recipe saved!", description: "Your recipe has been saved." });
-      navigate("/");
+      savedPostIdRef.current = newPost?.id || null;
+      setShowCongratsPopup(true);
     } catch (error) {
       console.error("Error saving recipe:", error);
       toast({ title: "Error", description: "Failed to save recipe. Please try again.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCongratsPost = () => {
+    setShowCongratsPopup(false);
+    const allImages = coverPhoto ? [coverPhoto, ...additionalImages] : additionalImages;
+    navigate("/share", {
+      state: {
+        contentType: "recipe",
+        contentData: { title, description, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
+        images: allImages,
+        returnTo: "/",
+        fromSelection: true,
+      },
+    });
+  };
+
+  const handleCongratsDismiss = () => {
+    setShowCongratsPopup(false);
+    navigate("/");
   };
 
   const handleCapturePhoto = (imageUrl: string) => {
@@ -453,6 +474,14 @@ const CreateRecipePage = () => {
         onClose={() => setIsPhotoGalleryOpen(false)}
         photos={additionalImages}
         onDeletePhoto={removeAdditionalImage}
+      />
+
+      {/* Congrats Popup */}
+      <CreationCongratsPopup
+        isVisible={showCongratsPopup}
+        contentType="recipe"
+        onDismiss={handleCongratsDismiss}
+        onPost={handleCongratsPost}
       />
     </div>
   );
