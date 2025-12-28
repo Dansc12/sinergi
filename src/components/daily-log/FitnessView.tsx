@@ -145,8 +145,9 @@ export const FitnessView = ({ selectedDate }: FitnessViewProps) => {
   };
 
   const getWorkoutSummary = (workout: WorkoutLog) => {
-    const exerciseCount = workout.exercises.length;
-    const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
+    const exerciseCount = exercises.length;
+    const totalSets = exercises.reduce((sum, ex) => sum + (Array.isArray(ex.sets) ? ex.sets.length : 0), 0);
     return `${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''} • ${totalSets} set${totalSets !== 1 ? 's' : ''}`;
   };
 
