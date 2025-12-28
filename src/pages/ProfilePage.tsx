@@ -1,31 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Settings, Flame, Camera, Loader2, ChevronDown } from "lucide-react";
+import { ChevronLeft, Settings, Flame, Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { ProfileContentFeed } from "@/components/profile/ProfileContentFeed";
 import { ProfilePostsGrid } from "@/components/profile/ProfilePostsGrid";
-import { ProfileGroupsFeed } from "@/components/profile/ProfileGroupsFeed";
 import { ProfileSettingsSheet } from "@/components/profile/ProfileSettingsSheet";
-
-type ContentTab = "posts" | "workouts" | "meals" | "recipes" | "routines" | "groups";
-
-const tabs: { id: ContentTab; label: string }[] = [
-  { id: "posts", label: "Posts" },
-  { id: "workouts", label: "Workouts" },
-  { id: "meals", label: "Meals" },
-  { id: "recipes", label: "Recipes" },
-  { id: "routines", label: "Routines" },
-  { id: "groups", label: "Groups" },
-];
 
 interface UserProfile {
   first_name: string | null;
@@ -36,43 +16,15 @@ interface UserProfile {
   hobbies: string[] | null;
 }
 
-const emptyStateMessages: Record<ContentTab, { title: string; description: string; action: string }> = {
-  posts: { 
-    title: "No posts yet", 
-    description: "Share your fitness journey with the community", 
-    action: "Create Post" 
-  },
-  workouts: { 
-    title: "No workouts logged", 
-    description: "Start tracking your training progress", 
-    action: "Log Workout" 
-  },
-  meals: { 
-    title: "No meals logged", 
-    description: "Track your nutrition to reach your goals", 
-    action: "Log Meal" 
-  },
-  recipes: { 
-    title: "No recipes created", 
-    description: "Save and share your favorite healthy recipes", 
-    action: "Create Recipe" 
-  },
-  routines: { 
-    title: "No routines created", 
-    description: "Build workout routines to stay consistent", 
-    action: "Create Routine" 
-  },
-  groups: { 
-    title: "No groups joined", 
-    description: "Join groups to connect with like-minded people", 
-    action: "Find Groups" 
-  },
+const postsEmptyState = { 
+  title: "No posts yet", 
+  description: "Share your fitness journey with the community", 
+  action: "Create Post" 
 };
 
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ContentTab>("posts");
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [streakCount, setStreakCount] = useState(0);
@@ -167,16 +119,8 @@ const ProfilePage = () => {
     }
   };
 
-  const handleTabAction = (tab: ContentTab) => {
-    const routes: Record<ContentTab, string> = {
-      posts: "/share",
-      workouts: "/create/workout",
-      meals: "/create/meal",
-      recipes: "/create/recipe",
-      routines: "/create/routine",
-      groups: "/discover",
-    };
-    navigate(routes[tab]);
+  const handleCreatePost = () => {
+    navigate("/share");
   };
 
   if (loading) {
@@ -272,54 +216,12 @@ const ProfilePage = () => {
           <p className="text-muted-foreground text-sm mb-4">{userBio}</p>
         </div>
 
-        {/* Content Type Selector */}
-        <div className="mb-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="w-full justify-between text-base font-medium"
-              >
-                {tabs.find(t => t.id === activeTab)?.label}
-                <ChevronDown size={18} className="text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[calc(100vw-2rem)] bg-card border border-border">
-              {tabs.map((tab) => (
-                <DropdownMenuItem
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "text-base py-3 cursor-pointer",
-                    activeTab === tab.id && "bg-primary/10 text-primary font-medium"
-                  )}
-                >
-                  {tab.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Content Feed */}
+        {/* Posts Grid */}
         <div className="grid grid-cols-2 gap-1">
-          {activeTab === "posts" ? (
-            <ProfilePostsGrid
-              onEmptyAction={() => handleTabAction(activeTab)}
-              emptyState={emptyStateMessages[activeTab]}
-            />
-          ) : activeTab === "groups" ? (
-            <ProfileGroupsFeed
-              onEmptyAction={() => handleTabAction(activeTab)}
-              emptyState={emptyStateMessages[activeTab]}
-            />
-          ) : (
-            <ProfileContentFeed
-              contentType={activeTab as "workouts" | "meals" | "recipes" | "routines"}
-              onEmptyAction={() => handleTabAction(activeTab)}
-              emptyState={emptyStateMessages[activeTab]}
-            />
-          )}
+          <ProfilePostsGrid
+            onEmptyAction={handleCreatePost}
+            emptyState={postsEmptyState}
+          />
         </div>
       </div>
 
