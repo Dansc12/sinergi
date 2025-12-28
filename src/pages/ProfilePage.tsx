@@ -64,11 +64,9 @@ const ProfilePage = () => {
         .from('user_streaks')
         .select('current_streak')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (streakData) {
-        setStreakCount(streakData.current_streak);
-      }
+      setStreakCount(streakData?.current_streak || 0);
 
 
       // Fetch stats
