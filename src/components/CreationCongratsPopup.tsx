@@ -29,30 +29,43 @@ const CreationCongratsPopup = ({
   const [progress, setProgress] = useState(100);
   const startTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number>(0);
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
     setVisible(isVisible);
 
     if (isVisible) {
+      // Reset refs when becoming visible
+      hasStartedRef.current = false;
       setProgress(100);
-      startTimeRef.current = Date.now();
+      
+      // Use a small delay to ensure smooth start
+      const startTimer = () => {
+        if (hasStartedRef.current) return;
+        hasStartedRef.current = true;
+        startTimeRef.current = performance.now();
 
-      const updateProgress = () => {
-        const elapsed = Date.now() - startTimeRef.current;
-        const remaining = Math.max(0, 100 - (elapsed / TIMER_DURATION) * 100);
-        setProgress(remaining);
+        const updateProgress = (currentTime: number) => {
+          const elapsed = currentTime - startTimeRef.current;
+          const remaining = Math.max(0, 100 - (elapsed / TIMER_DURATION) * 100);
+          setProgress(remaining);
 
-        if (remaining > 0) {
-          animationFrameRef.current = requestAnimationFrame(updateProgress);
-        } else {
-          setVisible(false);
-          onDismiss();
-        }
+          if (remaining > 0) {
+            animationFrameRef.current = requestAnimationFrame(updateProgress);
+          } else {
+            setVisible(false);
+            onDismiss();
+          }
+        };
+
+        animationFrameRef.current = requestAnimationFrame(updateProgress);
       };
 
-      animationFrameRef.current = requestAnimationFrame(updateProgress);
+      // Start after a brief delay to let the component mount smoothly
+      const timeoutId = setTimeout(startTimer, 50);
 
       return () => {
+        clearTimeout(timeoutId);
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
@@ -84,7 +97,7 @@ const CreationCongratsPopup = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-6 left-4 right-4 z-50"
+          className="fixed bottom-24 left-4 right-4 z-[100]"
         >
           <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
             {/* Progress bar */}
