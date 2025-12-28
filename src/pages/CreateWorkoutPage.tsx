@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Dumbbell, Plus, Trash2, Check, Bookmark, Compass, Loader2, ChevronDown, ChevronUp, X, MoreVertical, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, Dumbbell, Plus, Trash2, Check, Bookmark, Compass, Loader2, ChevronDown, ChevronUp, X, MoreVertical, ArrowUpDown, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,6 +102,8 @@ const CreateWorkoutPage = () => {
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [reorderingExerciseId, setReorderingExerciseId] = useState<string | null>(null);
   const [pendingReorderIndex, setPendingReorderIndex] = useState<number | null>(null);
+  const [showIncompleteConfirm, setShowIncompleteConfirm] = useState(false);
+  const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
 
   // Get the currently selected exercise
   const selectedExercise = exercises.find(e => e.id === selectedExerciseId);
@@ -365,9 +367,20 @@ const CreateWorkoutPage = () => {
         if (e.id === exerciseId) {
           return {
             ...e,
-            sets: e.sets.map((s) =>
-              s.id === setId ? { ...s, [field]: value } : s
-            ),
+            sets: e.sets.map((s) => {
+              if (s.id === setId) {
+                const updatedSet = { ...s, [field]: value };
+                // If weight/reps/distance/time is cleared and set is complete, unmark it
+                if (field === "weight" || field === "reps" || field === "distance" || field === "time") {
+                  const strValue = value as string;
+                  if (!strValue.trim() && s.completed) {
+                    updatedSet.completed = false;
+                  }
+                }
+                return updatedSet;
+              }
+              return s;
+            }),
           };
         }
         return e;
@@ -451,7 +464,14 @@ const CreateWorkoutPage = () => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  // Check if all sets are completed
+  const areAllSetsCompleted = () => {
+    return exercises.every(exercise => 
+      exercise.sets.every(set => set.completed)
+    );
+  };
+
+  const handleSubmit = async (forceSubmit = false) => {
     if (exercises.length === 0) {
       toast({ title: "Please add at least one exercise", variant: "destructive" });
       return;
@@ -472,6 +492,12 @@ const CreateWorkoutPage = () => {
           }
         }
       }
+    }
+    
+    // Check if all sets are marked complete
+    if (!forceSubmit && !areAllSetsCompleted()) {
+      setShowIncompleteConfirm(true);
+      return;
     }
     
     setIsSubmitting(true);
@@ -643,7 +669,7 @@ const CreateWorkoutPage = () => {
             <span className="text-xs text-muted-foreground">Time</span>
             <span className="text-2xl font-bold font-mono">{formatTime(elapsedSeconds)}</span>
           </div>
-          <Button onClick={handleSubmit} disabled={isSubmitting} className="rounded-full px-6 ml-auto z-10">
+          <Button onClick={() => handleSubmit()} disabled={isSubmitting} className="rounded-full px-6 ml-auto z-10">
             {isSubmitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
             Finish
           </Button>
@@ -656,7 +682,7 @@ const CreateWorkoutPage = () => {
               placeholder="Workout name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="flex-1 text-lg font-semibold bg-transparent border-0 rounded-none px-0 focus-visible:ring-0"
+              className="flex-1 text-2xl font-semibold bg-transparent border-0 rounded-none px-0 focus-visible:ring-0"
             />
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -944,7 +970,20 @@ const CreateWorkoutPage = () => {
                 const completedSets = exercise.sets.filter(s => s.completed).length;
                 const totalSets = exercise.sets.length;
                 const supersetBarColor = exercise.supersetGroupId ? getSupersetBarColor(exercise.supersetGroupId) : null;
+                const isAllSetsComplete = completedSets === totalSets && totalSets > 0;
+                const justCompleted = isAllSetsComplete && completedExerciseIds.includes(exercise.id);
                 
+                // Check if exercise just completed all sets and trigger animation
+                if (isAllSetsComplete && !completedExerciseIds.includes(exercise.id)) {
+                  // Add to completed list after a microtask to avoid state update during render
+                  setTimeout(() => {
+                    setCompletedExerciseIds(prev => [...prev, exercise.id]);
+                    // Remove from animation after 2 seconds
+                    setTimeout(() => {
+                      setCompletedExerciseIds(prev => prev.filter(id => id !== exercise.id));
+                    }, 2000);
+                  }, 0);
+                }
                 
                 return (
                   <div
@@ -955,6 +994,28 @@ const CreateWorkoutPage = () => {
                         : "bg-card border border-border text-foreground hover:border-primary/50"
                     }`}
                   >
+                    {/* Completion animation overlay */}
+                    <AnimatePresence>
+                      {justCompleted && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="absolute inset-0 bg-emerald-500/90 flex items-center justify-center z-20 rounded-xl"
+                        >
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: [0, 1.2, 1] }}
+                            transition={{ duration: 0.4, times: [0, 0.6, 1] }}
+                            className="flex flex-col items-center text-white"
+                          >
+                            <PartyPopper size={24} className="mb-1" />
+                            <span className="text-xs font-semibold">Complete!</span>
+                          </motion.div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
                     {/* Superset colored bar on top */}
                     {supersetBarColor && (
                       <div className={`absolute left-0 right-0 top-0 h-1 ${supersetBarColor}`} />
@@ -1311,6 +1372,29 @@ const CreateWorkoutPage = () => {
               }}
             >
               Finish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Incomplete Sets Confirmation Dialog */}
+      <AlertDialog open={showIncompleteConfirm} onOpenChange={setShowIncompleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Incomplete Sets</AlertDialogTitle>
+            <AlertDialogDescription>
+              Not all sets have been marked as complete. Are you sure you want to finish this workout?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continue Workout</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowIncompleteConfirm(false);
+                handleSubmit(true);
+              }}
+            >
+              Finish Anyway
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
