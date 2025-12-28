@@ -99,12 +99,11 @@ export const ProfilePostsGrid = ({
       }
 
       try {
-        // Fetch only actual posts (content_type = 'post') that are not private
+        // Fetch all shared posts (workouts, meals, recipes, routines, posts) that are not private
         const { data, error } = await supabase
           .from("posts")
           .select("*")
           .eq("user_id", targetUserId)
-          .eq("content_type", "post")
           .neq("visibility", "private")
           .order("created_at", { ascending: false });
 
