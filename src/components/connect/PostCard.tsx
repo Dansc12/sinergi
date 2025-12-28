@@ -683,60 +683,15 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
           </div>
         </div>
 
-        {/* Clickable content area - unified carousel with images + summary card */}
-        <div onClick={handleCardClick} className="cursor-pointer">
-          {(() => {
-            // Build carousel items: images first, then summary card (for meal/workout/routine/recipe)
-            const carouselItems: CarouselItem[] = [];
-            
-            // Add images first
-            if (post.images && post.images.length > 0) {
-              post.images.forEach(img => {
-                carouselItems.push({ type: 'image', content: img });
-              });
-            }
-            
-            // Add summary card for supported content types
-            if (post.contentData) {
-              if (post.type === "meal") {
-                carouselItems.push({
-                  type: 'summary',
-                  content: <MealSummaryCard contentData={post.contentData as MealContentData} />
-                });
-              } else if (post.type === "workout") {
-                carouselItems.push({
-                  type: 'summary',
-                  content: <WorkoutSummaryCard contentData={post.contentData as WorkoutContentData} createdAt={post.createdAt} />
-                });
-              } else if (post.type === "routine") {
-                carouselItems.push({
-                  type: 'summary',
-                  content: <RoutineSummaryCard contentData={post.contentData as RoutineContentData} />
-                });
-              } else if (post.type === "recipe") {
-                carouselItems.push({
-                  type: 'summary',
-                  content: <RecipeSummaryCard contentData={post.contentData as RecipeContentData} />
-                });
-              } else if (post.type === "group") {
-                // For groups, pass the first image as cover photo since it's stored separately
-                const groupCoverPhoto = post.images && post.images.length > 0 ? post.images[0] : undefined;
-                carouselItems.push({
-                  type: 'summary',
-                  content: <GroupSummaryCard contentData={post.contentData as GroupContentData} coverPhoto={groupCoverPhoto} />
-                });
-              }
-            }
-            
-            // If there are carousel items, render the carousel
-            if (carouselItems.length > 0) {
-              return <ContentCarousel items={carouselItems} onDoubleTap={handleDoubleTap} />;
-            }
-            
-            // For posts without images and without content data (plain posts), show nothing here
-            return null;
-          })()}
-        </div>
+        {/* Clickable content area - images only carousel */}
+        {post.images && post.images.length > 0 && (
+          <div onClick={handleCardClick} className="cursor-pointer">
+            <ContentCarousel 
+              items={post.images.map(img => ({ type: 'image' as const, content: img }))} 
+              onDoubleTap={handleDoubleTap} 
+            />
+          </div>
+        )}
 
       {/* Floating hearts animation */}
       <AnimatePresence>
