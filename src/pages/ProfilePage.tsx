@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileContentFeed } from "@/components/profile/ProfileContentFeed";
+import { ProfilePostsGrid } from "@/components/profile/ProfilePostsGrid";
 import { ProfileGroupsFeed } from "@/components/profile/ProfileGroupsFeed";
 import { ProfileSettingsSheet } from "@/components/profile/ProfileSettingsSheet";
 
@@ -301,15 +302,20 @@ const ProfilePage = () => {
         </div>
 
         {/* Content Feed */}
-        <div className="grid grid-cols-3 gap-1">
-          {activeTab !== "groups" ? (
-            <ProfileContentFeed
-              contentType={activeTab as "posts" | "workouts" | "meals" | "recipes" | "routines"}
+        <div className="grid grid-cols-2 gap-1">
+          {activeTab === "posts" ? (
+            <ProfilePostsGrid
+              onEmptyAction={() => handleTabAction(activeTab)}
+              emptyState={emptyStateMessages[activeTab]}
+            />
+          ) : activeTab === "groups" ? (
+            <ProfileGroupsFeed
               onEmptyAction={() => handleTabAction(activeTab)}
               emptyState={emptyStateMessages[activeTab]}
             />
           ) : (
-            <ProfileGroupsFeed
+            <ProfileContentFeed
+              contentType={activeTab as "workouts" | "meals" | "recipes" | "routines"}
               onEmptyAction={() => handleTabAction(activeTab)}
               emptyState={emptyStateMessages[activeTab]}
             />

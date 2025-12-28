@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
-type ContentType = "posts" | "workouts" | "meals" | "recipes" | "routines";
+type ContentType = "workouts" | "meals" | "recipes" | "routines";
 
 export interface ProfileContentFeedProps {
   contentType: ContentType;

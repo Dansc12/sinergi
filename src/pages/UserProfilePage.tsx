@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileContentFeed } from "@/components/profile/ProfileContentFeed";
+import { ProfilePostsGrid } from "@/components/profile/ProfilePostsGrid";
 import { useFriendship } from "@/hooks/useFriendship";
 
 type ContentTab = "posts" | "workouts" | "meals" | "recipes" | "routines";
@@ -290,19 +291,32 @@ const UserProfilePage = () => {
         </div>
 
         {/* Content Feed - Show based on friendship */}
-        <div className="grid grid-cols-3 gap-1">
-          <ProfileContentFeed
-            contentType={activeTab}
-            userId={userId}
-            visibility={isFriend ? 'friends' : 'public'}
-            emptyState={{
-              title: `No ${activeTab} yet`,
-              description: isFriend 
-                ? `${displayName} hasn't shared any ${activeTab} yet`
-                : `${displayName} hasn't shared any public ${activeTab} yet`,
-              action: ""
-            }}
-          />
+        <div className="grid grid-cols-2 gap-1">
+          {activeTab === "posts" ? (
+            <ProfilePostsGrid
+              userId={userId}
+              emptyState={{
+                title: "No posts yet",
+                description: isFriend 
+                  ? `${displayName} hasn't shared any posts yet`
+                  : `${displayName} hasn't shared any public posts yet`,
+                action: ""
+              }}
+            />
+          ) : (
+            <ProfileContentFeed
+              contentType={activeTab as "workouts" | "meals" | "recipes" | "routines"}
+              userId={userId}
+              visibility={isFriend ? 'friends' : 'public'}
+              emptyState={{
+                title: `No ${activeTab} yet`,
+                description: isFriend 
+                  ? `${displayName} hasn't shared any ${activeTab} yet`
+                  : `${displayName} hasn't shared any public ${activeTab} yet`,
+                action: ""
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
