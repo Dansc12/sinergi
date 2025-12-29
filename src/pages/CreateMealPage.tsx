@@ -510,10 +510,10 @@ const CreateMealPage = () => {
                 const carbsSize = 40 + normalizedCarbs * 50;
                 const fatsSize = 40 + normalizedFats * 50;
                 
-                // Calculate opacities (0.4 minimum, up to 0.85 for very bright colors)
-                const proteinOpacity = totalMacros > 0 ? 0.4 + (totalProtein / totalMacros) * 0.45 : 0.55;
-                const carbsOpacity = totalMacros > 0 ? 0.4 + (totalCarbs / totalMacros) * 0.45 : 0.55;
-                const fatsOpacity = totalMacros > 0 ? 0.4 + (totalFats / totalMacros) * 0.45 : 0.55;
+                // Calculate opacities (0.6 minimum, up to 1.0 for very bright colors)
+                const proteinOpacity = totalMacros > 0 ? 0.6 + (totalProtein / totalMacros) * 0.4 : 0.75;
+                const carbsOpacity = totalMacros > 0 ? 0.6 + (totalCarbs / totalMacros) * 0.4 : 0.75;
+                const fatsOpacity = totalMacros > 0 ? 0.6 + (totalFats / totalMacros) * 0.4 : 0.75;
                 
                 return (
                   <div className="relative mb-6 rounded-[18px] overflow-hidden shadow-lg shadow-black/30">
@@ -591,14 +591,14 @@ const CreateMealPage = () => {
                     
                     {/* Frosted glass overlay with subtle side vignette */}
                     <div 
-                      className="absolute inset-0 backdrop-blur-[3px]"
+                      className="absolute inset-0 backdrop-blur-[2px]"
                       style={{
                         background: `linear-gradient(90deg, 
-                          rgba(0, 0, 0, 0.12) 0%, 
-                          rgba(0, 0, 0, 0.02) 15%, 
-                          rgba(0, 0, 0, 0.02) 85%, 
-                          rgba(0, 0, 0, 0.12) 100%)`,
-                        boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+                          rgba(0, 0, 0, 0.08) 0%, 
+                          rgba(0, 0, 0, 0) 12%, 
+                          rgba(0, 0, 0, 0) 88%, 
+                          rgba(0, 0, 0, 0.08) 100%)`,
+                        boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.12)',
                       }}
                     />
                     
