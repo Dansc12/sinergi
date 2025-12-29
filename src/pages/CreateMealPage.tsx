@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Utensils, X, Camera, ChevronRight, Clock, Images, Loader2, ChefHat, Compass } from "lucide-react";
+import { ArrowLeft, Utensils, X, Camera, ChevronRight, Clock, Images, Loader2, ChefHat, Compass, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { FoodSearchInput, FoodItem } from "@/components/FoodSearchInput";
@@ -485,6 +485,43 @@ const CreateMealPage = () => {
                 </Button>
               </div>
 
+              {/* Total Nutrition + Create Meal Button Row */}
+              <div className="flex gap-3 mb-6">
+                <div className="flex-[3] p-4 rounded-xl bg-primary/10 border border-primary/20">
+                  <div className="text-sm font-medium text-primary mb-2">Total Nutrition</div>
+                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div>
+                      <div className="text-muted-foreground">Calories</div>
+                      <div className="font-bold text-foreground">{totalCalories}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Protein</div>
+                      <div className="font-bold text-foreground">{totalProtein.toFixed(0)}g</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Carbs</div>
+                      <div className="font-bold text-foreground">{totalCarbs.toFixed(0)}g</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Fats</div>
+                      <div className="font-bold text-foreground">{totalFats.toFixed(0)}g</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <Button
+                    variant="outline"
+                    className="h-full w-full flex flex-col gap-1 rounded-xl border-primary/30 hover:bg-primary/10"
+                    onClick={() => {
+                      toast({ title: "Create Meal feature coming soon!" });
+                    }}
+                  >
+                    <Plus size={20} className="text-primary" />
+                    <span className="text-xs font-medium">Create Meal</span>
+                  </Button>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 {selectedFoods.map((food) => (
                   <motion.div
@@ -521,29 +558,6 @@ const CreateMealPage = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>
-
-              {/* Totals */}
-              <div className="mt-6 p-4 rounded-xl bg-primary/10 border border-primary/20">
-                <div className="text-sm font-medium text-primary mb-2">Total Nutrition</div>
-                <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                  <div>
-                    <div className="text-muted-foreground">Calories</div>
-                    <div className="font-bold text-foreground">{totalCalories}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Protein</div>
-                    <div className="font-bold text-foreground">{totalProtein.toFixed(0)}g</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Carbs</div>
-                    <div className="font-bold text-foreground">{totalCarbs.toFixed(0)}g</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Fats</div>
-                    <div className="font-bold text-foreground">{totalFats.toFixed(0)}g</div>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
