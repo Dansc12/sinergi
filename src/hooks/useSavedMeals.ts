@@ -76,6 +76,19 @@ export interface SavedRecipe {
   created_at: string;
 }
 
+export interface SavedMeal {
+  id: string;
+  title: string;
+  mealType: string;
+  foods: SelectedFood[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFats: number;
+  images: string[];
+  created_at: string;
+}
+
 export interface CommunityRecipe {
   id: string;
   title: string;
@@ -113,6 +126,7 @@ export interface CommunityMeal {
 export const useSavedMeals = () => {
   const { user } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
   const [communityRecipes, setCommunityRecipes] = useState<CommunityRecipe[]>([]);
   const [communityMeals, setCommunityMeals] = useState<CommunityMeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,6 +164,44 @@ export const useSavedMeals = () => {
       setSavedRecipes(recipes);
     } catch (err) {
       console.error("Error fetching saved recipes:", err);
+    }
+  }, [user]);
+
+  const fetchSavedMeals = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id, content_data, images, created_at")
+        .eq("user_id", user.id)
+        .eq("content_type", "meal")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const meals: SavedMeal[] = (data || []).map((post) => {
+        const contentData = post.content_data as unknown as MealContentData;
+        const mealType = contentData?.mealType || "meal";
+        const capitalizedMealType = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+        
+        return {
+          id: post.id,
+          title: capitalizedMealType,
+          mealType: contentData?.mealType || "meal",
+          foods: contentData?.foods || [],
+          totalCalories: contentData?.totalCalories || 0,
+          totalProtein: contentData?.totalProtein || 0,
+          totalCarbs: contentData?.totalCarbs || 0,
+          totalFats: contentData?.totalFats || 0,
+          images: post.images || [],
+          created_at: post.created_at,
+        };
+      });
+
+      setSavedMeals(meals);
+    } catch (err) {
+      console.error("Error fetching saved meals:", err);
     }
   }, [user]);
 
@@ -265,9 +317,9 @@ export const useSavedMeals = () => {
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
-    await Promise.all([fetchSavedRecipes(), fetchCommunityContent()]);
+    await Promise.all([fetchSavedRecipes(), fetchSavedMeals(), fetchCommunityContent()]);
     setIsLoading(false);
-  }, [fetchSavedRecipes, fetchCommunityContent]);
+  }, [fetchSavedRecipes, fetchSavedMeals, fetchCommunityContent]);
 
   useEffect(() => {
     fetchAll();
@@ -275,6 +327,7 @@ export const useSavedMeals = () => {
 
   return {
     savedRecipes,
+    savedMeals,
     communityRecipes,
     communityMeals,
     isLoading,
