@@ -368,7 +368,7 @@ const CreateMealPage = () => {
                           <span className="font-medium text-foreground">{food.description}</span>
                         </div>
                         <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs text-muted-foreground">{food.calories} cal</span>
+                          <span className="text-xs text-foreground">{food.calories} cal</span>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span style={{ color: '#3DD6C6' }}>P: {food.protein.toFixed(0)}g</span>
                             <span style={{ color: '#5B8CFF' }}>C: {food.carbs.toFixed(0)}g</span>
@@ -457,7 +457,7 @@ const CreateMealPage = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-muted-foreground">{food.calories} cal</span>
+                          <span className="text-xs text-foreground">{food.calories} cal</span>
                           <div className="flex items-center gap-2 text-xs">
                             <span style={{ color: '#3DD6C6' }}>P: {food.protein.toFixed(0)}g</span>
                             <span style={{ color: '#5B8CFF' }}>C: {food.carbs.toFixed(0)}g</span>
@@ -750,7 +750,7 @@ const CreateMealPage = () => {
                             <span className="font-medium text-foreground">{food.name}</span>
                           </div>
                           <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-xs text-muted-foreground">{food.calories} cal</span>
+                            <span className="text-xs text-foreground">{food.calories} cal</span>
                             <div className="flex items-center gap-2 text-xs">
                               <span style={{ color: '#3DD6C6' }}>P: {p.toFixed(0)}g</span>
                               <span style={{ color: '#5B8CFF' }}>C: {c.toFixed(0)}g</span>
