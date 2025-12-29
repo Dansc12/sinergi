@@ -510,10 +510,10 @@ const CreateMealPage = () => {
                 const carbsSize = 40 + normalizedCarbs * 50;
                 const fatsSize = 40 + normalizedFats * 50;
                 
-                // Calculate opacities (0.25 minimum, up to 0.7 for brighter colors)
-                const proteinOpacity = totalMacros > 0 ? 0.25 + (totalProtein / totalMacros) * 0.45 : 0.4;
-                const carbsOpacity = totalMacros > 0 ? 0.25 + (totalCarbs / totalMacros) * 0.45 : 0.4;
-                const fatsOpacity = totalMacros > 0 ? 0.25 + (totalFats / totalMacros) * 0.45 : 0.4;
+                // Calculate opacities (0.4 minimum, up to 0.85 for very bright colors)
+                const proteinOpacity = totalMacros > 0 ? 0.4 + (totalProtein / totalMacros) * 0.45 : 0.55;
+                const carbsOpacity = totalMacros > 0 ? 0.4 + (totalCarbs / totalMacros) * 0.45 : 0.55;
+                const fatsOpacity = totalMacros > 0 ? 0.4 + (totalFats / totalMacros) * 0.45 : 0.55;
                 
                 return (
                   <div className="relative mb-6 rounded-[18px] overflow-hidden shadow-lg shadow-black/30">
@@ -589,12 +589,12 @@ const CreateMealPage = () => {
                       />
                     </div>
                     
-                    {/* Frosted glass overlay */}
+                    {/* Frosted glass overlay - minimal for brightness */}
                     <div 
-                      className="absolute inset-0 backdrop-blur-sm"
+                      className="absolute inset-0 backdrop-blur-[3px]"
                       style={{
-                        background: 'rgba(0, 0, 0, 0.05)',
-                        boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                        background: 'rgba(0, 0, 0, 0.02)',
+                        boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
                       }}
                     />
                     
