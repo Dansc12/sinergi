@@ -496,48 +496,55 @@ const CreateMealPage = () => {
                 const proteinEnd = proteinRatio;
                 const carbsEnd = proteinRatio + carbsRatio;
                 
-                const gradientStyle = {
-                  background: `linear-gradient(135deg, 
-                    hsl(220, 70%, 50%) 0%, 
-                    hsl(220, 70%, 50%) ${proteinEnd}%, 
-                    hsl(45, 80%, 50%) ${proteinEnd}%, 
-                    hsl(45, 80%, 50%) ${carbsEnd}%, 
-                    hsl(0, 70%, 50%) ${carbsEnd}%, 
-                    hsl(0, 70%, 50%) 100%)`,
-                  transition: 'background 0.5s ease-in-out'
-                };
+                // Softer, more pleasing colors
+                const proteinColor = '210, 60%, 65%'; // Soft blue
+                const carbsColor = '160, 45%, 55%'; // Soft teal-green
+                const fatsColor = '340, 50%, 65%'; // Soft rose
                 
                 return (
-                  <div 
+                  <motion.div 
                     className="p-4 rounded-xl border border-white/20 mb-6 relative overflow-hidden"
-                    style={gradientStyle}
+                    style={{
+                      background: `linear-gradient(135deg, 
+                        hsl(${proteinColor}) 0%, 
+                        hsl(${proteinColor}) ${proteinEnd * 0.8}%, 
+                        hsl(${carbsColor}) ${proteinEnd}%, 
+                        hsl(${carbsColor}) ${carbsEnd * 0.95}%, 
+                        hsl(${fatsColor}) ${carbsEnd}%, 
+                        hsl(${fatsColor}) 100%)`,
+                    }}
+                    animate={{
+                      backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
                   >
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
                     <div className="relative z-10 flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="text-sm font-medium text-white/90 mb-3">Total Nutrition</div>
                         
-                        {/* Calories Row */}
-                        <div className="mb-3 text-center">
-                          <div className="text-xs text-white/70">Calories</div>
-                          <div className="text-2xl font-bold text-white">{totalCalories}</div>
+                        {/* Calories Row - Horizontal alignment */}
+                        <div className="flex items-baseline gap-2 mb-4">
+                          <span className="text-xs text-white/70">Calories</span>
+                          <span className="text-2xl font-bold text-white">{totalCalories}</span>
                         </div>
                         
                         {/* Macros Row */}
                         <div className="grid grid-cols-3 gap-3 text-center">
                           <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-[hsl(220,70%,50%)] mb-1" />
-                            <div className="text-xs text-white/70">Protein</div>
+                            <div className="text-xs font-medium" style={{ color: `hsl(${proteinColor})` }}>Protein</div>
                             <div className="font-bold text-white">{totalProtein.toFixed(0)}g</div>
                           </div>
                           <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-[hsl(45,80%,50%)] mb-1" />
-                            <div className="text-xs text-white/70">Carbs</div>
+                            <div className="text-xs font-medium" style={{ color: `hsl(${carbsColor})` }}>Carbs</div>
                             <div className="font-bold text-white">{totalCarbs.toFixed(0)}g</div>
                           </div>
                           <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-[hsl(0,70%,50%)] mb-1" />
-                            <div className="text-xs text-white/70">Fats</div>
+                            <div className="text-xs font-medium" style={{ color: `hsl(${fatsColor})` }}>Fats</div>
                             <div className="font-bold text-white">{totalFats.toFixed(0)}g</div>
                           </div>
                         </div>
@@ -565,7 +572,7 @@ const CreateMealPage = () => {
                         </Button>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })()}
 
