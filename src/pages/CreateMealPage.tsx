@@ -286,6 +286,17 @@ const CreateMealPage = () => {
           </div>
         </div>
 
+        {/* Food Search */}
+        <div className="mb-4">
+          <FoodSearchInput
+            value={searchValue}
+            onChange={setSearchValue}
+            onSelect={handleFoodSelect}
+            onAddCustom={handleAddCustomFood}
+            placeholder="Search for a food..."
+          />
+        </div>
+
         {/* My Saved & Discover Buttons */}
         <div className="flex gap-3 mb-6">
           <Button
@@ -304,17 +315,6 @@ const CreateMealPage = () => {
             <Compass size={18} className="text-primary" />
             <span>Discover</span>
           </Button>
-        </div>
-
-        {/* Food Search */}
-        <div className="mb-6">
-          <FoodSearchInput
-            value={searchValue}
-            onChange={setSearchValue}
-            onSelect={handleFoodSelect}
-            onAddCustom={handleAddCustomFood}
-            placeholder="Search for a food..."
-          />
         </div>
 
         {/* Recent Foods Section */}
@@ -368,104 +368,74 @@ const CreateMealPage = () => {
           </div>
         )}
 
-        {/* Selected Foods Preview (collapsed) */}
-        {selectedFoods.length > 0 && !showFoodsList && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <Utensils size={16} />
-              <span className="text-sm font-medium">Added Foods ({selectedFoods.length})</span>
-            </div>
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-4 gap-2 text-center text-xs">
-              <div className="p-3 rounded-xl bg-card border border-border">
-                <div className="text-muted-foreground">Calories</div>
-                <div className="font-bold text-lg text-foreground">{totalCalories}</div>
+        {/* Recent Foods to add more when foods are selected */}
+        {selectedFoods.length > 0 && !showFoodsList && (() => {
+          // Combine current session foods (reversed, most recent first) with DB recent foods
+          const sessionFoods = [...selectedFoods].reverse().map(f => ({
+            fdcId: -parseInt(f.id),
+            description: f.name,
+            calories: f.calories,
+            protein: f.protein,
+            carbs: f.carbs,
+            fats: f.fats,
+            servings: f.rawQuantity || f.servings || 1,
+            servingSize: f.rawUnit || "g",
+            loggedAt: new Date().toISOString(),
+            isSessionFood: true,
+          }));
+          
+          // Filter out duplicates from DB foods that are already in session
+          const sessionFoodNames = new Set(sessionFoods.map(f => f.description.toLowerCase()));
+          const filteredDbFoods = recentFoods.filter(f => !sessionFoodNames.has(f.description.toLowerCase()));
+          
+          const combinedFoods = [...sessionFoods, ...filteredDbFoods].slice(0, 5);
+          
+          if (combinedFoods.length === 0) return null;
+          
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock size={16} />
+                <span className="text-sm font-medium">Add More</span>
               </div>
-              <div className="p-3 rounded-xl bg-card border border-border">
-                <div className="text-muted-foreground">Protein</div>
-                <div className="font-bold text-lg text-foreground">{totalProtein.toFixed(0)}g</div>
-              </div>
-              <div className="p-3 rounded-xl bg-card border border-border">
-                <div className="text-muted-foreground">Carbs</div>
-                <div className="font-bold text-lg text-foreground">{totalCarbs.toFixed(0)}g</div>
-              </div>
-              <div className="p-3 rounded-xl bg-card border border-border">
-                <div className="text-muted-foreground">Fats</div>
-                <div className="font-bold text-lg text-foreground">{totalFats.toFixed(0)}g</div>
-              </div>
-            </div>
-
-            {/* Recent Foods to add more - combine session foods with DB foods */}
-            {(() => {
-              // Combine current session foods (reversed, most recent first) with DB recent foods
-              const sessionFoods = [...selectedFoods].reverse().map(f => ({
-                fdcId: -parseInt(f.id),
-                description: f.name,
-                calories: f.calories,
-                protein: f.protein,
-                carbs: f.carbs,
-                fats: f.fats,
-                servings: f.rawQuantity || f.servings || 1,
-                servingSize: f.rawUnit || "g",
-                loggedAt: new Date().toISOString(),
-                isSessionFood: true,
-              }));
-              
-              // Filter out duplicates from DB foods that are already in session
-              const sessionFoodNames = new Set(sessionFoods.map(f => f.description.toLowerCase()));
-              const filteredDbFoods = recentFoods.filter(f => !sessionFoodNames.has(f.description.toLowerCase()));
-              
-              const combinedFoods = [...sessionFoods, ...filteredDbFoods].slice(0, 5);
-              
-              if (combinedFoods.length === 0) return null;
-              
-              return (
-                <div className="mt-6 space-y-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock size={16} />
-                    <span className="text-sm font-medium">Add More</span>
-                  </div>
-                  <div className="space-y-2">
-                    {combinedFoods.map((food, index) => (
-                      <motion.button
-                        key={`add-more-${food.fdcId}-${index}`}
-                        onClick={() => handleFoodSelect({
-                          fdcId: food.fdcId,
-                          description: food.description,
-                          calories: food.calories,
-                          protein: food.protein,
-                          carbs: food.carbs,
-                          fats: food.fats,
-                        }, food.servings, food.servingSize)}
-                        className="w-full text-left p-3 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-sm text-foreground">
-                              {food.description}
-                              {'isSessionFood' in food && food.isSessionFood && (
-                                <span className="ml-2 text-xs text-primary">(just added)</span>
-                              )}
-                            </div>
-                            <div className="text-xs text-primary">
-                              {food.servings} × {food.servingSize}
-                            </div>
-                            <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
-                              <span>{food.calories} cal</span>
-                            </div>
-                          </div>
-                          <ChevronRight size={18} className="text-muted-foreground" />
+              <div className="space-y-2">
+                {combinedFoods.map((food, index) => (
+                  <motion.button
+                    key={`add-more-${food.fdcId}-${index}`}
+                    onClick={() => handleFoodSelect({
+                      fdcId: food.fdcId,
+                      description: food.description,
+                      calories: food.calories,
+                      protein: food.protein,
+                      carbs: food.carbs,
+                      fats: food.fats,
+                    }, food.servings, food.servingSize)}
+                    className="w-full text-left p-3 rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-sm text-foreground">
+                          {food.description}
+                          {'isSessionFood' in food && food.isSessionFood && (
+                            <span className="ml-2 text-xs text-primary">(just added)</span>
+                          )}
                         </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
+                        <div className="text-xs text-primary">
+                          {food.servings} × {food.servingSize}
+                        </div>
+                        <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span>{food.calories} cal</span>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-muted-foreground" />
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Foods List Modal */}
@@ -742,17 +712,34 @@ const CreateMealPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Bottom Buttons */}
-      {selectedFoods.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
+      {/* View Foods Button - Fixed at bottom when foods are selected */}
+      {selectedFoods.length > 0 && !showFoodsList && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
           <Button
             variant="outline"
             size="lg"
-            className="w-full gap-2 rounded-xl border-border bg-card hover:bg-muted"
+            className="w-full rounded-xl border-border bg-card hover:bg-muted px-4"
             onClick={() => setShowFoodsList(true)}
           >
-            <Utensils size={20} />
-            View Foods ({selectedFoods.length})
+            <div className="flex items-center justify-between w-full">
+              {/* Left: Icon + Count */}
+              <div className="flex items-center gap-2">
+                <Utensils size={20} />
+                <span className="font-semibold">{selectedFoods.length}</span>
+              </div>
+              
+              {/* Center: Calories and Macros */}
+              <div className="flex items-center gap-3 text-sm">
+                <span>{totalCalories} cal</span>
+                <span className="text-muted-foreground">•</span>
+                <span style={{ color: '#3DD6C6' }}>P {totalProtein.toFixed(0)}g</span>
+                <span style={{ color: '#5B8CFF' }}>C {totalCarbs.toFixed(0)}g</span>
+                <span style={{ color: '#B46BFF' }}>F {totalFats.toFixed(0)}g</span>
+              </div>
+              
+              {/* Empty right side for balance */}
+              <div className="w-10" />
+            </div>
           </Button>
         </div>
       )}
