@@ -14,6 +14,7 @@ const HIDDEN_NAV_ROUTES = [
   "/create/group",
   "/create/recipe",
   "/create/routine",
+  "/create/saved-meal",
   "/share",
   "/select-content",
   "/workout/my-saved",

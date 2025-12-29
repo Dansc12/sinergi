@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Images, X, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, X, ChevronDown, ChevronUp, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,9 @@ import { usePhotoPicker } from "@/hooks/useCamera";
 import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FoodSearchInput, FoodItem } from "@/components/FoodSearchInput";
+import { FoodDetailModal, FoodItem as FoodDetailItem } from "@/components/FoodDetailModal";
 
 interface SavedMealFood {
   id: string;
@@ -32,21 +35,6 @@ interface LocationState {
   photos?: string[];
 }
 
-const SUGGESTED_TAGS = [
-  "High Protein",
-  "Low Carb",
-  "Keto",
-  "Vegan",
-  "Quick",
-  "Meal Prep",
-  "Breakfast",
-  "Lunch",
-  "Dinner",
-  "Snack",
-  "Post-Workout",
-  "Pre-Workout",
-];
-
 const CreateSavedMealPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,7 +44,7 @@ const CreateSavedMealPage = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [customTag, setCustomTag] = useState("");
+  const [newTag, setNewTag] = useState("");
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [foods, setFoods] = useState<SavedMealFood[]>(state?.foods || []);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -64,6 +52,12 @@ const CreateSavedMealPage = () => {
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [isDetailsSectionOpen, setIsDetailsSectionOpen] = useState(true);
+  
+  // Food search state
+  const [foodSearchQuery, setFoodSearchQuery] = useState("");
+  const [selectedFood, setSelectedFood] = useState<FoodDetailItem | null>(null);
+  const [isFoodDetailOpen, setIsFoodDetailOpen] = useState(false);
 
   const { inputRef, openPicker, handleFileChange } = usePhotoPicker((urls) => {
     if (urls.length > 0) {
@@ -79,7 +73,7 @@ const CreateSavedMealPage = () => {
   const totalFats = foods.reduce((sum, f) => sum + f.fats, 0);
 
   const handleBack = () => {
-    if (name || description || tags.length > 0 || coverPhoto) {
+    if (name || description || tags.length > 0 || coverPhoto || foods.length > 0) {
       setShowBackConfirm(true);
     } else {
       navigateBack();
@@ -87,7 +81,6 @@ const CreateSavedMealPage = () => {
   };
 
   const navigateBack = () => {
-    // Navigate back to meal creation with the foods preserved
     navigate("/create/meal", {
       state: {
         restored: true,
@@ -109,24 +102,62 @@ const CreateSavedMealPage = () => {
     }
   };
 
-  const toggleTag = (tag: string) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter((t) => t !== tag));
-    } else {
-      setTags([...tags, tag]);
+  const handleAddTag = () => {
+    const processed = newTag.trim().toLowerCase().replace(/[^a-z]/g, '');
+    if (processed && !tags.includes(processed)) {
+      setTags([...tags, processed]);
+      setNewTag("");
     }
   };
 
-  const addCustomTag = () => {
-    const trimmed = customTag.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
-      setCustomTag("");
-    }
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
   const removeFood = (id: string) => {
     setFoods(foods.filter((f) => f.id !== id));
+  };
+
+  const handleFoodSelect = (food: FoodItem) => {
+    // Convert FoodSearchInput's FoodItem to FoodDetailModal's FoodItem
+    const detailFood: FoodDetailItem = {
+      fdcId: food.fdcId,
+      description: food.description,
+      brandName: food.brandName,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      servingSize: food.servingSize,
+      servingSizeValue: food.servingSizeValue,
+      servingSizeUnit: food.servingSizeUnit,
+      isCustom: food.isCustom,
+      baseUnit: food.baseUnit,
+    };
+    setSelectedFood(detailFood);
+    setIsFoodDetailOpen(true);
+    setFoodSearchQuery("");
+  };
+
+  const handleFoodConfirm = (food: FoodDetailItem, servings: number, servingSize: string) => {
+    // Calculate the adjusted macros based on servings
+    const ratio = servings;
+    const newFood: SavedMealFood = {
+      id: Date.now().toString(),
+      name: food.description,
+      calories: Math.round(food.calories * ratio),
+      protein: Math.round(food.protein * ratio * 10) / 10,
+      carbs: Math.round(food.carbs * ratio * 10) / 10,
+      fats: Math.round(food.fats * ratio * 10) / 10,
+      servings: servings,
+      servingSize: servingSize,
+      rawQuantity: servings,
+      rawUnit: servingSize,
+    };
+    setFoods([...foods, newFood]);
+    setSelectedFood(null);
+    setIsFoodDetailOpen(false);
+    toast({ title: "Food added!" });
   };
 
   const handleSubmit = async () => {
@@ -167,13 +198,12 @@ const CreateSavedMealPage = () => {
         totalFats,
       }));
       
-      // Save as a post with content_type "saved_meal"
       const { error } = await supabase.from("posts").insert([{
         user_id: user.id,
         content_type: "saved_meal",
         content_data: contentData,
         images: coverPhoto ? [coverPhoto] : [],
-        visibility: "private", // Saved meals are private by default
+        visibility: "private",
       }]);
 
       if (error) throw error;
@@ -189,7 +219,7 @@ const CreateSavedMealPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-32">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -207,91 +237,120 @@ const CreateSavedMealPage = () => {
           </Button>
         </div>
 
-        {/* Cover Photo */}
-        <div className="mb-6">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Cover Photo</label>
-          {coverPhoto ? (
-            <div className="relative rounded-xl overflow-hidden aspect-video">
-              <img src={coverPhoto} alt="Cover" className="w-full h-full object-cover" />
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 h-8 w-8"
-                onClick={() => setCoverPhoto(null)}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsChoiceDialogOpen(true)}
-              className="w-full aspect-video rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
-            >
-              <Camera size={32} />
-              <span className="text-sm">Add Cover Photo</span>
-            </button>
-          )}
-        </div>
-
-        {/* Name */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Name</label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., My Go-To Breakfast"
-            className="bg-card"
-          />
-        </div>
-
-        {/* Tags */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Tags</label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {SUGGESTED_TAGS.map((tag) => (
-              <Badge
-                key={tag}
-                variant={tags.includes(tag) ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2">
+        {/* Title with Collapsible Toggle */}
+        <Collapsible open={isDetailsSectionOpen} onOpenChange={setIsDetailsSectionOpen} className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
             <Input
-              value={customTag}
-              onChange={(e) => setCustomTag(e.target.value)}
-              placeholder="Add custom tag..."
-              className="bg-card flex-1"
-              onKeyDown={(e) => e.key === "Enter" && addCustomTag()}
+              placeholder="Meal name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="flex-1 text-2xl font-semibold bg-transparent border-0 rounded-none px-0 focus-visible:ring-0"
             />
-            <Button variant="outline" size="icon" onClick={addCustomTag}>
-              <Plus size={18} />
-            </Button>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                {isDetailsSectionOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </Button>
+            </CollapsibleTrigger>
           </div>
-          {tags.filter((t) => !SUGGESTED_TAGS.includes(t)).length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tags
-                .filter((t) => !SUGGESTED_TAGS.includes(t))
-                .map((tag) => (
-                  <Badge key={tag} variant="default" className="cursor-pointer" onClick={() => toggleTag(tag)}>
-                    {tag} <X size={12} className="ml-1" />
-                  </Badge>
-                ))}
-            </div>
-          )}
-        </div>
 
-        {/* Description */}
+          <CollapsibleContent className="space-y-6">
+            {/* Tags Section */}
+            <div>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  placeholder="Add tag..."
+                  value={newTag}
+                  onChange={(e) => {
+                    const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+                    setNewTag(value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  className="flex-1 h-9 bg-muted/50 border-0 text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleAddTag}
+                  disabled={!newTag.trim()}
+                  className="h-9"
+                >
+                  <Plus size={16} />
+                </Button>
+              </div>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-1 hover:bg-muted rounded-full p-0.5"
+                      >
+                        <X size={12} />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <div>
+              <Textarea
+                placeholder="Add description..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="min-h-[60px] bg-muted/50 border-0 resize-none text-sm"
+                rows={2}
+              />
+            </div>
+
+            {/* Cover Photo */}
+            <div>
+              {coverPhoto ? (
+                <div className="relative rounded-xl overflow-hidden aspect-video">
+                  <img src={coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={() => setCoverPhoto(null)}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsChoiceDialogOpen(true)}
+                  className="w-full aspect-video rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Camera size={32} />
+                  <span className="text-sm">Add Cover Photo</span>
+                </button>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Divider */}
+        <div className="border-b border-border mb-6" />
+
+        {/* Food Search */}
         <div className="mb-6">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add notes about this meal..."
-            className="bg-card min-h-[80px]"
+          <FoodSearchInput
+            value={foodSearchQuery}
+            onChange={setFoodSearchQuery}
+            onSelect={handleFoodSelect}
+            placeholder="Search for foods to add..."
           />
         </div>
 
@@ -410,6 +469,17 @@ const CreateSavedMealPage = () => {
         multiple
         className="hidden"
         onChange={handleFileChange}
+      />
+
+      {/* Food Detail Modal */}
+      <FoodDetailModal
+        isOpen={isFoodDetailOpen}
+        food={selectedFood}
+        onClose={() => {
+          setIsFoodDetailOpen(false);
+          setSelectedFood(null);
+        }}
+        onConfirm={handleFoodConfirm}
       />
 
       {/* Back Confirmation Dialog */}
