@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSavedMeals, SavedRecipe, SavedMeal } from "@/hooks/useSavedMeals";
 import { useUserData } from "@/hooks/useUserData";
-import MealRecipeCard from "@/components/meal/MealRecipeCard";
+import MealSavedCard from "@/components/meal/MealSavedCard";
 
 const MyRecipesPage = () => {
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ const MyRecipesPage = () => {
     const query = searchQuery.toLowerCase();
     return savedMeals.filter((m) =>
       m.title.toLowerCase().includes(query) ||
-      m.mealType.toLowerCase().includes(query) ||
       m.foods.some((f) => f.name.toLowerCase().includes(query))
     );
   }, [savedMeals, searchQuery]);
@@ -153,24 +152,22 @@ const MyRecipesPage = () => {
               <div className="py-12 text-center">
                 <Utensils size={40} className="mx-auto mb-3 text-muted-foreground/50" />
                 <p className="text-muted-foreground font-medium">No saved meals yet</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">Log a meal to see it here</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Create one from the meal logging screen</p>
               </div>
             ) : (
               filteredMeals.map((meal) => (
-                <MealRecipeCard
+                <MealSavedCard
                   key={meal.id}
                   title={meal.title}
-                  calories={meal.totalCalories}
-                  protein={meal.totalProtein}
-                  carbs={meal.totalCarbs}
-                  fats={meal.totalFats}
-                  itemCount={meal.foods.length}
+                  items={meal.foods}
                   creator={currentUserCreator}
                   createdAt={meal.created_at}
-                  coverPhoto={meal.images[0] || null}
                   onCopy={() => handleUseMeal(meal)}
                   copyButtonText="Use"
-                  isRecipe={false}
+                  totalCalories={meal.totalCalories}
+                  totalProtein={meal.totalProtein}
+                  totalCarbs={meal.totalCarbs}
+                  totalFats={meal.totalFats}
                 />
               ))
             )}
@@ -188,24 +185,19 @@ const MyRecipesPage = () => {
               </div>
             ) : (
               filteredRecipes.map((recipe) => (
-                <MealRecipeCard
+                <MealSavedCard
                   key={recipe.id}
                   title={recipe.title}
-                  description={recipe.description}
-                  calories={recipe.totalNutrition.calories}
-                  protein={recipe.totalNutrition.protein}
-                  carbs={recipe.totalNutrition.carbs}
-                  fats={recipe.totalNutrition.fats}
-                  itemCount={recipe.ingredients.length}
+                  items={recipe.ingredients}
                   creator={currentUserCreator}
                   createdAt={recipe.created_at}
-                  coverPhoto={recipe.coverPhoto}
-                  prepTime={recipe.prepTime}
-                  cookTime={recipe.cookTime}
-                  servings={recipe.servings}
                   onCopy={() => handleUseRecipe(recipe)}
                   copyButtonText="Use"
                   isRecipe
+                  totalCalories={recipe.totalNutrition.calories}
+                  totalProtein={recipe.totalNutrition.protein}
+                  totalCarbs={recipe.totalNutrition.carbs}
+                  totalFats={recipe.totalNutrition.fats}
                 />
               ))
             )}
