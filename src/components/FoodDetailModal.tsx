@@ -283,73 +283,152 @@ export const FoodDetailModal = ({
               <div className="flex items-start gap-6">
                 {/* Left Column: Circle + Compact Macros */}
                 <div className="flex flex-col items-center flex-shrink-0">
-                  {/* Calorie Circle */}
-                  <div className="relative">
-                    <svg width="140" height="140" viewBox="0 0 140 140" className="-rotate-90">
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r={radius}
-                        fill="none"
-                        stroke="hsl(var(--muted))"
-                        strokeWidth="12"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r={radius}
-                        fill="none"
-                        stroke="hsl(220 90% 56%)"
-                        strokeWidth="12"
-                        strokeDasharray={`${proteinDash} ${circumference}`}
-                        strokeDashoffset="0"
-                        strokeLinecap="round"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r={radius}
-                        fill="none"
-                        stroke="hsl(45 93% 47%)"
-                        strokeWidth="12"
-                        strokeDasharray={`${carbsDash} ${circumference}`}
-                        strokeDashoffset={-proteinDash}
-                        strokeLinecap="round"
-                      />
-                      <circle
-                        cx="70"
-                        cy="70"
-                        r={radius}
-                        fill="none"
-                        stroke="hsl(340 82% 52%)"
-                        strokeWidth="12"
-                        strokeDasharray={`${fatsDash} ${circumference}`}
-                        strokeDashoffset={-(proteinDash + carbsDash)}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold">{adjustedCalories}</span>
-                      <span className="text-xs text-muted-foreground">cal</span>
-                    </div>
-                  </div>
+                  {/* Calorie Circle with Blob Background */}
+                  {(() => {
+                    // Macro colors matching the Total Nutrition style
+                    const proteinColor = '#3DD6C6';
+                    const carbsColor = '#5B8CFF';
+                    const fatsColor = '#B46BFF';
+                    
+                    // Calculate ratios with minimum presence for visual consistency
+                    const proteinRatioCalc = totalMacros > 0 ? Math.max((adjustedProtein / totalMacros), 0.08) : 0.33;
+                    const carbsRatioCalc = totalMacros > 0 ? Math.max((adjustedCarbs / totalMacros), 0.08) : 0.33;
+                    const fatsRatioCalc = totalMacros > 0 ? Math.max((adjustedFats / totalMacros), 0.08) : 0.33;
+                    
+                    // Normalize ratios
+                    const totalRatioCalc = proteinRatioCalc + carbsRatioCalc + fatsRatioCalc;
+                    const normalizedProtein = proteinRatioCalc / totalRatioCalc;
+                    const normalizedCarbs = carbsRatioCalc / totalRatioCalc;
+                    const normalizedFats = fatsRatioCalc / totalRatioCalc;
+                    
+                    // Calculate blob sizes (30-70% based on ratio)
+                    const proteinSize = 30 + normalizedProtein * 40;
+                    const carbsSize = 30 + normalizedCarbs * 40;
+                    const fatsSize = 30 + normalizedFats * 40;
+                    
+                    // Calculate opacities (0.6 minimum, up to 1.0)
+                    const proteinOpacity = totalMacros > 0 ? 0.6 + (adjustedProtein / totalMacros) * 0.4 : 0.75;
+                    const carbsOpacity = totalMacros > 0 ? 0.6 + (adjustedCarbs / totalMacros) * 0.4 : 0.75;
+                    const fatsOpacity = totalMacros > 0 ? 0.6 + (adjustedFats / totalMacros) * 0.4 : 0.75;
+                    
+                    return (
+                      <div className="relative w-[140px] h-[140px] rounded-full overflow-hidden shadow-lg shadow-black/30">
+                        {/* Liquid blob background */}
+                        <div className="absolute inset-0 bg-card">
+                          {/* Protein blob */}
+                          <motion.div
+                            className="absolute rounded-full blur-2xl"
+                            style={{
+                              width: `${proteinSize}%`,
+                              height: `${proteinSize}%`,
+                              background: `radial-gradient(circle, ${proteinColor} 0%, transparent 70%)`,
+                              opacity: proteinOpacity,
+                              left: '5%',
+                              top: '10%',
+                            }}
+                            animate={{
+                              x: [0, 15, -10, 5, 0],
+                              y: [0, -10, 15, -5, 0],
+                              scale: [1, 1.1, 0.95, 1.05, 1],
+                            }}
+                            transition={{
+                              duration: 8,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                            }}
+                          />
+                          {/* Carbs blob */}
+                          <motion.div
+                            className="absolute rounded-full blur-2xl"
+                            style={{
+                              width: `${carbsSize}%`,
+                              height: `${carbsSize}%`,
+                              background: `radial-gradient(circle, ${carbsColor} 0%, transparent 70%)`,
+                              opacity: carbsOpacity,
+                              right: '10%',
+                              top: '5%',
+                            }}
+                            animate={{
+                              x: [0, -20, 10, -5, 0],
+                              y: [0, 15, -10, 5, 0],
+                              scale: [1, 0.95, 1.1, 0.98, 1],
+                            }}
+                            transition={{
+                              duration: 9,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                              delay: 0.5,
+                            }}
+                          />
+                          {/* Fats blob */}
+                          <motion.div
+                            className="absolute rounded-full blur-2xl"
+                            style={{
+                              width: `${fatsSize}%`,
+                              height: `${fatsSize}%`,
+                              background: `radial-gradient(circle, ${fatsColor} 0%, transparent 70%)`,
+                              opacity: fatsOpacity,
+                              left: '30%',
+                              bottom: '-10%',
+                            }}
+                            animate={{
+                              x: [0, 10, -15, 8, 0],
+                              y: [0, -15, 10, -8, 0],
+                              scale: [1, 1.08, 0.92, 1.04, 1],
+                            }}
+                            transition={{
+                              duration: 7,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                              delay: 1,
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Frosted glass overlay with subtle vignette */}
+                        <div 
+                          className="absolute inset-0 backdrop-blur-[2px]"
+                          style={{
+                            background: `radial-gradient(circle, 
+                              rgba(0, 0, 0, 0) 40%, 
+                              rgba(0, 0, 0, 0.08) 100%)`,
+                            boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.12)',
+                          }}
+                        />
+                        
+                        {/* Border overlay */}
+                        <div 
+                          className="absolute inset-0 rounded-full pointer-events-none"
+                          style={{
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                          }}
+                        />
+                        
+                        {/* Calories content in center */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                          <span className="text-2xl font-bold text-white">{adjustedCalories}</span>
+                          <span className="text-xs text-white/70">cal</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Macro Breakdown */}
                   <div className="flex justify-between w-[140px] mt-3">
                     <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(220,90%,56%)] mb-1" />
+                      <div className="w-2 h-2 rounded-full mb-1" style={{ backgroundColor: '#3DD6C6' }} />
                       <span className="text-xs font-semibold">{adjustedProtein.toFixed(0)}g</span>
                       <span className="text-[10px] text-muted-foreground">{proteinPercentage.toFixed(0)}%</span>
                       <span className="text-[10px] text-muted-foreground">Protein</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(45,93%,47%)] mb-1" />
+                      <div className="w-2 h-2 rounded-full mb-1" style={{ backgroundColor: '#5B8CFF' }} />
                       <span className="text-xs font-semibold">{adjustedCarbs.toFixed(0)}g</span>
                       <span className="text-[10px] text-muted-foreground">{carbsPercentage.toFixed(0)}%</span>
                       <span className="text-[10px] text-muted-foreground">Carbs</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(340,82%,52%)] mb-1" />
+                      <div className="w-2 h-2 rounded-full mb-1" style={{ backgroundColor: '#B46BFF' }} />
                       <span className="text-xs font-semibold">{adjustedFats.toFixed(0)}g</span>
                       <span className="text-[10px] text-muted-foreground">{fatsPercentage.toFixed(0)}%</span>
                       <span className="text-[10px] text-muted-foreground">Fats</span>
