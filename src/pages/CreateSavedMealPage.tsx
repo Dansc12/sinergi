@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, X, ChevronDown, ChevronUp, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, X, ChevronDown, ChevronUp, Plus, Loader2, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -344,6 +344,161 @@ const CreateSavedMealPage = () => {
         {/* Divider */}
         <div className="border-b border-border mb-6" />
 
+        {/* Total Nutrition Card - styled like FoodDetailModal */}
+        {(() => {
+          const proteinColor = '#3DD6C6';
+          const carbsColor = '#5B8CFF';
+          const fatsColor = '#B46BFF';
+          
+          const totalMacros = totalProtein + totalCarbs + totalFats;
+          const proteinRatioCalc = totalMacros > 0 ? Math.max((totalProtein / totalMacros), 0.08) : 0.33;
+          const carbsRatioCalc = totalMacros > 0 ? Math.max((totalCarbs / totalMacros), 0.08) : 0.33;
+          const fatsRatioCalc = totalMacros > 0 ? Math.max((totalFats / totalMacros), 0.08) : 0.33;
+          
+          const totalRatioCalc = proteinRatioCalc + carbsRatioCalc + fatsRatioCalc;
+          const normalizedProtein = proteinRatioCalc / totalRatioCalc;
+          const normalizedCarbs = carbsRatioCalc / totalRatioCalc;
+          const normalizedFats = fatsRatioCalc / totalRatioCalc;
+          
+          const proteinSize = 60 + normalizedProtein * 40;
+          const carbsSize = 60 + normalizedCarbs * 40;
+          const fatsSize = 60 + normalizedFats * 40;
+          
+          const proteinPercentage = totalMacros > 0 ? Math.round((totalProtein / totalMacros) * 100) : 0;
+          const carbsPercentage = totalMacros > 0 ? Math.round((totalCarbs / totalMacros) * 100) : 0;
+          const fatsPercentage = totalMacros > 0 ? Math.round((totalFats / totalMacros) * 100) : 0;
+          
+          return (
+            <div 
+              className="relative w-full rounded-2xl overflow-hidden p-5 mb-6"
+              style={{
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              {/* Dark base */}
+              <div className="absolute inset-0 bg-card" />
+              
+              {/* Protein blob */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: `${proteinSize}%`,
+                  height: `${proteinSize * 1.5}%`,
+                  background: proteinColor,
+                  filter: 'blur(40px)',
+                  opacity: 0.4,
+                  left: '-15%',
+                  top: '-20%',
+                }}
+                animate={{
+                  x: [0, 20, -15, 10, 0],
+                  y: [0, -15, 20, -10, 0],
+                  scale: [1, 1.1, 0.95, 1.05, 1],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              {/* Carbs blob */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: `${carbsSize}%`,
+                  height: `${carbsSize * 1.5}%`,
+                  background: carbsColor,
+                  filter: 'blur(40px)',
+                  opacity: 0.4,
+                  right: '-20%',
+                  top: '-10%',
+                }}
+                animate={{
+                  x: [0, -25, 15, -10, 0],
+                  y: [0, 20, -15, 10, 0],
+                  scale: [1, 0.95, 1.1, 0.98, 1],
+                }}
+                transition={{
+                  duration: 9,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 0.5,
+                }}
+              />
+              {/* Fats blob */}
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: `${fatsSize}%`,
+                  height: `${fatsSize * 1.2}%`,
+                  background: fatsColor,
+                  filter: 'blur(40px)',
+                  opacity: 0.4,
+                  left: '20%',
+                  bottom: '-40%',
+                }}
+                animate={{
+                  x: [0, 15, -20, 12, 0],
+                  y: [0, -20, 15, -12, 0],
+                  scale: [1, 1.08, 0.92, 1.04, 1],
+                }}
+                transition={{
+                  duration: 7,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 1,
+                }}
+              />
+              
+              {/* Food count icon - top left (replaces edit icon) */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 text-foreground/70">
+                <UtensilsCrossed size={16} />
+                <span className="text-sm font-medium">{foods.length}</span>
+              </div>
+              
+              {/* Frosted glass overlay */}
+              <div 
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+                  backdropFilter: 'blur(2px)',
+                }}
+              />
+              
+              {/* Content */}
+              <div className="relative z-10 pt-4">
+                {/* Calories and Macros Row */}
+                <div className="flex items-center justify-between">
+                  {/* Calories - Left aligned */}
+                  <div>
+                    <span className="text-3xl font-bold text-foreground">{totalCalories}</span>
+                    <span className="text-sm text-foreground/70 ml-1">cal</span>
+                  </div>
+                  
+                  {/* Macros - Right aligned */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className="text-sm font-medium" style={{ color: proteinColor }}>Protein</span>
+                      <span className="text-sm text-foreground">{totalProtein.toFixed(0)}g</span>
+                      <span className="text-xs text-foreground/50">{proteinPercentage}%</span>
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className="text-sm font-medium" style={{ color: carbsColor }}>Carbs</span>
+                      <span className="text-sm text-foreground">{totalCarbs.toFixed(0)}g</span>
+                      <span className="text-xs text-foreground/50">{carbsPercentage}%</span>
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className="text-sm font-medium" style={{ color: fatsColor }}>Fats</span>
+                      <span className="text-sm text-foreground">{totalFats.toFixed(0)}g</span>
+                      <span className="text-xs text-foreground/50">{fatsPercentage}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Food Search */}
         <div className="mb-6">
           <FoodSearchInput
@@ -358,9 +513,6 @@ const CreateSavedMealPage = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <label className="text-sm font-medium text-muted-foreground">Foods ({foods.length})</label>
-            <div className="text-sm text-muted-foreground">
-              {totalCalories} cal
-            </div>
           </div>
 
           {foods.length === 0 ? (
@@ -403,33 +555,6 @@ const CreateSavedMealPage = () => {
                   </div>
                 </motion.div>
               ))}
-            </div>
-          )}
-
-          {/* Nutrition Summary */}
-          {foods.length > 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-card border border-border">
-              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                Total Nutrition
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-foreground">{totalCalories}</div>
-                  <div className="text-xs text-muted-foreground">Calories</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[#3DD6C6]">{totalProtein.toFixed(0)}g</div>
-                  <div className="text-xs text-muted-foreground">Protein</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[#5B8CFF]">{totalCarbs.toFixed(0)}g</div>
-                  <div className="text-xs text-muted-foreground">Carbs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[#B46BFF]">{totalFats.toFixed(0)}g</div>
-                  <div className="text-xs text-muted-foreground">Fats</div>
-                </div>
-              </div>
             </div>
           )}
         </div>
