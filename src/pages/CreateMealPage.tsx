@@ -713,36 +713,158 @@ const CreateMealPage = () => {
       </AnimatePresence>
 
       {/* View Foods Button - Fixed at bottom when foods are selected */}
-      {selectedFoods.length > 0 && !showFoodsList && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full rounded-xl border-border bg-card hover:bg-muted px-4"
-            onClick={() => setShowFoodsList(true)}
-          >
-            <div className="relative flex items-center w-full">
-              {/* Left: Icon + Count */}
-              <div className="flex items-center gap-2">
-                <Utensils size={20} />
-                <span className="font-semibold">{selectedFoods.length}</span>
+      {selectedFoods.length > 0 && !showFoodsList && (() => {
+        const totalMacros = totalProtein + totalCarbs + totalFats;
+        
+        // Calculate ratios with minimum presence for visual consistency
+        const proteinRatio = totalMacros > 0 ? Math.max((totalProtein / totalMacros), 0.08) : 0.33;
+        const carbsRatio = totalMacros > 0 ? Math.max((totalCarbs / totalMacros), 0.08) : 0.33;
+        const fatsRatio = totalMacros > 0 ? Math.max((totalFats / totalMacros), 0.08) : 0.33;
+        
+        // Normalize ratios
+        const totalRatio = proteinRatio + carbsRatio + fatsRatio;
+        const normalizedProtein = proteinRatio / totalRatio;
+        const normalizedCarbs = carbsRatio / totalRatio;
+        const normalizedFats = fatsRatio / totalRatio;
+        
+        // Macro colors
+        const proteinColor = '#3DD6C6';
+        const carbsColor = '#5B8CFF';
+        const fatsColor = '#B46BFF';
+        
+        // Calculate blob sizes (40-90px based on ratio)
+        const proteinSize = 40 + normalizedProtein * 50;
+        const carbsSize = 40 + normalizedCarbs * 50;
+        const fatsSize = 40 + normalizedFats * 50;
+        
+        // Calculate opacities (0.6 minimum, up to 1.0 for very bright colors)
+        const proteinOpacity = totalMacros > 0 ? 0.6 + (totalProtein / totalMacros) * 0.4 : 0.75;
+        const carbsOpacity = totalMacros > 0 ? 0.6 + (totalCarbs / totalMacros) * 0.4 : 0.75;
+        const fatsOpacity = totalMacros > 0 ? 0.6 + (totalFats / totalMacros) * 0.4 : 0.75;
+        
+        return (
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
+            <button
+              onClick={() => setShowFoodsList(true)}
+              className="relative w-full h-14 rounded-xl overflow-hidden shadow-lg shadow-black/30"
+            >
+              {/* Liquid blob background */}
+              <div className="absolute inset-0 bg-card">
+                {/* Protein blob */}
+                <motion.div
+                  className="absolute rounded-full blur-2xl"
+                  style={{
+                    width: `${proteinSize}%`,
+                    height: `${proteinSize * 2}%`,
+                    background: `radial-gradient(circle, ${proteinColor} 0%, transparent 70%)`,
+                    opacity: proteinOpacity,
+                    left: '5%',
+                    top: '-20%',
+                  }}
+                  animate={{
+                    x: [0, 15, -10, 5, 0],
+                    y: [0, -10, 15, -5, 0],
+                    scale: [1, 1.1, 0.95, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+                {/* Carbs blob */}
+                <motion.div
+                  className="absolute rounded-full blur-2xl"
+                  style={{
+                    width: `${carbsSize}%`,
+                    height: `${carbsSize * 2}%`,
+                    background: `radial-gradient(circle, ${carbsColor} 0%, transparent 70%)`,
+                    opacity: carbsOpacity,
+                    right: '10%',
+                    top: '-30%',
+                  }}
+                  animate={{
+                    x: [0, -20, 10, -5, 0],
+                    y: [0, 15, -10, 5, 0],
+                    scale: [1, 0.95, 1.1, 0.98, 1],
+                  }}
+                  transition={{
+                    duration: 9,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                    delay: 0.5,
+                  }}
+                />
+                {/* Fats blob */}
+                <motion.div
+                  className="absolute rounded-full blur-2xl"
+                  style={{
+                    width: `${fatsSize}%`,
+                    height: `${fatsSize * 2}%`,
+                    background: `radial-gradient(circle, ${fatsColor} 0%, transparent 70%)`,
+                    opacity: fatsOpacity,
+                    left: '30%',
+                    bottom: '-50%',
+                  }}
+                  animate={{
+                    x: [0, 10, -15, 8, 0],
+                    y: [0, -15, 10, -8, 0],
+                    scale: [1, 1.08, 0.92, 1.04, 1],
+                  }}
+                  transition={{
+                    duration: 7,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                    delay: 1,
+                  }}
+                />
               </div>
               
-              {/* Center: Macros (absolutely positioned for true centering) */}
-              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-sm">
-                <span style={{ color: '#3DD6C6' }}>P {totalProtein.toFixed(0)}g</span>
-                <span style={{ color: '#5B8CFF' }}>C {totalCarbs.toFixed(0)}g</span>
-                <span style={{ color: '#B46BFF' }}>F {totalFats.toFixed(0)}g</span>
-              </div>
+              {/* Frosted glass overlay with subtle side vignette */}
+              <div 
+                className="absolute inset-0 backdrop-blur-[2px]"
+                style={{
+                  background: `linear-gradient(90deg, 
+                    rgba(0, 0, 0, 0.08) 0%, 
+                    rgba(0, 0, 0, 0) 12%, 
+                    rgba(0, 0, 0, 0) 88%, 
+                    rgba(0, 0, 0, 0.08) 100%)`,
+                  boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.12)',
+                }}
+              />
               
-              {/* Right: Calories */}
-              <div className="ml-auto text-sm">
-                <span>{totalCalories} cal</span>
+              {/* Border overlay */}
+              <div 
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                }}
+              />
+              
+              {/* Content */}
+              <div className="relative z-10 flex items-center h-full px-4">
+                {/* Left: Icon + Count */}
+                <div className="flex items-center gap-2 text-white">
+                  <Utensils size={20} />
+                  <span className="font-semibold">{selectedFoods.length}</span>
+                </div>
+                
+                {/* Center: Macros (absolutely positioned for true centering) */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-sm">
+                  <span style={{ color: proteinColor }}>P {totalProtein.toFixed(0)}g</span>
+                  <span style={{ color: carbsColor }}>C {totalCarbs.toFixed(0)}g</span>
+                  <span style={{ color: fatsColor }}>F {totalFats.toFixed(0)}g</span>
+                </div>
+                
+                {/* Right: Calories */}
+                <div className="ml-auto text-sm text-white">
+                  <span>{totalCalories} cal</span>
+                </div>
               </div>
-            </div>
-          </Button>
-        </div>
-      )}
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Hidden file input for gallery */}
       <input
