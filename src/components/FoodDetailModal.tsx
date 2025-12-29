@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Minus, Plus, Edit2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -244,6 +244,22 @@ export const FoodDetailModal = ({
     setter(Math.max(0, value) || 0);
   };
 
+  const macroEditRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to exit manual override
+  useEffect(() => {
+    if (!manualOverride) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (macroEditRef.current && !macroEditRef.current.contains(e.target as Node)) {
+        setManualOverride(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [manualOverride]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -251,17 +267,25 @@ export const FoodDetailModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-background z-50"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
         >
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="h-full flex flex-col"
+            className="w-full bg-background rounded-t-3xl flex flex-col max-h-[85vh]"
           >
+            {/* Handle bar */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+            </div>
+
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <ArrowLeft size={24} />
               </Button>
@@ -280,7 +304,7 @@ export const FoodDetailModal = ({
 
             {/* Content */}
             <div className="flex-1 p-6 overflow-y-auto">
-              <div className="flex items-start gap-6">
+              <div className="flex items-start gap-6" ref={macroEditRef}>
                 {/* Left Column: Circle + Compact Macros */}
                 <div className="flex flex-col items-center flex-shrink-0">
                   {/* Calorie Circle with Blob Background */}
