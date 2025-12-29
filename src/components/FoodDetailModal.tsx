@@ -399,26 +399,26 @@ export const FoodDetailModal = ({
 
                   {/* Macro Breakdown */}
                   <div className="flex justify-between w-[140px] mt-3">
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] font-medium mb-0.5" style={{ color: '#3DD6C6' }}>Protein</span>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xs font-semibold">{adjustedProtein.toFixed(0)}g</span>
                         <span className="text-[10px] text-muted-foreground">{proteinPercentage.toFixed(0)}%</span>
                       </div>
-                      <span className="text-[10px] font-medium" style={{ color: '#3DD6C6' }}>Protein</span>
                     </div>
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] font-medium mb-0.5" style={{ color: '#5B8CFF' }}>Carbs</span>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xs font-semibold">{adjustedCarbs.toFixed(0)}g</span>
                         <span className="text-[10px] text-muted-foreground">{carbsPercentage.toFixed(0)}%</span>
                       </div>
-                      <span className="text-[10px] font-medium" style={{ color: '#5B8CFF' }}>Carbs</span>
                     </div>
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] font-medium mb-0.5" style={{ color: '#B46BFF' }}>Fats</span>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xs font-semibold">{adjustedFats.toFixed(0)}g</span>
                         <span className="text-[10px] text-muted-foreground">{fatsPercentage.toFixed(0)}%</span>
                       </div>
-                      <span className="text-[10px] font-medium" style={{ color: '#B46BFF' }}>Fats</span>
                     </div>
                   </div>
                 </div>
