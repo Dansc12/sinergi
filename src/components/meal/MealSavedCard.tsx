@@ -342,12 +342,14 @@ const MealSavedCard = ({
                   <Utensils size={40} className="text-primary/50" />
                 </div>
               )}
-              {/* Subtle gradient overlay at bottom */}
-              <div className="absolute inset-0 bg-gradient-to-t from-card/40 to-transparent" />
+              {/* Top gradient for title legibility */}
+              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 to-transparent" />
+              {/* Bottom gradient for soft edge */}
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent" />
               
               {/* Title Row with Copy Button - overlaid on cover photo */}
               <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between gap-3">
-                <h4 className="font-bold text-white text-xl drop-shadow-lg">{title}</h4>
+                <h4 className="font-bold text-white text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{title}</h4>
                 <Button
                   size="sm"
                   onClick={(e) => {
