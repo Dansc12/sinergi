@@ -438,9 +438,9 @@ export const FoodDetailModal = ({
                       {/* Edit pencil icon - top left */}
                       <button
                         onClick={handleManualButtonClick}
-                        className="absolute top-3 left-3 z-20 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                        className="absolute top-3 left-3 z-20 hover:opacity-100 transition-opacity"
                       >
-                        <Edit2 size={14} className={isEditingManual ? "text-primary" : "text-white/60"} />
+                        <Edit2 size={14} className={isEditingManual ? "text-primary" : "text-white/50 hover:text-white/80"} />
                       </button>
                       
                       {/* Content */}
@@ -549,18 +549,18 @@ export const FoodDetailModal = ({
                 })()}
               </div>
 
-              {/* Quantity & Unit Controls */}
-              <div className="space-y-4">
-                {/* Quantity */}
-                <div>
+              {/* Quantity & Unit Controls - Same Row */}
+              <div className="flex items-end gap-3">
+                {/* Quantity - 80% */}
+                <div className="flex-[4]">
                   <label className="text-sm text-muted-foreground mb-2 block">
                     Quantity
                   </label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-10 w-10 rounded-full"
+                      className="h-10 w-10 rounded-full flex-shrink-0"
                       onClick={decrementQuantity}
                       disabled={quantity <= 0.1}
                     >
@@ -576,7 +576,7 @@ export const FoodDetailModal = ({
                         onBlur={handleQuantityInputBlur}
                         onKeyDown={handleQuantityInputKeyDown}
                         autoFocus
-                        className="text-2xl font-bold w-20 text-center h-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="text-xl font-bold flex-1 text-center h-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     ) : (
                       <button
@@ -584,7 +584,7 @@ export const FoodDetailModal = ({
                           setIsEditingQuantity(true);
                           setQuantityInput(String(quantity));
                         }}
-                        className="text-2xl font-bold min-w-[3rem] text-center hover:text-primary transition-colors"
+                        className="text-xl font-bold flex-1 text-center hover:text-primary transition-colors"
                       >
                         {quantity}
                       </button>
@@ -592,7 +592,7 @@ export const FoodDetailModal = ({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-10 w-10 rounded-full"
+                      className="h-10 w-10 rounded-full flex-shrink-0"
                       onClick={incrementQuantity}
                     >
                       <Plus size={18} />
@@ -600,13 +600,13 @@ export const FoodDetailModal = ({
                   </div>
                 </div>
 
-                {/* Unit */}
-                <div>
+                {/* Unit - 20% */}
+                <div className="flex-1">
                   <label className="text-sm text-muted-foreground mb-2 block">
                     Unit
                   </label>
                   <Select value={selectedUnit} onValueChange={handleUnitChange} disabled={manualOverride}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -619,25 +619,25 @@ export const FoodDetailModal = ({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                {/* Estimate Warning */}
-                {isEstimate && !manualOverride && (
-                  <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg text-sm">
-                    <AlertCircle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
-                    <div className="text-muted-foreground">
-                      <span className="font-medium text-foreground">Approximate conversion.</span> Cup measurements vary by food density. For accuracy, consider logging in grams or ounces.
-                    </div>
+              {/* Estimate Warning */}
+              {isEstimate && !manualOverride && (
+                <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg text-sm">
+                  <AlertCircle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Approximate conversion.</span> Cup measurements vary by food density. For accuracy, consider logging in grams or ounces.
                   </div>
-                )}
-
-                {/* Source Info */}
-                <div className="text-xs text-muted-foreground">
-                  {isUSDA ? (
-                    <span>Source: USDA (per 100g)</span>
-                  ) : (
-                    <span>Source: Custom (per 1{baseUnit})</span>
-                  )}
                 </div>
+              )}
+
+              {/* Source Info */}
+              <div className="text-xs text-muted-foreground">
+                {isUSDA ? (
+                  <span>Source: USDA (per 100g)</span>
+                ) : (
+                  <span>Source: Custom (per 1{baseUnit})</span>
+                )}
               </div>
             </div>
 
