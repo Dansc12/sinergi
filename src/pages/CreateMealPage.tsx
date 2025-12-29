@@ -525,12 +525,12 @@ const CreateMealPage = () => {
                     <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
                     <div className="relative z-10 flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-white/90 mb-3">Total Nutrition</div>
+                        <div className="text-sm font-medium text-white/90 mb-1">Total Nutrition</div>
                         
                         {/* Calories Row - Horizontal alignment */}
-                        <div className="flex items-baseline gap-2 mb-4">
+                        <div className="flex items-baseline gap-2 mb-2">
                           <span className="text-2xl font-bold text-white">{totalCalories}</span>
-                          <span className="text-2xl font-bold text-white">Calories</span>
+                          <span className="text-2xl font-medium text-white">Calories</span>
                         </div>
                         
                         {/* Macros Row */}
