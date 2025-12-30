@@ -144,7 +144,7 @@ const HomePage = () => {
         onProfileClick={() => navigate("/profile")}
       />
       
-      <div className="animate-fade-in pt-16">
+      <div className="animate-fade-in pt-20">
         <ProgressCharts />
         <TasksSection completedTasks={completedTasks} />
       </div>
