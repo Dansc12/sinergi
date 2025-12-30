@@ -27,7 +27,50 @@ interface SavedMealExpansionModalProps {
   onConfirm: (foods: ExpandedFood[]) => void;
 }
 
-const STANDARD_UNITS = ["g", "ml", "oz", "lb", "cup"];
+const STANDARD_UNITS = ["g", "ml", "oz", "lb", "cup"] as const;
+
+type StandardUnit = (typeof STANDARD_UNITS)[number];
+
+const clampUnit = (unit: string): StandardUnit => {
+  const normalized = unit.trim().toLowerCase();
+
+  // Exact match
+  if ((STANDARD_UNITS as readonly string[]).includes(normalized)) return normalized as StandardUnit;
+
+  // Prefix match (e.g. "cup (244g)" -> "cup")
+  const prefix = (STANDARD_UNITS as readonly string[]).find((u) => normalized.startsWith(u));
+  if (prefix) return prefix as StandardUnit;
+
+  return "g";
+};
+
+const parseSavedServing = (food: SavedMealFood): { quantity: number; unit: StandardUnit } => {
+  const parseFromString = (value?: string) => {
+    if (!value) return null;
+    const match = value.trim().match(/^([\d.]+)\s*(.+)$/);
+    if (!match) return null;
+    const qty = Number(match[1]);
+    if (!Number.isFinite(qty) || qty <= 0) return null;
+    const unit = clampUnit(match[2]);
+    return { quantity: qty, unit };
+  };
+
+  // Prefer servingSize if it contains quantity + unit (e.g. "100 g")
+  const fromServingSize = parseFromString(food.servingSize);
+  if (fromServingSize) return fromServingSize;
+
+  // Next try rawUnit if it contains quantity + unit (we have older saved data like rawUnit: "100 g")
+  const fromRawUnit = parseFromString(food.rawUnit);
+  if (fromRawUnit) return fromRawUnit;
+
+  // Otherwise fall back to numeric quantity + unit
+  const qty = Number(food.rawQuantity ?? food.servings ?? 1);
+  const unit = clampUnit(String(food.rawUnit ?? "g"));
+  return {
+    quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
+    unit,
+  };
+};
 
 export const SavedMealExpansionModal = ({
   isOpen,
@@ -45,26 +88,18 @@ export const SavedMealExpansionModal = ({
     if (isOpen && foods.length > 0) {
       setExpandedFoods(
         foods.map((food) => {
-          const quantity = food.rawQuantity || food.servings || 1;
-          // Parse unit from servingSize if it contains the quantity (e.g., "100 g" -> "g")
-          let unit = food.rawUnit || "g";
-          if (food.servingSize && food.servingSize.includes(" ")) {
-            const parts = food.servingSize.trim().split(" ");
-            if (parts.length >= 2) {
-              unit = parts.slice(1).join(" "); // Get everything after the number
-            }
-          }
-          
+          const { quantity, unit } = parseSavedServing(food);
+
           return {
             ...food,
             adjustedQuantity: quantity,
             adjustedUnit: unit,
-            // The stored calories/macros ARE the values for the stored quantity
+            // The stored calories/macros are for the stored quantity
             adjustedCalories: food.calories,
             adjustedProtein: food.protein,
             adjustedCarbs: food.carbs,
             adjustedFats: food.fats,
-            // Store originals for scaling
+            // Originals for scaling
             originalQuantity: quantity,
             originalCalories: food.calories,
             originalProtein: food.protein,
@@ -78,17 +113,15 @@ export const SavedMealExpansionModal = ({
 
   const updateFoodQuantity = (index: number, newQuantity: number) => {
     if (newQuantity < 0.1) return;
-    
+
     setExpandedFoods((prev) => {
       const updated = [...prev];
       const food = updated[index];
-      // Calculate multiplier based on original saved quantity
       const multiplier = newQuantity / food.originalQuantity;
-      
+
       updated[index] = {
         ...food,
         adjustedQuantity: newQuantity,
-        // Scale from the original values
         adjustedCalories: Math.round(food.originalCalories * multiplier),
         adjustedProtein: Math.round(food.originalProtein * multiplier * 10) / 10,
         adjustedCarbs: Math.round(food.originalCarbs * multiplier * 10) / 10,
@@ -99,9 +132,10 @@ export const SavedMealExpansionModal = ({
   };
 
   const updateFoodUnit = (index: number, newUnit: string) => {
+    const unit = clampUnit(newUnit);
     setExpandedFoods((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], adjustedUnit: newUnit };
+      updated[index] = { ...updated[index], adjustedUnit: unit };
       return updated;
     });
   };
@@ -114,10 +148,10 @@ export const SavedMealExpansionModal = ({
 
   const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
     if (dragStartX === null || draggingIndex === null) return;
-    
+
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const diff = clientX - dragStartX;
-    
+
     if (Math.abs(diff) > 30) {
       const change = diff > 0 ? 1 : -1;
       const currentQty = expandedFoods[draggingIndex].adjustedQuantity;
@@ -188,19 +222,28 @@ export const SavedMealExpansionModal = ({
               </div>
               <div className="flex justify-center gap-6">
                 <div className="text-center">
-                  <div className="text-sm font-semibold" style={{ color: "#3DD6C6" }}>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: "hsl(var(--macro-protein))" }}
+                  >
                     {totalProtein.toFixed(0)}g
                   </div>
                   <div className="text-xs text-muted-foreground">Protein</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-sm font-semibold" style={{ color: "#5B8CFF" }}>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: "hsl(var(--macro-carbs))" }}
+                  >
                     {totalCarbs.toFixed(0)}g
                   </div>
                   <div className="text-xs text-muted-foreground">Carbs</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-sm font-semibold" style={{ color: "#B46BFF" }}>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: "hsl(var(--macro-fats))" }}
+                  >
                     {totalFats.toFixed(0)}g
                   </div>
                   <div className="text-xs text-muted-foreground">Fat</div>
@@ -224,7 +267,13 @@ export const SavedMealExpansionModal = ({
                     <div
                       className="h-1"
                       style={{
-                        background: `linear-gradient(90deg, #3DD6C6 0%, #3DD6C6 ${pPct * 0.7}%, #5B8CFF ${pPct + cPct * 0.3}%, #5B8CFF ${pPct + cPct * 0.7}%, #B46BFF ${pPct + cPct + (100 - pPct - cPct) * 0.3}%, #B46BFF 100%)`,
+                        background: `linear-gradient(90deg, hsl(var(--macro-protein)) 0%, hsl(var(--macro-protein)) ${
+                          pPct * 0.7
+                        }%, hsl(var(--macro-carbs)) ${pPct + cPct * 0.3}%, hsl(var(--macro-carbs)) ${
+                          pPct + cPct * 0.7
+                        }%, hsl(var(--macro-fats)) ${
+                          pPct + cPct + (100 - pPct - cPct) * 0.3
+                        }%, hsl(var(--macro-fats)) 100%)`,
                       }}
                     />
 
@@ -235,9 +284,15 @@ export const SavedMealExpansionModal = ({
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xs font-medium">{food.adjustedCalories} cal</span>
                           <div className="flex items-center gap-2 text-xs">
-                            <span style={{ color: "#3DD6C6" }}>P: {food.adjustedProtein.toFixed(0)}g</span>
-                            <span style={{ color: "#5B8CFF" }}>C: {food.adjustedCarbs.toFixed(0)}g</span>
-                            <span style={{ color: "#B46BFF" }}>F: {food.adjustedFats.toFixed(0)}g</span>
+                            <span style={{ color: "hsl(var(--macro-protein))" }}>
+                              P: {food.adjustedProtein.toFixed(0)}g
+                            </span>
+                            <span style={{ color: "hsl(var(--macro-carbs))" }}>
+                              C: {food.adjustedCarbs.toFixed(0)}g
+                            </span>
+                            <span style={{ color: "hsl(var(--macro-fats))" }}>
+                              F: {food.adjustedFats.toFixed(0)}g
+                            </span>
                           </div>
                         </div>
                       </div>
