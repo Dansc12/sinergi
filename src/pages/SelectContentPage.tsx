@@ -330,8 +330,9 @@ const SelectContentPage = () => {
             <h1 className="text-2xl font-bold">Select Content</h1>
           </div>
           <Button
+            variant={selectedItem ? "default" : "outline"}
             onClick={selectedItem ? handleNext : handleSkip}
-            className="px-6"
+            className="w-20"
           >
             {selectedItem ? "Next" : "Skip"}
           </Button>
