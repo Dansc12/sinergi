@@ -43,11 +43,20 @@ export const useStrengthData = () => {
 
       (workouts || []).forEach(workout => {
         const date = workout.log_date;
-        const exercises = workout.exercises as unknown as WorkoutExercise[];
+        
+        // Handle both formats: direct array or {title, exercises} object
+        const exercisesData = workout.exercises as unknown;
+        let exercises: WorkoutExercise[] = [];
+        
+        if (Array.isArray(exercisesData)) {
+          exercises = exercisesData as WorkoutExercise[];
+        } else if (exercisesData && typeof exercisesData === 'object' && 'exercises' in exercisesData) {
+          exercises = (exercisesData as { exercises: WorkoutExercise[] }).exercises || [];
+        }
         
         let dayVolume = 0;
-        exercises.forEach(exercise => {
-          if (!exercise.isCardio) {
+        (exercises || []).forEach(exercise => {
+          if (!exercise.isCardio && Array.isArray(exercise.sets)) {
             exercise.sets.forEach(set => {
               if (set.weight && set.reps) {
                 dayVolume += set.weight * set.reps;
