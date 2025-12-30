@@ -501,16 +501,11 @@ const SharePostScreen = () => {
                         
                         <div className="flex-1 p-4 space-y-3">
                           {/* Exercise name and type */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h4 className="font-semibold text-foreground">{exercise.name}</h4>
-                              {exercise.isCardio && (
-                                <span className="text-xs text-muted-foreground">Cardio</span>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                              {exercise.sets.length} {exercise.sets.length === 1 ? 'set' : 'sets'}
-                            </span>
+                          <div>
+                            <h4 className="font-semibold text-foreground">{exercise.name}</h4>
+                            {exercise.isCardio && (
+                              <span className="text-xs text-muted-foreground">Cardio</span>
+                            )}
                           </div>
                           
                           {/* Sets - row format */}
@@ -530,25 +525,25 @@ const SharePostScreen = () => {
                                     {setLabel}
                                   </div>
                                   
-                                  {/* Weight/Distance and Reps/Time */}
+                                  {/* Weight/Distance and Reps/Time in boxes */}
                                   {exercise.isCardio ? (
                                     <>
-                                      <div className="flex items-center gap-1.5">
+                                      <div className="bg-muted/30 rounded-md px-3 py-1.5 flex items-center gap-1.5">
                                         <span className="text-sm font-medium text-foreground">{set.distance || '0'}</span>
                                         <span className="text-xs text-muted-foreground">mi</span>
                                       </div>
-                                      <div className="flex items-center gap-1.5">
+                                      <div className="bg-muted/30 rounded-md px-3 py-1.5">
                                         <span className="text-sm font-medium text-foreground">{set.time || '0:00'}</span>
                                       </div>
                                     </>
                                   ) : (
                                     <>
-                                      <div className="flex items-center gap-1.5">
+                                      <div className="bg-muted/30 rounded-md px-3 py-1.5 flex items-center gap-1.5">
                                         <span className="text-sm font-medium text-foreground">{set.weight || 0}</span>
                                         <span className="text-xs text-muted-foreground">lbs</span>
                                       </div>
                                       <span className="text-muted-foreground">×</span>
-                                      <div className="flex items-center gap-1.5">
+                                      <div className="bg-muted/30 rounded-md px-3 py-1.5 flex items-center gap-1.5">
                                         <span className="text-sm font-medium text-foreground">{set.reps || 0}</span>
                                         <span className="text-xs text-muted-foreground">reps</span>
                                       </div>
