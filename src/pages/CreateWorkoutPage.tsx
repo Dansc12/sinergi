@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { TagInput } from "@/components/TagInput";
 type SetType = "normal" | "warmup" | "failure" | "drop";
 
 interface Set {
@@ -91,7 +92,6 @@ const CreateWorkoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
   const [isExerciseSectionOpen, setIsExerciseSectionOpen] = useState(true);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -438,18 +438,6 @@ const CreateWorkoutPage = () => {
     navigate("/");
   };
 
-  const handleAddTag = () => {
-    // Only allow lowercase, no spaces - single word
-    const processed = newTag.trim().toLowerCase().replace(/\s+/g, '');
-    if (processed && !tags.includes(processed)) {
-      setTags([...tags, processed]);
-      setNewTag("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
-  };
   const handleCapturePhoto = (imageUrl: string) => {
     setPhotos([...photos, imageUrl]);
     toast({ title: "Photo added!", description: "Photo captured successfully." });
@@ -504,7 +492,7 @@ const CreateWorkoutPage = () => {
     try {
       await createPost({
         content_type: "workout",
-        content_data: { title, exercises },
+        content_data: { title, exercises, tags },
         images: photos,
         visibility: "private",
       });
@@ -525,7 +513,7 @@ const CreateWorkoutPage = () => {
         state: {
           showCongrats: true,
           contentType: "workout",
-          contentData: { title, exercises },
+          contentData: { title, exercises, tags },
           images: photos,
         },
       });
@@ -693,54 +681,12 @@ const CreateWorkoutPage = () => {
 
           <CollapsibleContent className="space-y-6">
             {/* Tags Section */}
-            <div>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  placeholder="Add tag..."
-                  value={newTag}
-                  onChange={(e) => {
-                    // Only allow lowercase letters, no spaces
-                    const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
-                    setNewTag(value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                  className="flex-1 h-9 bg-muted/50 border-0 text-sm"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddTag}
-                  disabled={!newTag.trim()}
-                  className="h-9"
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="gap-1 pr-1"
-                    >
-                      {tag}
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      >
-                        <X size={12} />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+            <TagInput
+              tags={tags}
+              onTagsChange={setTags}
+              placeholder="Add tag..."
+              maxTags={5}
+            />
 
             {/* Exercise Search */}
             <ExerciseSearchInput

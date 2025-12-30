@@ -13,6 +13,7 @@ import { usePhotoPicker } from "@/hooks/useCamera";
 import PhotoGallerySheet from "@/components/PhotoGallerySheet";
 import { FoodDetailModal } from "@/components/FoodDetailModal";
 import { usePosts } from "@/hooks/usePosts";
+import { TagInput } from "@/components/TagInput";
 
 interface Ingredient {
   id: string;
@@ -30,6 +31,7 @@ interface RestoredState {
   contentData?: { 
     title?: string;
     description?: string;
+    tags?: string[];
     prepTime?: string;
     cookTime?: string;
     servings?: string;
@@ -47,6 +49,7 @@ const CreateRecipePage = () => {
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [prepTime, setPrepTime] = useState("");
   const [cookTime, setCookTime] = useState("");
   const [servings, setServings] = useState("");
@@ -77,6 +80,7 @@ const CreateRecipePage = () => {
       const data = restoredState.contentData as typeof restoredState.contentData & { coverPhoto?: string };
       if (data.title) setTitle(data.title);
       if (data.description) setDescription(data.description);
+      if (data.tags) setTags(data.tags);
       if (data.prepTime) setPrepTime(data.prepTime);
       if (data.cookTime) setCookTime(data.cookTime);
       if (data.servings) setServings(data.servings);
@@ -157,7 +161,7 @@ const CreateRecipePage = () => {
     try {
       await createPost({
         content_type: "recipe",
-        content_data: { title, description, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
+        content_data: { title, description, tags, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
         images: allImages,
         visibility: "private",
       });
@@ -167,7 +171,7 @@ const CreateRecipePage = () => {
         state: {
           showCongrats: true,
           contentType: "recipe",
-          contentData: { title, description, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
+          contentData: { title, description, tags, prepTime, cookTime, servings, ingredients, instructions, totalNutrition, coverPhoto },
           images: allImages,
         },
       });
@@ -289,6 +293,17 @@ const CreateRecipePage = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-2">
+            <Label>Tags (optional)</Label>
+            <TagInput
+              tags={tags}
+              onTagsChange={setTags}
+              placeholder="Add tag..."
+              maxTags={5}
             />
           </div>
 
