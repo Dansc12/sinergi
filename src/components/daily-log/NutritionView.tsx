@@ -88,6 +88,95 @@ const MealLogDisplay = ({ name, mealLogs, onAddFood }: MealLogDisplayProps) => {
   );
 };
 
+// Animated liquid wave component
+const LiquidWave = ({ fillPercentage }: { fillPercentage: number }) => {
+  return (
+    <div className="absolute inset-0 overflow-hidden rounded-2xl">
+      {/* Gradient overlay for depth - darker at bottom, vibrant at top */}
+      <div 
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          background: `linear-gradient(to top, 
+            rgba(0,0,0,0.6) 0%, 
+            rgba(0,0,0,0.3) 30%, 
+            rgba(0,0,0,0) 60%
+          )`,
+        }}
+      />
+      
+      {/* Liquid container */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-out"
+        style={{ height: `${Math.min(fillPercentage, 100)}%` }}
+      >
+        {/* Primary wave */}
+        <svg 
+          className="absolute -top-[20px] left-0 w-[200%] animate-liquid-wave"
+          viewBox="0 0 1200 120" 
+          preserveAspectRatio="none"
+          style={{ height: '25px' }}
+        >
+          <defs>
+            <linearGradient id="waveGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(270, 91%, 65%)" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="hsl(280, 85%, 55%)" stopOpacity="0.8" />
+            </linearGradient>
+          </defs>
+          <path 
+            d="M0,60 C150,120 350,0 600,60 C850,120 1050,0 1200,60 L1200,120 L0,120 Z"
+            fill="url(#waveGradient1)"
+          />
+        </svg>
+        
+        {/* Secondary wave (offset for depth) */}
+        <svg 
+          className="absolute -top-[15px] left-0 w-[200%] animate-liquid-wave-slow"
+          viewBox="0 0 1200 120" 
+          preserveAspectRatio="none"
+          style={{ height: '20px' }}
+        >
+          <defs>
+            <linearGradient id="waveGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(280, 80%, 60%)" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="hsl(290, 75%, 50%)" stopOpacity="0.5" />
+            </linearGradient>
+          </defs>
+          <path 
+            d="M0,40 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z"
+            fill="url(#waveGradient2)"
+          />
+        </svg>
+        
+        {/* Liquid body with gradient */}
+        <div 
+          className="absolute top-[5px] left-0 right-0 bottom-0"
+          style={{
+            background: `linear-gradient(to top, 
+              hsl(290, 70%, 25%) 0%,
+              hsl(280, 80%, 40%) 40%,
+              hsl(270, 85%, 55%) 70%,
+              hsl(265, 90%, 60%) 100%
+            )`,
+          }}
+        />
+        
+        {/* Shimmer effect */}
+        <div 
+          className="absolute inset-0 animate-liquid-shimmer"
+          style={{
+            background: `linear-gradient(105deg, 
+              transparent 40%, 
+              rgba(255,255,255,0.1) 50%, 
+              transparent 60%
+            )`,
+            backgroundSize: '200% 100%',
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 interface NutritionViewProps {
   selectedDate?: Date;
 }
@@ -130,6 +219,7 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
 
   const caloriesConsumed = totals.calories;
   const caloriesLeft = Math.max(caloriesGoal - caloriesConsumed, 0);
+  const fillPercentage = (caloriesConsumed / caloriesGoal) * 100;
 
   const handleAddFood = (mealType: string) => {
     navigate("/create/meal", { state: { preselectedMealType: mealType } });
@@ -145,48 +235,28 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Calories Ring - Centered */}
-      <div className="flex justify-center">
-        <div className="relative w-36 h-36">
-          <svg className="w-full h-full -rotate-90">
-            <circle
-              cx="72"
-              cy="72"
-              r="60"
-              strokeWidth="12"
-              stroke="hsl(var(--muted))"
-              fill="none"
-            />
-            <circle
-              cx="72"
-              cy="72"
-              r="60"
-              strokeWidth="12"
-              stroke="url(#calorieGradient)"
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${Math.min((caloriesConsumed / caloriesGoal) * 377, 377)} 377`}
-            />
-            <defs>
-              <linearGradient id="calorieGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="hsl(270, 91%, 65%)" />
-                <stop offset="100%" stopColor="hsl(320, 100%, 60%)" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">{caloriesLeft}</span>
-            <span className="text-xs text-muted-foreground">cal left</span>
+      {/* Calories Container with Liquid Fill */}
+      <div className="relative rounded-2xl overflow-hidden bg-card border border-border" style={{ minHeight: '280px' }}>
+        {/* Liquid wave animation */}
+        <LiquidWave fillPercentage={fillPercentage} />
+        
+        {/* Content overlay */}
+        <div className="relative z-20 p-6 flex flex-col h-full" style={{ minHeight: '280px' }}>
+          {/* Calories display at top */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <span className="text-5xl font-bold text-white drop-shadow-lg">{caloriesLeft}</span>
+            <span className="text-sm text-white/80 font-medium mt-1 drop-shadow">calories remaining</span>
+            <span className="text-xs text-white/60 mt-2">{caloriesConsumed} / {caloriesGoal} consumed</span>
+          </div>
+          
+          {/* Macros Card pinned to bottom */}
+          <div className="bg-card/95 backdrop-blur-sm border border-border rounded-xl p-4 space-y-3 mt-auto">
+            <h3 className="font-semibold text-sm">Macros</h3>
+            <MacroBar label="P" current={totals.protein} goal={macroGoals.protein} color="#3DD6C6" />
+            <MacroBar label="C" current={totals.carbs} goal={macroGoals.carbs} color="#5B8CFF" />
+            <MacroBar label="F" current={totals.fat} goal={macroGoals.fat} color="#B46BFF" />
           </div>
         </div>
-      </div>
-
-      {/* Macros */}
-      <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-        <h3 className="font-semibold mb-3">Macros</h3>
-        <MacroBar label="P" current={totals.protein} goal={macroGoals.protein} color="#3DD6C6" />
-        <MacroBar label="C" current={totals.carbs} goal={macroGoals.carbs} color="#5B8CFF" />
-        <MacroBar label="F" current={totals.fat} goal={macroGoals.fat} color="#B46BFF" />
       </div>
 
       {/* Logged Meals */}
