@@ -395,8 +395,16 @@ const SharePostScreen = () => {
             {Array.isArray(data.foods) && (data.foods as Array<{ id: string; name: string; calories: number; protein: number; carbs: number; fats: number; servings?: number; servingSize?: string }>).map((food) => (
               <div key={food.id} className="p-3 rounded-xl bg-card border border-border">
                 <p className="font-medium text-sm">{food.name}</p>
-                {food.servings && food.servingSize && (
-                  <p className="text-xs text-primary mt-0.5">{food.servings} × {food.servingSize}</p>
+                {food.servingSize && (
+                  <p className="text-xs text-primary mt-0.5">
+                    {(() => {
+                      const servings = food.servings ?? 1;
+                      const servingSize = food.servingSize;
+                      const hasNumber = /\d/.test(servingSize);
+                      if (hasNumber) return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                      return `${servings} × ${servingSize}`;
+                    })()}
+                  </p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
                   {food.calories ?? 0} cal • P: {(food.protein ?? 0).toFixed(0)}g • C: {(food.carbs ?? 0).toFixed(0)}g • F: {(food.fats ?? 0).toFixed(0)}g

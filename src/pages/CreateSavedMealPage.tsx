@@ -545,9 +545,17 @@ const CreateSavedMealPage = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="font-medium text-foreground text-sm">{food.name}</div>
-                      {food.servings && food.servingSize && (
+                      {food.servingSize && (
                         <div className="text-xs text-primary mt-0.5">
-                          {food.servings} × {food.servingSize}
+                          {(() => {
+                            const servings = food.servings ?? 1;
+                            const servingSize = food.servingSize;
+                            const hasNumber = /\d/.test(servingSize);
+                            if (hasNumber) {
+                              return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                            }
+                            return `${servings} × ${servingSize}`;
+                          })()}
                         </div>
                       )}
                       <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
