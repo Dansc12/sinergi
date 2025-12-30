@@ -232,9 +232,9 @@ export const FoodSearchInput = ({
                         </div>
                         <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
                           <span>{food.calories} cal</span>
-                          <span>P: {food.protein}g</span>
-                          <span>C: {food.carbs}g</span>
-                          <span>F: {food.fats}g</span>
+                          <span style={{ color: '#3DD6C6' }}>P: {food.protein}g</span>
+                          <span style={{ color: '#5B8CFF' }}>C: {food.carbs}g</span>
+                          <span style={{ color: '#B46BFF' }}>F: {food.fats}g</span>
                           {food.isCustom && (
                             <span className="text-muted-foreground/70">per 1{food.baseUnit}</span>
                           )}
