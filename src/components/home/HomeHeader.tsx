@@ -1,4 +1,5 @@
 import { Flame } from "lucide-react";
+import { createPortal } from "react-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsPanel } from "./NotificationsPanel";
 
@@ -9,8 +10,13 @@ interface HomeHeaderProps {
   onProfileClick: () => void;
 }
 
-export const HomeHeader = ({ userName, streakCount, avatarUrl, onProfileClick }: HomeHeaderProps) => {
-  return (
+export const HomeHeader = ({
+  userName,
+  streakCount,
+  avatarUrl,
+  onProfileClick,
+}: HomeHeaderProps) => {
+  const header = (
     <header className="fixed top-0 left-0 right-0 z-40 bg-background">
       {/* Top Bar */}
       <div className="px-4 py-3">
@@ -25,7 +31,7 @@ export const HomeHeader = ({ userName, streakCount, avatarUrl, onProfileClick }:
                 </AvatarFallback>
               </Avatar>
             </button>
-            
+
             <div className="flex items-center gap-1.5 bg-streak text-primary-foreground px-3 py-1.5 rounded-full text-sm font-bold">
               <Flame size={16} />
               <span>{streakCount}</span>
@@ -38,4 +44,9 @@ export const HomeHeader = ({ userName, streakCount, avatarUrl, onProfileClick }:
       </div>
     </header>
   );
+
+  // Portal to <body> so the header is truly viewport-fixed even if some ancestor creates
+  // a containing block (e.g. via transform/filter/backdrop-filter).
+  if (typeof document === "undefined") return header;
+  return createPortal(header, document.body);
 };
