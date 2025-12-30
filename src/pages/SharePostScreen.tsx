@@ -402,42 +402,120 @@ const SharePostScreen = () => {
             )}
 
             {/* Separator between name/tags and exercises */}
-            {visibility !== "private" && Array.isArray(data.exercises) && (data.exercises as Array<unknown>).length > 0 && (
+            {Array.isArray(data.exercises) && (data.exercises as Array<unknown>).length > 0 && (
               <div className="border-t border-border pt-3">
                 <p className="text-xs text-muted-foreground font-medium mb-3">Exercises</p>
               </div>
             )}
 
-            {/* Exercise details - matching CreateWorkoutPage card format */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-              {Array.isArray(data.exercises) && (data.exercises as Array<{ name: string; category?: string; muscleGroup?: string; supersetGroupId?: string; sets: Array<{ weight?: number; reps?: number; distance?: string; time?: string; completed?: boolean }> }>).map((exercise, idx) => {
-                const completedSets = exercise.sets.filter(s => s.completed).length;
-                const totalSets = exercise.sets.length;
+            {/* Exercise details - vertical list format */}
+            <div className="space-y-3">
+              {Array.isArray(data.exercises) && (() => {
+                type ExerciseType = { 
+                  name: string; 
+                  category?: string; 
+                  muscleGroup?: string; 
+                  supersetGroupId?: string; 
+                  notes?: string;
+                  isCardio?: boolean;
+                  sets: Array<{ weight?: number; reps?: number; distance?: string; time?: string; completed?: boolean }> 
+                };
+                const exercises = data.exercises as ExerciseType[];
                 const supersetColors = ["bg-cyan-500", "bg-amber-500", "bg-emerald-500", "bg-rose-500", "bg-sky-500"];
-                const supersetColor = exercise.supersetGroupId 
-                  ? supersetColors[exercise.supersetGroupId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % supersetColors.length]
-                  : null;
                 
-                return (
-                  <div 
-                    key={idx} 
-                    className="flex-shrink-0 rounded-xl bg-card border border-border text-foreground relative overflow-hidden min-w-[120px]"
-                  >
-                    {/* Superset colored bar on top */}
-                    {supersetColor && (
-                      <div className={`absolute left-0 right-0 top-0 h-1 ${supersetColor}`} />
-                    )}
-                    <div className={`px-4 py-3 ${supersetColor ? 'pt-4' : ''}`}>
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-xs text-muted-foreground">
-                          {completedSets}/{totalSets} sets
-                        </span>
-                        <span className="font-medium text-sm truncate max-w-[120px]">{exercise.name}</span>
+                // Group exercises by superset
+                const supersetGroups = new Map<string, number>();
+                let groupIndex = 0;
+                exercises.forEach(ex => {
+                  if (ex.supersetGroupId && !supersetGroups.has(ex.supersetGroupId)) {
+                    supersetGroups.set(ex.supersetGroupId, groupIndex++);
+                  }
+                });
+
+                return exercises.map((exercise, idx) => {
+                  const supersetGroupIndex = exercise.supersetGroupId ? supersetGroups.get(exercise.supersetGroupId) : undefined;
+                  const supersetColor = supersetGroupIndex !== undefined 
+                    ? supersetColors[supersetGroupIndex % supersetColors.length]
+                    : null;
+                  
+                  // Check if this is the first exercise in a superset group
+                  const isFirstInSuperset = exercise.supersetGroupId && 
+                    exercises.findIndex(e => e.supersetGroupId === exercise.supersetGroupId) === idx;
+                  
+                  // Count exercises in this superset
+                  const supersetCount = exercise.supersetGroupId 
+                    ? exercises.filter(e => e.supersetGroupId === exercise.supersetGroupId).length
+                    : 0;
+
+                  return (
+                    <div 
+                      key={idx} 
+                      className="rounded-xl bg-card border border-border overflow-hidden"
+                    >
+                      {/* Superset indicator */}
+                      {isFirstInSuperset && supersetCount > 1 && (
+                        <div className={`${supersetColor} px-3 py-1.5`}>
+                          <span className="text-xs font-medium text-white">
+                            Superset · {supersetCount} exercises
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex">
+                        {/* Left color bar for superset exercises (not first) */}
+                        {supersetColor && !isFirstInSuperset && (
+                          <div className={`w-1 ${supersetColor}`} />
+                        )}
+                        
+                        <div className="flex-1 p-4 space-y-3">
+                          {/* Exercise name and type */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <h4 className="font-semibold text-foreground">{exercise.name}</h4>
+                              {exercise.isCardio && (
+                                <span className="text-xs text-muted-foreground">Cardio</span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                              {exercise.sets.length} {exercise.sets.length === 1 ? 'set' : 'sets'}
+                            </span>
+                          </div>
+                          
+                          {/* Sets grid */}
+                          <div className="grid grid-cols-3 gap-2">
+                            {exercise.sets.map((set, setIdx) => (
+                              <div 
+                                key={setIdx}
+                                className="bg-muted/30 rounded-lg px-3 py-2 text-center"
+                              >
+                                <span className="text-[10px] text-muted-foreground block mb-0.5">
+                                  Set {setIdx + 1}
+                                </span>
+                                {exercise.isCardio ? (
+                                  <span className="text-sm font-medium text-foreground">
+                                    {set.distance || '0'} mi · {set.time || '0:00'}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm font-medium text-foreground">
+                                    {set.weight || 0} lbs × {set.reps || 0}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Notes */}
+                          {exercise.notes && (
+                            <p className="text-xs text-muted-foreground italic border-l-2 border-primary/30 pl-2">
+                              {exercise.notes}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </div>
         );
