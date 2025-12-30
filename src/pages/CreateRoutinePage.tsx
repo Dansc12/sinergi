@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePosts } from "@/hooks/usePosts";
+import { TagInput } from "@/components/TagInput";
 
 interface RoutineSet {
   id: string;
@@ -46,6 +47,7 @@ interface RestoredState {
   contentData?: { 
     routineName?: string;
     description?: string;
+    tags?: string[];
     selectedDays?: Record<string, DaySchedule>;
     exercises?: RoutineExercise[];
     recurring?: string;
@@ -81,6 +83,7 @@ const CreateRoutinePage = () => {
   
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<Record<string, DaySchedule>>(
     daysOfWeek.reduce((acc, day) => ({ ...acc, [day.full]: { selected: false, time: "" } }), {})
   );
@@ -104,6 +107,7 @@ const CreateRoutinePage = () => {
       const data = restoredState.contentData;
       if (data.routineName) setName(data.routineName);
       if (data.description) setDescription(data.description);
+      if (data.tags) setTags(data.tags);
       if (data.selectedDays) setSelectedDays(data.selectedDays);
       if (data.exercises) setExercises(data.exercises);
       if (data.recurring) setRecurring(data.recurring);
@@ -223,7 +227,7 @@ const CreateRoutinePage = () => {
     try {
       await createPost({
         content_type: "routine",
-        content_data: { routineName: name, description, selectedDays, exercises, recurring },
+        content_data: { routineName: name, description, tags, selectedDays, exercises, recurring },
         images: photos,
         visibility: "private",
       });
@@ -233,7 +237,7 @@ const CreateRoutinePage = () => {
         state: {
           showCongrats: true,
           contentType: "routine",
-          contentData: { routineName: name, description, selectedDays, exercises, recurring },
+          contentData: { routineName: name, description, tags, selectedDays, exercises, recurring },
           images: photos,
         },
       });
@@ -297,6 +301,17 @@ const CreateRoutinePage = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="min-h-[80px]"
+            />
+          </div>
+
+          {/* Tags (Optional) */}
+          <div className="space-y-2">
+            <Label>Tags (Optional)</Label>
+            <TagInput
+              tags={tags}
+              onTagsChange={setTags}
+              placeholder="Add tag..."
+              maxTags={5}
             />
           </div>
 

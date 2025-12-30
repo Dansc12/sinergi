@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { TagInput } from "@/components/TagInput";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
 import { usePhotoPicker } from "@/hooks/useCamera";
@@ -44,7 +45,6 @@ const CreateSavedMealPage = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [foods, setFoods] = useState<SavedMealFood[]>(state?.foods || []);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -100,18 +100,6 @@ const CreateSavedMealPage = () => {
       setCoverPhoto(imageUrls[0]);
       toast({ title: "Cover photo added!" });
     }
-  };
-
-  const handleAddTag = () => {
-    const processed = newTag.trim().toLowerCase().replace(/[^a-z]/g, '');
-    if (processed && !tags.includes(processed)) {
-      setTags([...tags, processed]);
-      setNewTag("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
   const removeFood = (id: string) => {
@@ -255,53 +243,12 @@ const CreateSavedMealPage = () => {
 
           <CollapsibleContent className="space-y-6">
             {/* Tags Section */}
-            <div>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  placeholder="Add tag..."
-                  value={newTag}
-                  onChange={(e) => {
-                    const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
-                    setNewTag(value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                  className="flex-1 h-9 bg-muted/50 border-0 text-sm"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddTag}
-                  disabled={!newTag.trim()}
-                  className="h-9"
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="gap-1 pr-1"
-                    >
-                      {tag}
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      >
-                        <X size={12} />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+            <TagInput
+              tags={tags}
+              onTagsChange={setTags}
+              placeholder="Add tag..."
+              maxTags={5}
+            />
 
             {/* Description */}
             <div>
