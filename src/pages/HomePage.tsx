@@ -5,6 +5,15 @@ import { ProgressCharts } from "@/components/home/ProgressCharts";
 import { TasksSection } from "@/components/home/TasksSection";
 import { useUserData } from "@/hooks/useUserData";
 import CreationCongratsPopup from "@/components/CreationCongratsPopup";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface LocationState {
   showCongrats?: boolean;
@@ -24,6 +33,7 @@ const HomePage = () => {
   const [congratsContentType, setCongratsContentType] = useState<"workout" | "meal" | "recipe" | "routine">("workout");
   const [congratsData, setCongratsData] = useState<{ contentData?: Record<string, unknown>; images?: string[] }>({});
   const [canShareContent, setCanShareContent] = useState(true);
+  const [showSaveAsMealDialog, setShowSaveAsMealDialog] = useState(false);
 
   useEffect(() => {
     if (state?.showCongrats && state?.contentType) {
@@ -49,6 +59,13 @@ const HomePage = () => {
 
   const handleCongratsPost = () => {
     setShowCongratsPopup(false);
+    
+    // If it's a meal and can't share, show the save as meal dialog
+    if (congratsContentType === "meal" && !canShareContent) {
+      setShowSaveAsMealDialog(true);
+      return;
+    }
+    
     navigate("/share", {
       state: {
         contentType: congratsContentType,
@@ -65,7 +82,7 @@ const HomePage = () => {
   };
 
   const handleSaveAsMeal = () => {
-    setShowCongratsPopup(false);
+    setShowSaveAsMealDialog(false);
     // Navigate to create saved meal with the current foods
     navigate("/create/saved-meal", {
       state: {
@@ -95,9 +112,27 @@ const HomePage = () => {
         contentType={congratsContentType}
         onDismiss={handleCongratsDismiss}
         onPost={handleCongratsPost}
-        onSaveAsMeal={handleSaveAsMeal}
-        canShare={canShareContent}
       />
+
+      {/* Save as Meal Dialog - shown when user tries to share individual foods */}
+      <Dialog open={showSaveAsMealDialog} onOpenChange={setShowSaveAsMealDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Save as a Meal to Share</DialogTitle>
+            <DialogDescription>
+              To share your meal with friends, you need to save it as a Meal first. Would you like to create a Saved Meal with these foods?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowSaveAsMealDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAsMeal}>
+              Save as Meal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
