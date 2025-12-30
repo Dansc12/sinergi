@@ -33,6 +33,7 @@ export interface FoodItem {
   isSavedMeal?: boolean;
   isRecipe?: boolean;
   savedMealFoods?: SavedMealFood[];
+  savedMealCoverPhoto?: string;
 }
 
 interface FoodSearchInputProps {
