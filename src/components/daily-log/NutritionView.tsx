@@ -88,10 +88,40 @@ const MealLogDisplay = ({ name, mealLogs, onAddFood }: MealLogDisplayProps) => {
   );
 };
 
+// Floating bubble component
+const Bubble = ({ delay, duration, left, size }: { delay: number; duration: number; left: number; size: number }) => (
+  <div
+    className="absolute rounded-full animate-bubble"
+    style={{
+      left: `${left}%`,
+      bottom: '-10px',
+      width: `${size}px`,
+      height: `${size}px`,
+      background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.1) 50%, transparent 70%)`,
+      animationDelay: `${delay}s`,
+      animationDuration: `${duration}s`,
+    }}
+  />
+);
+
 // Animated liquid wave component
 const LiquidWave = ({ fillPercentage }: { fillPercentage: number }) => {
   // Background color from CSS: 0 0% 7%
   const bgColor = "hsl(0, 0%, 7%)";
+  
+  // Generate random bubbles
+  const bubbles = [
+    { delay: 0, duration: 4, left: 15, size: 6 },
+    { delay: 1.5, duration: 5, left: 35, size: 4 },
+    { delay: 0.5, duration: 4.5, left: 55, size: 8 },
+    { delay: 2, duration: 3.5, left: 75, size: 5 },
+    { delay: 3, duration: 5.5, left: 25, size: 3 },
+    { delay: 1, duration: 4, left: 85, size: 7 },
+    { delay: 2.5, duration: 4.8, left: 45, size: 4 },
+    { delay: 0.8, duration: 5.2, left: 65, size: 6 },
+    { delay: 3.5, duration: 4.2, left: 10, size: 5 },
+    { delay: 1.8, duration: 3.8, left: 90, size: 4 },
+  ];
   
   return (
     <div className="absolute inset-0 overflow-hidden -mx-4">
@@ -115,6 +145,13 @@ const LiquidWave = ({ fillPercentage }: { fillPercentage: number }) => {
         className="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-out"
         style={{ height: `${Math.min(fillPercentage, 100)}%` }}
       >
+        {/* Bubbles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {bubbles.map((bubble, i) => (
+            <Bubble key={i} {...bubble} />
+          ))}
+        </div>
+        
         {/* Primary wave */}
         <svg 
           className="absolute -top-[20px] left-0 w-[200%] animate-liquid-wave"

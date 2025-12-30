@@ -113,6 +113,23 @@ export default {
           "0%": { backgroundPosition: "200% 0" },
           "100%": { backgroundPosition: "-200% 0" },
         },
+        "bubble": {
+          "0%": { 
+            transform: "translateY(0) translateX(0) scale(1)", 
+            opacity: "0" 
+          },
+          "10%": { 
+            opacity: "0.6" 
+          },
+          "50%": { 
+            transform: "translateY(-150px) translateX(10px) scale(1.1)", 
+            opacity: "0.4" 
+          },
+          "100%": { 
+            transform: "translateY(-300px) translateX(-5px) scale(0.8)", 
+            opacity: "0" 
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,6 +142,7 @@ export default {
         "liquid-wave": "liquid-wave 8s linear infinite",
         "liquid-wave-slow": "liquid-wave 12s linear infinite",
         "liquid-shimmer": "liquid-shimmer 4s ease-in-out infinite",
+        "bubble": "bubble 4s ease-in-out infinite",
       },
       spacing: {
         "safe-bottom": "env(safe-area-inset-bottom)",
