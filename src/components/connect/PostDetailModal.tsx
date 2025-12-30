@@ -292,7 +292,15 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                 {ingredients.map((ingredient, idx) => (
                   <div key={idx} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
                     <span className="text-sm font-medium text-primary min-w-[60px]">
-                      {ingredient.servings || 1} {ingredient.servingSize || 'serving'}
+                      {(() => {
+                        const servings = ingredient.servings ?? 1;
+                        const servingSize = ingredient.servingSize || 'serving';
+                        const hasNumber = /\d/.test(servingSize);
+                        if (hasNumber) {
+                          return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                        }
+                        return `${servings} ${servingSize}`;
+                      })()}
                     </span>
                     <span className="text-sm flex-1">{ingredient.name}</span>
                   </div>

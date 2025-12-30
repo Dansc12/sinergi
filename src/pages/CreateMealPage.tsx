@@ -414,7 +414,15 @@ const CreateMealPage = () => {
                     <div className="flex items-center justify-between p-4 pt-5">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-primary">{food.servings}{food.servingSize}</span>
+                          <span className="text-sm font-semibold text-primary">
+                            {(() => {
+                              const servings = food.servings ?? 1;
+                              const servingSize = food.servingSize || 'g';
+                              const hasNumber = /\d/.test(servingSize);
+                              if (hasNumber) return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                              return `${servings}${servingSize}`;
+                            })()}
+                          </span>
                           <span className="font-medium text-foreground">{food.description}</span>
                         </div>
                         <div className="flex items-center gap-3 mt-1.5">
@@ -498,7 +506,15 @@ const CreateMealPage = () => {
                     <div className="flex items-center justify-between p-3 pt-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-primary">{food.servings}{food.servingSize}</span>
+                          <span className="text-sm font-semibold text-primary">
+                            {(() => {
+                              const servings = food.servings ?? 1;
+                              const servingSize = food.servingSize || 'g';
+                              const hasNumber = /\d/.test(servingSize);
+                              if (hasNumber) return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                              return `${servings}${servingSize}`;
+                            })()}
+                          </span>
                           <span className="font-medium text-sm text-foreground">
                             {food.description}
                             {'isSessionFood' in food && food.isSessionFood && (
@@ -794,8 +810,16 @@ const CreateMealPage = () => {
                       <div className="flex items-start justify-between p-4 pt-5">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            {food.servings && food.servingSize && (
-                              <span className="text-sm font-semibold text-primary">{food.servings}{food.servingSize}</span>
+                            {food.servingSize && (
+                              <span className="text-sm font-semibold text-primary">
+                                {(() => {
+                                  const servings = food.servings ?? 1;
+                                  const servingSize = food.servingSize;
+                                  const hasNumber = /\d/.test(servingSize);
+                                  if (hasNumber) return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                                  return `${servings}${servingSize}`;
+                                })()}
+                              </span>
                             )}
                             <span className="font-medium text-foreground">{food.name}</span>
                           </div>

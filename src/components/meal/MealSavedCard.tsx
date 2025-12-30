@@ -442,7 +442,16 @@ const MealSavedCard = ({
                     <div className="p-3 pt-4">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-primary">
-                          {item.servings || 1}{item.servingSize || 'g'}
+                          {(() => {
+                            const servings = item.servings ?? 1;
+                            const servingSize = item.servingSize || 'g';
+                            // If servingSize already contains a number (e.g. "100 g"), don't prepend servings
+                            const hasNumber = /\d/.test(servingSize);
+                            if (hasNumber) {
+                              return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                            }
+                            return `${servings}${servingSize}`;
+                          })()}
                         </span>
                         <span className="font-medium text-foreground text-sm">{item.name}</span>
                       </div>
