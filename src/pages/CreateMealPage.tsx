@@ -35,6 +35,10 @@ interface SelectedFood {
   servingSize?: string;
   rawQuantity?: number;
   rawUnit?: string;
+  // Grouping info for saved meals/recipes
+  savedMealGroupId?: string;
+  savedMealName?: string;
+  savedMealCoverPhoto?: string;
 }
 
 interface RestoredState {
@@ -84,6 +88,7 @@ const CreateMealPage = () => {
   const [isSavedMealExpansionOpen, setIsSavedMealExpansionOpen] = useState(false);
   const [savedMealFoods, setSavedMealFoods] = useState<SavedMealFood[]>([]);
   const [savedMealName, setSavedMealName] = useState("");
+  const [savedMealCoverPhoto, setSavedMealCoverPhoto] = useState<string | undefined>();
 
   const { recentFoods, isLoading: isLoadingRecentFoods } = useRecentFoods(10);
 
@@ -119,10 +124,11 @@ const CreateMealPage = () => {
   };
 
   const handleFoodSelect = (food: FoodItem, initialQuantity?: number, initialUnit?: string) => {
-    // If it's a saved meal, open the expansion modal to review all foods at once
-    if (food.isSavedMeal && food.savedMealFoods && food.savedMealFoods.length > 0) {
+    // If it's a saved meal or recipe, open the expansion modal to review all foods at once
+    if ((food.isSavedMeal || food.isRecipe) && food.savedMealFoods && food.savedMealFoods.length > 0) {
       setSavedMealName(food.description);
       setSavedMealFoods(food.savedMealFoods);
+      setSavedMealCoverPhoto(food.savedMealCoverPhoto);
       setIsSavedMealExpansionOpen(true);
       setSearchValue("");
       return;
@@ -186,6 +192,11 @@ const CreateMealPage = () => {
     adjustedCarbs: number;
     adjustedFats: number;
   }>) => {
+    // Generate a unique group ID for this saved meal
+    const groupId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const mealName = savedMealName;
+    const coverPhoto = savedMealCoverPhoto;
+    
     const newFoods: SelectedFood[] = expandedFoods.map((food) => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: food.name,
@@ -197,14 +208,18 @@ const CreateMealPage = () => {
       servingSize: `${food.adjustedQuantity} ${food.adjustedUnit}`,
       rawQuantity: food.adjustedQuantity,
       rawUnit: food.adjustedUnit,
+      savedMealGroupId: groupId,
+      savedMealName: mealName,
+      savedMealCoverPhoto: coverPhoto,
     }));
     
     setSelectedFoods(prev => [...prev, ...newFoods]);
     setIsSavedMealExpansionOpen(false);
     setSavedMealFoods([]);
     setSavedMealName("");
+    setSavedMealCoverPhoto(undefined);
     toast({ 
-      title: `"${savedMealName}" added!`, 
+      title: `"${mealName}" added!`, 
       description: `${expandedFoods.length} foods have been added` 
     });
   };
@@ -780,8 +795,25 @@ const CreateMealPage = () => {
                 );
               })()}
 
-              <div className="space-y-3">
-                {selectedFoods.map((food) => {
+              {/* Group foods by savedMealGroupId */}
+              {(() => {
+                // Separate foods into groups and ungrouped
+                const groups: Record<string, SelectedFood[]> = {};
+                const ungroupedFoods: SelectedFood[] = [];
+                
+                selectedFoods.forEach((food) => {
+                  if (food.savedMealGroupId) {
+                    if (!groups[food.savedMealGroupId]) {
+                      groups[food.savedMealGroupId] = [];
+                    }
+                    groups[food.savedMealGroupId].push(food);
+                  } else {
+                    ungroupedFoods.push(food);
+                  }
+                });
+                
+                // Render helper for individual food items
+                const renderFoodItem = (food: SelectedFood, showRemove = true) => {
                   const p = typeof food.protein === 'number' ? food.protein : 0;
                   const c = typeof food.carbs === 'number' ? food.carbs : 0;
                   const f = typeof food.fats === 'number' ? food.fats : 0;
@@ -796,9 +828,8 @@ const CreateMealPage = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -100 }}
-                      className="rounded-xl bg-card border border-border relative overflow-hidden"
+                      className="rounded-xl bg-muted/30 border border-border/50 relative overflow-hidden"
                     >
-                      {/* Macro gradient bar at top */}
                       {total > 0 && (
                         <div 
                           className="absolute left-0 right-0 top-0 h-1"
@@ -807,7 +838,7 @@ const CreateMealPage = () => {
                           }}
                         />
                       )}
-                      <div className="flex items-start justify-between p-4 pt-5">
+                      <div className="flex items-start justify-between p-3 pt-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             {food.servingSize && (
@@ -820,22 +851,18 @@ const CreateMealPage = () => {
                                   if (hasNumber) {
                                     const leadingMatch = servingSize.trim().match(/^(\d+(?:\.\d+)?)/);
                                     const leadingNumber = leadingMatch ? Number(leadingMatch[1]) : NaN;
-
-                                    // If servingSize already includes the same number, don't show "N ×" (e.g. "123 × 123 g").
                                     if (!Number.isNaN(leadingNumber) && Math.abs(servings - leadingNumber) < 1e-6) {
                                       return servingSize;
                                     }
-
                                     return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
                                   }
-
                                   return `${servings}${servingSize}`;
                                 })()}
                               </span>
                             )}
-                            <span className="font-medium text-foreground">{food.name}</span>
+                            <span className="font-medium text-sm text-foreground">{food.name}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5">
+                          <div className="flex items-center gap-3 mt-1">
                             <span className="text-xs text-foreground">{food.calories} cal</span>
                             <div className="flex items-center gap-2 text-xs">
                               <span style={{ color: '#3DD6C6' }}>P: {p.toFixed(0)}g</span>
@@ -844,19 +871,172 @@ const CreateMealPage = () => {
                             </div>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => removeFood(food.id)}
-                        >
-                          <X size={16} className="text-destructive" />
-                        </Button>
+                        {showRemove && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => removeFood(food.id)}
+                          >
+                            <X size={14} className="text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </motion.div>
                   );
-                })}
-              </div>
+                };
+                
+                // Render grouped meals first, then ungrouped foods
+                return (
+                  <div className="space-y-3">
+                    {/* Grouped foods (Saved Meals / Recipes) */}
+                    {Object.entries(groups).map(([groupId, foods]) => {
+                      const mealName = foods[0]?.savedMealName || 'Saved Meal';
+                      const coverPhoto = foods[0]?.savedMealCoverPhoto;
+                      const groupCalories = foods.reduce((sum, f) => sum + f.calories, 0);
+                      const groupProtein = foods.reduce((sum, f) => sum + f.protein, 0);
+                      const groupCarbs = foods.reduce((sum, f) => sum + f.carbs, 0);
+                      const groupFats = foods.reduce((sum, f) => sum + f.fats, 0);
+                      
+                      const removeGroup = () => {
+                        const foodIds = foods.map(f => f.id);
+                        setSelectedFoods(prev => prev.filter(f => !foodIds.includes(f.id)));
+                      };
+                      
+                      return (
+                        <motion.div
+                          key={groupId}
+                          layout
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="rounded-xl bg-card border-2 border-primary/30 overflow-hidden"
+                        >
+                          {/* Header with cover photo and name */}
+                          <div className="relative">
+                            {coverPhoto ? (
+                              <div className="h-20 w-full overflow-hidden">
+                                <img 
+                                  src={coverPhoto} 
+                                  alt={mealName}
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-card" />
+                              </div>
+                            ) : (
+                              <div className="h-12 w-full bg-primary/10" />
+                            )}
+                            
+                            {/* Name and remove button overlay */}
+                            <div className={`absolute ${coverPhoto ? 'top-2' : 'top-3'} left-3 right-3 flex items-start justify-between`}>
+                              <div className="flex items-center gap-2">
+                                <Utensils size={16} className={coverPhoto ? 'text-white' : 'text-primary'} />
+                                <h4 className={`font-bold ${coverPhoto ? 'text-white drop-shadow-lg' : 'text-foreground'}`}>
+                                  {mealName}
+                                </h4>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-6 w-6 ${coverPhoto ? 'text-white hover:bg-white/20' : 'text-destructive hover:bg-destructive/10'}`}
+                                onClick={removeGroup}
+                              >
+                                <X size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Macros summary */}
+                          <div className="px-3 py-2 bg-muted/30 border-b border-border/50 flex items-center gap-4">
+                            <span className="text-sm font-semibold text-foreground">{Math.round(groupCalories)} cal</span>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span style={{ color: '#3DD6C6' }}>P: {Math.round(groupProtein)}g</span>
+                              <span style={{ color: '#5B8CFF' }}>C: {Math.round(groupCarbs)}g</span>
+                              <span style={{ color: '#B46BFF' }}>F: {Math.round(groupFats)}g</span>
+                            </div>
+                          </div>
+                          
+                          {/* Individual foods */}
+                          <div className="p-2 space-y-2">
+                            {foods.map((food) => renderFoodItem(food, false))}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                    
+                    {/* Ungrouped foods */}
+                    {ungroupedFoods.map((food) => {
+                      const p = typeof food.protein === 'number' ? food.protein : 0;
+                      const c = typeof food.carbs === 'number' ? food.carbs : 0;
+                      const f = typeof food.fats === 'number' ? food.fats : 0;
+                      const total = p + c + f;
+                      const pPct = total > 0 ? (p / total) * 100 : 0;
+                      const cPct = total > 0 ? (c / total) * 100 : 0;
+                      
+                      return (
+                        <motion.div
+                          key={food.id}
+                          layout
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -100 }}
+                          className="rounded-xl bg-card border border-border relative overflow-hidden"
+                        >
+                          {total > 0 && (
+                            <div 
+                              className="absolute left-0 right-0 top-0 h-1"
+                              style={{
+                                background: `linear-gradient(90deg, #3DD6C6 0%, #3DD6C6 ${pPct * 0.7}%, #5B8CFF ${pPct + cPct * 0.3}%, #5B8CFF ${pPct + cPct * 0.7}%, #B46BFF ${pPct + cPct + (100 - pPct - cPct) * 0.3}%, #B46BFF 100%)`,
+                              }}
+                            />
+                          )}
+                          <div className="flex items-start justify-between p-4 pt-5">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                {food.servingSize && (
+                                  <span className="text-sm font-semibold text-primary">
+                                    {(() => {
+                                      const servings = food.servings ?? 1;
+                                      const servingSize = food.servingSize;
+                                      const hasNumber = /\d/.test(servingSize);
+
+                                      if (hasNumber) {
+                                        const leadingMatch = servingSize.trim().match(/^(\d+(?:\.\d+)?)/);
+                                        const leadingNumber = leadingMatch ? Number(leadingMatch[1]) : NaN;
+                                        if (!Number.isNaN(leadingNumber) && Math.abs(servings - leadingNumber) < 1e-6) {
+                                          return servingSize;
+                                        }
+                                        return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                                      }
+                                      return `${servings}${servingSize}`;
+                                    })()}
+                                  </span>
+                                )}
+                                <span className="font-medium text-foreground">{food.name}</span>
+                              </div>
+                              <div className="flex items-center gap-3 mt-1.5">
+                                <span className="text-xs text-foreground">{food.calories} cal</span>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span style={{ color: '#3DD6C6' }}>P: {p.toFixed(0)}g</span>
+                                  <span style={{ color: '#5B8CFF' }}>C: {c.toFixed(0)}g</span>
+                                  <span style={{ color: '#B46BFF' }}>F: {f.toFixed(0)}g</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => removeFood(food.id)}
+                            >
+                              <X size={16} className="text-destructive" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </motion.div>
         )}

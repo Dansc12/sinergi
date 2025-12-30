@@ -39,6 +39,7 @@ interface FoodResult {
   isSavedMeal?: boolean;
   isRecipe?: boolean;
   savedMealFoods?: FoodInMeal[];
+  savedMealCoverPhoto?: string;
 }
 
 // Rank foods based on search term relevance
@@ -129,7 +130,7 @@ serve(async (req) => {
       // Get user's saved meals and recipes that match the query
       const { data: userPosts, error: postsError } = await supabase
         .from('posts')
-        .select('id, content_type, content_data')
+        .select('id, content_type, content_data, images')
         .in('content_type', ['saved_meal', 'recipe'])
         .limit(20);
 
@@ -146,6 +147,8 @@ serve(async (req) => {
             const contentData = post.content_data || {};
             const name = contentData.name || contentData.title || 'Unnamed';
             const foods = contentData.foods || contentData.ingredients || [];
+            const images = post.images || [];
+            const coverPhoto = contentData.coverPhoto || images[0] || null;
             
             // Calculate total macros from foods/ingredients
             let totalCalories = 0;
@@ -229,7 +232,8 @@ serve(async (req) => {
               baseUnit: 'serving',
               isSavedMeal: isMeal,
               isRecipe: !isMeal,
-              savedMealFoods: isMeal ? savedMealFoods : undefined,
+              savedMealFoods: (isMeal || !isMeal) ? savedMealFoods : undefined,
+              savedMealCoverPhoto: coverPhoto,
             };
           });
         

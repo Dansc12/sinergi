@@ -25,6 +25,7 @@ const MyRecipesPage = () => {
   const [expansionModalOpen, setExpansionModalOpen] = useState(false);
   const [expansionMealName, setExpansionMealName] = useState("");
   const [expansionFoods, setExpansionFoods] = useState<SavedMealFood[]>([]);
+  const [expansionCoverPhoto, setExpansionCoverPhoto] = useState<string | undefined>();
 
   // Build creator object from current user's profile
   const currentUserCreator = {
@@ -80,6 +81,7 @@ const MyRecipesPage = () => {
 
     setExpansionMealName(recipe.title);
     setExpansionFoods(foods);
+    setExpansionCoverPhoto(recipe.coverPhoto || undefined);
     setExpansionModalOpen(true);
   };
 
@@ -99,10 +101,16 @@ const MyRecipesPage = () => {
 
     setExpansionMealName(meal.title);
     setExpansionFoods(foods);
+    setExpansionCoverPhoto(meal.coverPhoto || undefined);
     setExpansionModalOpen(true);
   };
 
   const handleExpansionConfirm = (confirmedFoods: any[]) => {
+    // Generate a unique group ID for this saved meal/recipe
+    const groupId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const mealName = expansionMealName;
+    const coverPhoto = expansionCoverPhoto;
+
     // Map confirmed foods to the format expected by CreateMealPage
     const foods = confirmedFoods.map((f) => ({
       id: f.fdcId?.toString() || f.name,
@@ -115,9 +123,13 @@ const MyRecipesPage = () => {
       servingSize: `${f.adjustedQuantity ?? f.servings ?? 1} ${f.adjustedUnit ?? "g"}`,
       rawQuantity: f.adjustedQuantity ?? f.servings ?? 1,
       rawUnit: f.adjustedUnit ?? "g",
+      savedMealGroupId: groupId,
+      savedMealName: mealName,
+      savedMealCoverPhoto: coverPhoto,
     }));
 
     setExpansionModalOpen(false);
+    setExpansionCoverPhoto(undefined);
 
     navigate(returnState?.returnTo || "/create/meal", {
       state: {
