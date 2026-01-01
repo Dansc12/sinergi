@@ -34,6 +34,7 @@ interface LocationState {
   foods?: SavedMealFood[];
   mealType?: string;
   photos?: string[];
+  fromNav?: boolean;
 }
 
 const CreateSavedMealPage = () => {
@@ -81,13 +82,19 @@ const CreateSavedMealPage = () => {
   };
 
   const navigateBack = () => {
-    navigate("/create/meal", {
-      state: {
-        restored: true,
-        contentData: { mealType: state?.mealType, foods },
-        images: state?.photos || [],
-      },
-    });
+    // If accessed from navigation panel, go to home
+    // Otherwise, go back to meal creation flow
+    if (state?.fromNav) {
+      navigate("/");
+    } else {
+      navigate("/create/meal", {
+        state: {
+          restored: true,
+          contentData: { mealType: state?.mealType, foods },
+          images: state?.photos || [],
+        },
+      });
+    }
   };
 
   const handleCapturePhoto = (imageUrl: string) => {
@@ -197,7 +204,12 @@ const CreateSavedMealPage = () => {
       if (error) throw error;
 
       toast({ title: "Meal saved!", description: "You can now quick-add this meal when logging." });
-      navigate("/create/meal");
+      // If accessed from navigation panel, go to home; otherwise, go back to meal creation flow
+      if (state?.fromNav) {
+        navigate("/");
+      } else {
+        navigate("/create/meal");
+      }
     } catch (error) {
       console.error("Error saving meal:", error);
       toast({ title: "Error", description: "Failed to save meal. Please try again.", variant: "destructive" });
