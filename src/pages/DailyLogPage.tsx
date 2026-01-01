@@ -116,6 +116,7 @@ const DailyLogPage = () => {
                 classNames={{
                   day_today: "",
                   day_selected: "bg-primary text-primary-foreground rounded-full hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                 }}
                 components={{
                   DayContent: ({ date }) => {
@@ -126,10 +127,10 @@ const DailyLogPage = () => {
                         <span>{date.getDate()}</span>
                         <div className="flex gap-0.5 h-1.5 mt-0.5">
                           {activity?.hasWorkout && (
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#3DD6C6" }} />
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#B46BFF" }} />
                           )}
                           {activity?.hasMeal && (
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#B46BFF" }} />
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#3DD6C6" }} />
                           )}
                         </div>
                       </div>
