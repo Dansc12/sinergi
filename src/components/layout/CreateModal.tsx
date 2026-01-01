@@ -10,6 +10,7 @@ interface CreateOption {
   description: string;
   gradient: string;
   path: string;
+  state?: Record<string, unknown>;
 }
 
 interface CreateModalProps {
@@ -51,10 +52,10 @@ export const CreateModal = ({ isOpen, onClose }: CreateModalProps) => {
     return () => ro.disconnect();
   }, [isOpen]);
 
-  const handleOptionClick = (path: string) => {
+  const handleOptionClick = (path: string, state?: Record<string, unknown>) => {
     onClose();
     setCurrentScreen(0);
-    navigate(path);
+    navigate(path, { state });
   };
 
   const handleClose = () => {
@@ -86,7 +87,7 @@ export const CreateModal = ({ isOpen, onClose }: CreateModalProps) => {
       className={`flex flex-col items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-200 group ${
         size === "small" ? "p-3" : ""
       } ${className}`}
-      onClick={() => handleOptionClick(option.path)}
+      onClick={() => handleOptionClick(option.path, option.state)}
     >
       <div className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-110 transition-transform duration-200`}>
         {option.icon}
@@ -159,6 +160,7 @@ export const CreateModal = ({ isOpen, onClose }: CreateModalProps) => {
             description: "Save a meal combo",
             gradient: "from-amber-500 to-yellow-400",
             path: "/create/saved-meal",
+            state: { fromNav: true },
           }}
           size="small"
           className="flex-1"
