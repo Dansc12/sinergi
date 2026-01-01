@@ -114,7 +114,7 @@ const DailyLogPage = () => {
                 initialFocus
                 className="p-3 pointer-events-auto"
                 classNames={{
-                  day_today: "",
+                  day_today: "text-primary font-bold",
                   day_selected: "bg-primary text-primary-foreground rounded-full hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                   cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                 }}
@@ -122,9 +122,10 @@ const DailyLogPage = () => {
                   DayContent: ({ date }) => {
                     const dateStr = format(date, "yyyy-MM-dd");
                     const activity = activityData[dateStr];
+                    const isCurrentDay = isToday(date);
                     return (
                       <div className="flex flex-col items-center">
-                        <span>{date.getDate()}</span>
+                        <span className={isCurrentDay ? "text-primary font-bold" : ""}>{date.getDate()}</span>
                         <div className="flex gap-0.5 h-1.5 mt-0.5">
                           {activity?.hasWorkout && (
                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#B46BFF" }} />
