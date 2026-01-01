@@ -123,9 +123,10 @@ const DailyLogPage = () => {
                     const dateStr = format(date, "yyyy-MM-dd");
                     const activity = activityData[dateStr];
                     const isCurrentDay = isToday(date);
+                    const isSelected = selectedDate.toDateString() === date.toDateString();
                     return (
                       <div className="flex flex-col items-center">
-                        <span className={isCurrentDay ? "text-primary font-bold" : ""}>{date.getDate()}</span>
+                        <span className={isCurrentDay && !isSelected ? "text-[#B46BFF] font-bold" : ""}>{date.getDate()}</span>
                         <div className="flex gap-0.5 h-1.5 mt-0.5">
                           {activity?.hasWorkout && (
                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#B46BFF" }} />
