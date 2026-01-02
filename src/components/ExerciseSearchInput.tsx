@@ -15,9 +15,9 @@ export interface Exercise {
 
 // Category/Subcategory structure:
 // Push: Chest, Shoulders, Triceps
-// Pull: Lats, Upper back, Rear delts, Biceps
+// Pull: Lats, Upper Back, Rear Delts, Biceps
 // Legs: Quads, Hamstrings, Glutes, Calves
-// Core: Abs, Obliques, Lower back
+// Core: Abs, Obliques, Lower Back
 
 // Common exercises database
 const exerciseDatabase: Exercise[] = [
@@ -38,7 +38,6 @@ const exerciseDatabase: Exercise[] = [
   { id: "14", name: "Overhead Press", category: "Barbell", muscleGroup: "Shoulders" },
   { id: "15", name: "Dumbbell Shoulder Press", category: "Dumbbell", muscleGroup: "Shoulders" },
   { id: "16", name: "Lateral Raise", category: "Dumbbell", muscleGroup: "Shoulders" },
-  { id: "39", name: "Upright Row", category: "Barbell", muscleGroup: "Shoulders" },
   { id: "40", name: "Arnold Press", category: "Dumbbell", muscleGroup: "Shoulders" },
   { id: "61", name: "Front Raise", category: "Dumbbell", muscleGroup: "Shoulders" },
   { id: "62", name: "Machine Shoulder Press", category: "Machine", muscleGroup: "Shoulders" },
@@ -64,22 +63,23 @@ const exerciseDatabase: Exercise[] = [
   { id: "72", name: "Single Arm Lat Pulldown", category: "Cable", muscleGroup: "Lats" },
 
   // PULL - Upper Back
-  { id: "10", name: "Barbell Row", category: "Barbell", muscleGroup: "Upper back" },
-  { id: "11", name: "Dumbbell Row", category: "Dumbbell", muscleGroup: "Upper back" },
-  { id: "38", name: "Shrug", category: "Dumbbell", muscleGroup: "Upper back" },
-  { id: "73", name: "T-Bar Row", category: "Barbell", muscleGroup: "Upper back" },
-  { id: "74", name: "Seated Cable Row", category: "Cable", muscleGroup: "Upper back" },
-  { id: "75", name: "Chest Supported Row", category: "Dumbbell", muscleGroup: "Upper back" },
-  { id: "76", name: "Pendlay Row", category: "Barbell", muscleGroup: "Upper back" },
-  { id: "77", name: "Machine Row", category: "Machine", muscleGroup: "Upper back" },
-  { id: "78", name: "Barbell Shrug", category: "Barbell", muscleGroup: "Upper back" },
+  { id: "10", name: "Barbell Row", category: "Barbell", muscleGroup: "Upper Back" },
+  { id: "11", name: "Dumbbell Row", category: "Dumbbell", muscleGroup: "Upper Back" },
+  { id: "38", name: "Shrug", category: "Dumbbell", muscleGroup: "Upper Back" },
+  { id: "39", name: "Upright Row", category: "Barbell", muscleGroup: "Upper Back" },
+  { id: "73", name: "T-Bar Row", category: "Barbell", muscleGroup: "Upper Back" },
+  { id: "74", name: "Seated Cable Row", category: "Cable", muscleGroup: "Upper Back" },
+  { id: "75", name: "Chest Supported Row", category: "Dumbbell", muscleGroup: "Upper Back" },
+  { id: "76", name: "Pendlay Row", category: "Barbell", muscleGroup: "Upper Back" },
+  { id: "77", name: "Machine Row", category: "Machine", muscleGroup: "Upper Back" },
+  { id: "78", name: "Barbell Shrug", category: "Barbell", muscleGroup: "Upper Back" },
 
   // PULL - Rear Delts
-  { id: "17", name: "Face Pull", category: "Cable", muscleGroup: "Rear delts" },
-  { id: "79", name: "Rear Delt Fly", category: "Dumbbell", muscleGroup: "Rear delts" },
-  { id: "80", name: "Reverse Pec Deck", category: "Machine", muscleGroup: "Rear delts" },
-  { id: "81", name: "Cable Rear Delt Fly", category: "Cable", muscleGroup: "Rear delts" },
-  { id: "82", name: "Bent Over Rear Delt Raise", category: "Dumbbell", muscleGroup: "Rear delts" },
+  { id: "17", name: "Face Pull", category: "Cable", muscleGroup: "Rear Delts" },
+  { id: "79", name: "Rear Delt Fly", category: "Dumbbell", muscleGroup: "Rear Delts" },
+  { id: "80", name: "Reverse Pec Deck", category: "Machine", muscleGroup: "Rear Delts" },
+  { id: "81", name: "Cable Rear Delt Fly", category: "Cable", muscleGroup: "Rear Delts" },
+  { id: "82", name: "Bent Over Rear Delt Raise", category: "Dumbbell", muscleGroup: "Rear Delts" },
 
   // PULL - Biceps
   { id: "18", name: "Bicep Curl", category: "Dumbbell", muscleGroup: "Biceps" },
@@ -149,11 +149,11 @@ const exerciseDatabase: Exercise[] = [
   { id: "116", name: "Pallof Press", category: "Cable", muscleGroup: "Obliques" },
 
   // CORE - Lower Back
-  { id: "117", name: "Back Extension", category: "Machine", muscleGroup: "Lower back" },
-  { id: "118", name: "Hyperextension", category: "Bodyweight", muscleGroup: "Lower back" },
-  { id: "119", name: "Reverse Hyperextension", category: "Machine", muscleGroup: "Lower back" },
-  { id: "120", name: "Superman", category: "Bodyweight", muscleGroup: "Lower back" },
-  { id: "121", name: "Bird Dog", category: "Bodyweight", muscleGroup: "Lower back" },
+  { id: "117", name: "Back Extension", category: "Machine", muscleGroup: "Lower Back" },
+  { id: "118", name: "Hyperextension", category: "Bodyweight", muscleGroup: "Lower Back" },
+  { id: "119", name: "Reverse Hyperextension", category: "Machine", muscleGroup: "Lower Back" },
+  { id: "120", name: "Superman", category: "Bodyweight", muscleGroup: "Lower Back" },
+  { id: "121", name: "Bird Dog", category: "Bodyweight", muscleGroup: "Lower Back" },
 
   // Cardio exercises
   { id: "41", name: "Treadmill Run", category: "Cardio", muscleGroup: "Cardio", isCardio: true },
@@ -190,20 +190,19 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
   // Fetch custom exercises on mount
   useEffect(() => {
     const fetchCustomExercises = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('custom_exercises')
-        .select('*')
-        .eq('user_id', user.id);
+      const { data, error } = await supabase.from("custom_exercises").select("*").eq("user_id", user.id);
 
       if (error) {
         console.error("Error fetching custom exercises:", error);
         return;
       }
 
-      const formatted: Exercise[] = (data || []).map(ex => ({
+      const formatted: Exercise[] = (data || []).map((ex) => ({
         id: `custom-${ex.id}`,
         name: ex.name,
         category: ex.category,
@@ -230,7 +229,7 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
       (exercise) =>
         exercise.name.toLowerCase().includes(query.toLowerCase()) ||
         exercise.muscleGroup.toLowerCase().includes(query.toLowerCase()) ||
-        exercise.category.toLowerCase().includes(query.toLowerCase())
+        exercise.category.toLowerCase().includes(query.toLowerCase()),
     );
     setResults(filtered.slice(0, 8));
     setIsOpen(true);
@@ -258,7 +257,7 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
   };
 
   const handleCustomExerciseAdded = (exercise: Exercise) => {
-    setCustomExercises(prev => [exercise, ...prev]);
+    setCustomExercises((prev) => [exercise, ...prev]);
     onSelect(exercise);
     setQuery("");
   };
@@ -293,7 +292,9 @@ const ExerciseSearchInput = ({ onSelect, placeholder = "Search exercises..." }: 
                       onClick={() => handleSelect(exercise)}
                       className="w-full p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
                     >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${exercise.isCardio ? "bg-accent/20" : "bg-primary/20"}`}>
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${exercise.isCardio ? "bg-accent/20" : "bg-primary/20"}`}
+                      >
                         <Dumbbell size={18} className={exercise.isCardio ? "text-accent" : "text-primary"} />
                       </div>
                       <div className="flex-1">
