@@ -13,49 +13,148 @@ export interface Exercise {
   isCardio?: boolean;
 }
 
+// Category/Subcategory structure:
+// Push: Chest, Shoulders, Triceps
+// Pull: Lats, Upper back, Rear delts, Biceps
+// Legs: Quads, Hamstrings, Glutes, Calves
+// Core: Abs, Obliques, Lower back
+
 // Common exercises database
 const exerciseDatabase: Exercise[] = [
-  // Strength exercises
+  // PUSH - Chest
   { id: "1", name: "Bench Press", category: "Barbell", muscleGroup: "Chest" },
   { id: "2", name: "Incline Bench Press", category: "Barbell", muscleGroup: "Chest" },
   { id: "3", name: "Dumbbell Bench Press", category: "Dumbbell", muscleGroup: "Chest" },
-  { id: "4", name: "Squat", category: "Barbell", muscleGroup: "Legs" },
-  { id: "5", name: "Front Squat", category: "Barbell", muscleGroup: "Legs" },
-  { id: "6", name: "Leg Press", category: "Machine", muscleGroup: "Legs" },
-  { id: "7", name: "Deadlift", category: "Barbell", muscleGroup: "Back" },
-  { id: "8", name: "Romanian Deadlift", category: "Barbell", muscleGroup: "Back" },
-  { id: "9", name: "Lat Pulldown", category: "Cable", muscleGroup: "Back" },
-  { id: "10", name: "Barbell Row", category: "Barbell", muscleGroup: "Back" },
-  { id: "11", name: "Dumbbell Row", category: "Dumbbell", muscleGroup: "Back" },
-  { id: "12", name: "Pull Up", category: "Bodyweight", muscleGroup: "Back" },
-  { id: "13", name: "Chin Up", category: "Bodyweight", muscleGroup: "Back" },
-  { id: "14", name: "Overhead Press", category: "Barbell", muscleGroup: "Shoulders" },
-  { id: "15", name: "Dumbbell Shoulder Press", category: "Dumbbell", muscleGroup: "Shoulders" },
-  { id: "16", name: "Lateral Raise", category: "Dumbbell", muscleGroup: "Shoulders" },
-  { id: "17", name: "Face Pull", category: "Cable", muscleGroup: "Shoulders" },
-  { id: "18", name: "Bicep Curl", category: "Dumbbell", muscleGroup: "Arms" },
-  { id: "19", name: "Barbell Curl", category: "Barbell", muscleGroup: "Arms" },
-  { id: "20", name: "Hammer Curl", category: "Dumbbell", muscleGroup: "Arms" },
-  { id: "21", name: "Tricep Pushdown", category: "Cable", muscleGroup: "Arms" },
-  { id: "22", name: "Skull Crusher", category: "Barbell", muscleGroup: "Arms" },
-  { id: "23", name: "Tricep Dip", category: "Bodyweight", muscleGroup: "Arms" },
-  { id: "24", name: "Leg Curl", category: "Machine", muscleGroup: "Legs" },
-  { id: "25", name: "Leg Extension", category: "Machine", muscleGroup: "Legs" },
-  { id: "26", name: "Calf Raise", category: "Machine", muscleGroup: "Legs" },
-  { id: "27", name: "Hip Thrust", category: "Barbell", muscleGroup: "Legs" },
-  { id: "28", name: "Lunges", category: "Dumbbell", muscleGroup: "Legs" },
-  { id: "29", name: "Bulgarian Split Squat", category: "Dumbbell", muscleGroup: "Legs" },
   { id: "30", name: "Cable Fly", category: "Cable", muscleGroup: "Chest" },
   { id: "31", name: "Dumbbell Fly", category: "Dumbbell", muscleGroup: "Chest" },
   { id: "32", name: "Push Up", category: "Bodyweight", muscleGroup: "Chest" },
-  { id: "33", name: "Plank", category: "Bodyweight", muscleGroup: "Core" },
-  { id: "34", name: "Crunch", category: "Bodyweight", muscleGroup: "Core" },
-  { id: "35", name: "Leg Raise", category: "Bodyweight", muscleGroup: "Core" },
-  { id: "36", name: "Cable Crunch", category: "Cable", muscleGroup: "Core" },
-  { id: "37", name: "Russian Twist", category: "Bodyweight", muscleGroup: "Core" },
-  { id: "38", name: "Shrug", category: "Dumbbell", muscleGroup: "Back" },
+  { id: "56", name: "Incline Dumbbell Press", category: "Dumbbell", muscleGroup: "Chest" },
+  { id: "57", name: "Decline Bench Press", category: "Barbell", muscleGroup: "Chest" },
+  { id: "58", name: "Chest Dip", category: "Bodyweight", muscleGroup: "Chest" },
+  { id: "59", name: "Machine Chest Press", category: "Machine", muscleGroup: "Chest" },
+  { id: "60", name: "Pec Deck", category: "Machine", muscleGroup: "Chest" },
+
+  // PUSH - Shoulders
+  { id: "14", name: "Overhead Press", category: "Barbell", muscleGroup: "Shoulders" },
+  { id: "15", name: "Dumbbell Shoulder Press", category: "Dumbbell", muscleGroup: "Shoulders" },
+  { id: "16", name: "Lateral Raise", category: "Dumbbell", muscleGroup: "Shoulders" },
   { id: "39", name: "Upright Row", category: "Barbell", muscleGroup: "Shoulders" },
   { id: "40", name: "Arnold Press", category: "Dumbbell", muscleGroup: "Shoulders" },
+  { id: "61", name: "Front Raise", category: "Dumbbell", muscleGroup: "Shoulders" },
+  { id: "62", name: "Machine Shoulder Press", category: "Machine", muscleGroup: "Shoulders" },
+  { id: "63", name: "Cable Lateral Raise", category: "Cable", muscleGroup: "Shoulders" },
+
+  // PUSH - Triceps
+  { id: "21", name: "Tricep Pushdown", category: "Cable", muscleGroup: "Triceps" },
+  { id: "22", name: "Skull Crusher", category: "Barbell", muscleGroup: "Triceps" },
+  { id: "23", name: "Tricep Dip", category: "Bodyweight", muscleGroup: "Triceps" },
+  { id: "64", name: "Close Grip Bench Press", category: "Barbell", muscleGroup: "Triceps" },
+  { id: "65", name: "Overhead Tricep Extension", category: "Dumbbell", muscleGroup: "Triceps" },
+  { id: "66", name: "Tricep Kickback", category: "Dumbbell", muscleGroup: "Triceps" },
+  { id: "67", name: "Diamond Push Up", category: "Bodyweight", muscleGroup: "Triceps" },
+  { id: "68", name: "Rope Pushdown", category: "Cable", muscleGroup: "Triceps" },
+
+  // PULL - Lats
+  { id: "9", name: "Lat Pulldown", category: "Cable", muscleGroup: "Lats" },
+  { id: "12", name: "Pull Up", category: "Bodyweight", muscleGroup: "Lats" },
+  { id: "13", name: "Chin Up", category: "Bodyweight", muscleGroup: "Lats" },
+  { id: "69", name: "Wide Grip Lat Pulldown", category: "Cable", muscleGroup: "Lats" },
+  { id: "70", name: "Close Grip Lat Pulldown", category: "Cable", muscleGroup: "Lats" },
+  { id: "71", name: "Straight Arm Pulldown", category: "Cable", muscleGroup: "Lats" },
+  { id: "72", name: "Single Arm Lat Pulldown", category: "Cable", muscleGroup: "Lats" },
+
+  // PULL - Upper Back
+  { id: "10", name: "Barbell Row", category: "Barbell", muscleGroup: "Upper back" },
+  { id: "11", name: "Dumbbell Row", category: "Dumbbell", muscleGroup: "Upper back" },
+  { id: "38", name: "Shrug", category: "Dumbbell", muscleGroup: "Upper back" },
+  { id: "73", name: "T-Bar Row", category: "Barbell", muscleGroup: "Upper back" },
+  { id: "74", name: "Seated Cable Row", category: "Cable", muscleGroup: "Upper back" },
+  { id: "75", name: "Chest Supported Row", category: "Dumbbell", muscleGroup: "Upper back" },
+  { id: "76", name: "Pendlay Row", category: "Barbell", muscleGroup: "Upper back" },
+  { id: "77", name: "Machine Row", category: "Machine", muscleGroup: "Upper back" },
+  { id: "78", name: "Barbell Shrug", category: "Barbell", muscleGroup: "Upper back" },
+
+  // PULL - Rear Delts
+  { id: "17", name: "Face Pull", category: "Cable", muscleGroup: "Rear delts" },
+  { id: "79", name: "Rear Delt Fly", category: "Dumbbell", muscleGroup: "Rear delts" },
+  { id: "80", name: "Reverse Pec Deck", category: "Machine", muscleGroup: "Rear delts" },
+  { id: "81", name: "Cable Rear Delt Fly", category: "Cable", muscleGroup: "Rear delts" },
+  { id: "82", name: "Bent Over Rear Delt Raise", category: "Dumbbell", muscleGroup: "Rear delts" },
+
+  // PULL - Biceps
+  { id: "18", name: "Bicep Curl", category: "Dumbbell", muscleGroup: "Biceps" },
+  { id: "19", name: "Barbell Curl", category: "Barbell", muscleGroup: "Biceps" },
+  { id: "20", name: "Hammer Curl", category: "Dumbbell", muscleGroup: "Biceps" },
+  { id: "83", name: "Preacher Curl", category: "Barbell", muscleGroup: "Biceps" },
+  { id: "84", name: "Concentration Curl", category: "Dumbbell", muscleGroup: "Biceps" },
+  { id: "85", name: "Cable Curl", category: "Cable", muscleGroup: "Biceps" },
+  { id: "86", name: "Incline Dumbbell Curl", category: "Dumbbell", muscleGroup: "Biceps" },
+  { id: "87", name: "Spider Curl", category: "Dumbbell", muscleGroup: "Biceps" },
+  { id: "88", name: "EZ Bar Curl", category: "Barbell", muscleGroup: "Biceps" },
+
+  // LEGS - Quads
+  { id: "4", name: "Squat", category: "Barbell", muscleGroup: "Quads" },
+  { id: "5", name: "Front Squat", category: "Barbell", muscleGroup: "Quads" },
+  { id: "6", name: "Leg Press", category: "Machine", muscleGroup: "Quads" },
+  { id: "25", name: "Leg Extension", category: "Machine", muscleGroup: "Quads" },
+  { id: "28", name: "Lunges", category: "Dumbbell", muscleGroup: "Quads" },
+  { id: "29", name: "Bulgarian Split Squat", category: "Dumbbell", muscleGroup: "Quads" },
+  { id: "89", name: "Hack Squat", category: "Machine", muscleGroup: "Quads" },
+  { id: "90", name: "Goblet Squat", category: "Dumbbell", muscleGroup: "Quads" },
+  { id: "91", name: "Sissy Squat", category: "Bodyweight", muscleGroup: "Quads" },
+  { id: "92", name: "Walking Lunges", category: "Dumbbell", muscleGroup: "Quads" },
+
+  // LEGS - Hamstrings
+  { id: "7", name: "Deadlift", category: "Barbell", muscleGroup: "Hamstrings" },
+  { id: "8", name: "Romanian Deadlift", category: "Barbell", muscleGroup: "Hamstrings" },
+  { id: "24", name: "Leg Curl", category: "Machine", muscleGroup: "Hamstrings" },
+  { id: "93", name: "Stiff Leg Deadlift", category: "Barbell", muscleGroup: "Hamstrings" },
+  { id: "94", name: "Good Morning", category: "Barbell", muscleGroup: "Hamstrings" },
+  { id: "95", name: "Nordic Curl", category: "Bodyweight", muscleGroup: "Hamstrings" },
+  { id: "96", name: "Seated Leg Curl", category: "Machine", muscleGroup: "Hamstrings" },
+  { id: "97", name: "Lying Leg Curl", category: "Machine", muscleGroup: "Hamstrings" },
+
+  // LEGS - Glutes
+  { id: "27", name: "Hip Thrust", category: "Barbell", muscleGroup: "Glutes" },
+  { id: "98", name: "Glute Bridge", category: "Bodyweight", muscleGroup: "Glutes" },
+  { id: "99", name: "Cable Kickback", category: "Cable", muscleGroup: "Glutes" },
+  { id: "100", name: "Sumo Deadlift", category: "Barbell", muscleGroup: "Glutes" },
+  { id: "101", name: "Glute Kickback Machine", category: "Machine", muscleGroup: "Glutes" },
+  { id: "102", name: "Single Leg Hip Thrust", category: "Bodyweight", muscleGroup: "Glutes" },
+
+  // LEGS - Calves
+  { id: "26", name: "Calf Raise", category: "Machine", muscleGroup: "Calves" },
+  { id: "103", name: "Seated Calf Raise", category: "Machine", muscleGroup: "Calves" },
+  { id: "104", name: "Standing Calf Raise", category: "Machine", muscleGroup: "Calves" },
+  { id: "105", name: "Donkey Calf Raise", category: "Machine", muscleGroup: "Calves" },
+  { id: "106", name: "Single Leg Calf Raise", category: "Bodyweight", muscleGroup: "Calves" },
+
+  // CORE - Abs
+  { id: "33", name: "Plank", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "34", name: "Crunch", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "35", name: "Leg Raise", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "36", name: "Cable Crunch", category: "Cable", muscleGroup: "Abs" },
+  { id: "107", name: "Hanging Leg Raise", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "108", name: "Ab Rollout", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "109", name: "Dead Bug", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "110", name: "Hollow Body Hold", category: "Bodyweight", muscleGroup: "Abs" },
+  { id: "111", name: "Sit Up", category: "Bodyweight", muscleGroup: "Abs" },
+
+  // CORE - Obliques
+  { id: "37", name: "Russian Twist", category: "Bodyweight", muscleGroup: "Obliques" },
+  { id: "112", name: "Side Plank", category: "Bodyweight", muscleGroup: "Obliques" },
+  { id: "113", name: "Wood Chop", category: "Cable", muscleGroup: "Obliques" },
+  { id: "114", name: "Bicycle Crunch", category: "Bodyweight", muscleGroup: "Obliques" },
+  { id: "115", name: "Oblique Crunch", category: "Bodyweight", muscleGroup: "Obliques" },
+  { id: "116", name: "Pallof Press", category: "Cable", muscleGroup: "Obliques" },
+
+  // CORE - Lower Back
+  { id: "117", name: "Back Extension", category: "Machine", muscleGroup: "Lower back" },
+  { id: "118", name: "Hyperextension", category: "Bodyweight", muscleGroup: "Lower back" },
+  { id: "119", name: "Reverse Hyperextension", category: "Machine", muscleGroup: "Lower back" },
+  { id: "120", name: "Superman", category: "Bodyweight", muscleGroup: "Lower back" },
+  { id: "121", name: "Bird Dog", category: "Bodyweight", muscleGroup: "Lower back" },
+
   // Cardio exercises
   { id: "41", name: "Treadmill Run", category: "Cardio", muscleGroup: "Cardio", isCardio: true },
   { id: "42", name: "Outdoor Run", category: "Cardio", muscleGroup: "Cardio", isCardio: true },
