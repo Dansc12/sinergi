@@ -1,351 +1,139 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, format, subWeeks, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { ALL_MUSCLES, MUSCLE_DISPLAY_NAMES, getMuscleDisplayName } from "@/lib/muscleContributions";
 
 export type PrimaryGroup = "Push" | "Pull" | "Legs" | "Core";
-export type MetricType = "volume" | "strength";
 
-interface WorkoutExercise {
-  name: string;
-  notes?: string;
-  isCardio?: boolean;
-  muscleGroup?: string;
-  primaryGroup?: PrimaryGroup;
-  sets: Array<{
-    weight?: number;
-    reps?: number;
-    distance?: number;
-    time?: string;
-  }>;
-}
-
-interface WeeklyData {
-  week: string;
-  weekLabel: string;
+interface DailyData {
+  date: string;
+  dateLabel: string;
   value: number;
 }
 
-interface ExerciseFrequency {
-  name: string;
-  count: number;
-  primaryGroup?: PrimaryGroup;
-  muscleGroup?: string;
+interface SetMuscleVolumeRow {
+  id: string;
+  user_id: string;
+  log_date: string;
+  exercise_name: string;
+  set_index: number;
+  primary_group: string;
+  muscle: string;
+  allocated_tonnage: number;
 }
 
-const PRIMARY_GROUP_SUBGROUPS: Record<PrimaryGroup, string[]> = {
-  Push: ["Chest", "Shoulders", "Triceps"],
-  Pull: ["Lats", "Upper Back", "Rear Delts", "Biceps"],
-  Legs: ["Quads", "Hamstrings", "Glutes", "Calves"],
-  Core: ["Abs", "Obliques", "Lower Back"]
-};
-
-// Map muscleGroup to primaryGroup (for exercises that don't have primaryGroup stored)
-const MUSCLE_TO_PRIMARY: Record<string, PrimaryGroup> = {
-  // Push
-  "Chest": "Push",
-  "Shoulders": "Push",
-  "Triceps": "Push",
-  // Pull
-  "Lats": "Pull",
-  "Upper Back": "Pull",
-  "Back": "Pull", // Legacy mapping
-  "Rear Delts": "Pull",
-  "Biceps": "Pull",
-  // Legs
-  "Quads": "Legs",
-  "Hamstrings": "Legs",
-  "Glutes": "Legs",
-  "Calves": "Legs",
-  "Legs": "Legs", // Legacy mapping
-  // Core
-  "Abs": "Core",
-  "Obliques": "Core",
-  "Lower Back": "Core",
-  "Core": "Core", // Legacy mapping
-};
-
-// Get primary group from exercise (check stored primaryGroup first, then derive from muscleGroup)
-const getPrimaryGroup = (exercise: WorkoutExercise): PrimaryGroup | undefined => {
-  if (exercise.primaryGroup) return exercise.primaryGroup;
-  if (exercise.muscleGroup) return MUSCLE_TO_PRIMARY[exercise.muscleGroup];
-  return undefined;
-};
-
-// Check if an exercise is time-based (Core exercises that use time instead of weight)
-const isTimeBasedExercise = (exerciseName: string): boolean => {
-  const timeBasedExercises = [
-    "plank", "side plank", "hollow body hold", "dead bug", "bird dog", "superman"
-  ];
-  return timeBasedExercises.some(ex => exerciseName.toLowerCase().includes(ex));
-};
-
-// Calculate e1RM using Epley formula
-const calculateE1RM = (weight: number, reps: number): number => {
-  if (reps === 0 || weight === 0) return 0;
-  if (reps === 1) return weight;
-  return Math.round(weight * (1 + reps / 30));
-};
+// Muscles available for each primary group
+const PRIMARY_GROUP_MUSCLES: Record<PrimaryGroup, readonly string[]> = ALL_MUSCLES;
 
 export const useEnhancedStrengthData = () => {
-  const [workouts, setWorkouts] = useState<any[]>([]);
+  const [volumeData, setVolumeData] = useState<SetMuscleVolumeRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPrimaryGroup, setSelectedPrimaryGroup] = useState<PrimaryGroup | null>(null);
-  const [selectedSubGroup, setSelectedSubGroup] = useState<string | null>(null);
-  const [metricType, setMetricType] = useState<MetricType>("volume");
-  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
 
-  const fetchWorkouts = useCallback(async () => {
+  const fetchVolumeData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("workout_logs")
+        .from("set_muscle_volume")
         .select("*")
         .eq("user_id", user.id)
         .order("log_date", { ascending: true });
 
       if (error) throw error;
-      setWorkouts(data || []);
+      setVolumeData((data as SetMuscleVolumeRow[]) || []);
     } catch (error) {
-      console.error("Error fetching workouts:", error);
+      console.error("Error fetching volume data:", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchWorkouts();
-  }, [fetchWorkouts]);
+    fetchVolumeData();
+  }, [fetchVolumeData]);
 
-  // Parse exercises from workout data
-  const parseExercises = useCallback((workout: any): WorkoutExercise[] => {
-    const exercisesData = workout.exercises as unknown;
-    if (Array.isArray(exercisesData)) {
-      return exercisesData as WorkoutExercise[];
-    } else if (exercisesData && typeof exercisesData === 'object' && 'exercises' in exercisesData) {
-      return (exercisesData as { exercises: WorkoutExercise[] }).exercises || [];
-    }
-    return [];
-  }, []);
-
-  // Get available subgroups for the selected primary group
-  const availableSubGroups = useMemo(() => {
+  // Get available muscles for the selected primary group
+  const availableMuscles = useMemo(() => {
     if (!selectedPrimaryGroup) return [];
-    return PRIMARY_GROUP_SUBGROUPS[selectedPrimaryGroup] || [];
+    return [...PRIMARY_GROUP_MUSCLES[selectedPrimaryGroup]];
   }, [selectedPrimaryGroup]);
 
-  // Check if Core is mostly time-based exercises
-  const isCoreTimeBasedOnly = useMemo(() => {
-    if (selectedPrimaryGroup !== "Core") return false;
-    
-    let timeBasedCount = 0;
-    let weightBasedCount = 0;
-    
-    workouts.forEach(workout => {
-      const exercises = parseExercises(workout);
-      exercises.forEach(exercise => {
-        const exercisePrimaryGroup = getPrimaryGroup(exercise);
-        if (exercisePrimaryGroup === "Core") {
-          if (isTimeBasedExercise(exercise.name)) {
-            timeBasedCount++;
-          } else {
-            // Check if any set has weight > 0
-            const hasWeight = exercise.sets?.some(s => s.weight && s.weight > 0);
-            if (hasWeight) {
-              weightBasedCount++;
-            } else {
-              timeBasedCount++;
-            }
-          }
-        }
-      });
-    });
-    
-    return timeBasedCount > weightBasedCount;
-  }, [workouts, selectedPrimaryGroup, parseExercises]);
-
-  const exerciseFrequency = useMemo(() => {
-    const eightWeeksAgo = subWeeks(new Date(), 8);
-    const frequencyMap: Record<string, ExerciseFrequency> = {};
-
-    workouts.forEach(workout => {
-      // Use parseISO to correctly parse date-only strings without timezone issues
-      const logDate = parseISO(workout.log_date);
-      if (logDate < eightWeeksAgo) return;
-
-      const exercises = parseExercises(workout);
-      exercises.forEach(exercise => {
-        if (exercise.isCardio) return;
-        if (isTimeBasedExercise(exercise.name)) return;
-        
-        // Get the primary group (derived if not stored)
-        const exercisePrimaryGroup = getPrimaryGroup(exercise);
-        
-        // Filter by selected group
-        const matchesPrimary = !selectedPrimaryGroup || exercisePrimaryGroup === selectedPrimaryGroup;
-        const matchesSub = !selectedSubGroup || selectedSubGroup === "All" || exercise.muscleGroup === selectedSubGroup;
-        
-        if (!matchesPrimary || !matchesSub) return;
-        
-        // Check if exercise has valid weight/reps data
-        const hasValidSets = exercise.sets?.some(s => s.weight && s.weight > 0 && s.reps && s.reps > 0);
-        if (!hasValidSets) return;
-
-        if (!frequencyMap[exercise.name]) {
-          frequencyMap[exercise.name] = {
-            name: exercise.name,
-            count: 0,
-            primaryGroup: exercisePrimaryGroup,
-            muscleGroup: exercise.muscleGroup
-          };
-        }
-        frequencyMap[exercise.name].count++;
-      });
-    });
-
-    return Object.values(frequencyMap).sort((a, b) => b.count - a.count);
-  }, [workouts, selectedPrimaryGroup, selectedSubGroup, parseExercises]);
-
-  // Default strength exercise (most frequent in selected group)
-  const defaultStrengthExercise = useMemo(() => {
-    return exerciseFrequency[0]?.name || null;
-  }, [exerciseFrequency]);
-
-  // Set default exercise when group changes
+  // Reset selected muscle when primary group changes
   useEffect(() => {
-    if (metricType === "strength" && !selectedExercise && defaultStrengthExercise) {
-      setSelectedExercise(defaultStrengthExercise);
-    }
-  }, [metricType, defaultStrengthExercise, selectedExercise]);
+    setSelectedMuscle(null);
+  }, [selectedPrimaryGroup]);
 
-  // Reset selected exercise when group changes
-  useEffect(() => {
-    setSelectedExercise(null);
-  }, [selectedPrimaryGroup, selectedSubGroup]);
+  // Calculate daily volume data based on filters
+  const dailyVolumeData = useMemo((): DailyData[] => {
+    const dailyVolumes: Record<string, number> = {};
 
-  // Calculate weekly volume data
-  const weeklyVolumeData = useMemo((): WeeklyData[] => {
-    const weeklyVolumes: Record<string, number> = {};
+    volumeData.forEach(row => {
+      // Filter by primary group
+      if (selectedPrimaryGroup && row.primary_group !== selectedPrimaryGroup) return;
+      
+      // Filter by specific muscle
+      if (selectedMuscle && row.muscle !== selectedMuscle) return;
 
-    workouts.forEach(workout => {
-      // Use parseISO to correctly parse date-only strings without timezone issues
-      const logDate = parseISO(workout.log_date);
-      const weekStart = startOfWeek(logDate, { weekStartsOn: 1 });
-      const weekKey = format(weekStart, "yyyy-MM-dd");
-
-      const exercises = parseExercises(workout);
-      let volume = 0;
-
-      exercises.forEach(exercise => {
-        if (exercise.isCardio) return;
-        
-        // Get the primary group (derived if not stored)
-        const exercisePrimaryGroup = getPrimaryGroup(exercise);
-        
-        // Filter by selected group
-        const matchesPrimary = !selectedPrimaryGroup || exercisePrimaryGroup === selectedPrimaryGroup;
-        const matchesSub = !selectedSubGroup || selectedSubGroup === "All" || exercise.muscleGroup === selectedSubGroup;
-        
-        if (!matchesPrimary || !matchesSub) return;
-
-        exercise.sets?.forEach(set => {
-          if (set.weight && set.reps) {
-            volume += set.weight * set.reps;
-          }
-        });
-      });
-
-      if (volume > 0) {
-        weeklyVolumes[weekKey] = (weeklyVolumes[weekKey] || 0) + volume;
-      }
+      const dateKey = row.log_date;
+      dailyVolumes[dateKey] = (dailyVolumes[dateKey] || 0) + Number(row.allocated_tonnage);
     });
 
-    return Object.entries(weeklyVolumes)
+    return Object.entries(dailyVolumes)
       .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([week, value]) => ({
-        week,
-        weekLabel: format(new Date(week), "MMM d"),
+      .map(([date, value]) => ({
+        date,
+        dateLabel: format(parseISO(date), "MMM d"),
         value: Math.round(value)
       }));
-  }, [workouts, selectedPrimaryGroup, selectedSubGroup, parseExercises]);
-
-  // Calculate weekly e1RM data for selected exercise
-  const weeklyStrengthData = useMemo((): WeeklyData[] => {
-    if (!selectedExercise) return [];
-
-    const weeklyMaxE1RM: Record<string, number> = {};
-
-    workouts.forEach(workout => {
-      // Use parseISO to correctly parse date-only strings without timezone issues
-      const logDate = parseISO(workout.log_date);
-      const weekStart = startOfWeek(logDate, { weekStartsOn: 1 });
-      const weekKey = format(weekStart, "yyyy-MM-dd");
-
-      const exercises = parseExercises(workout);
-
-      exercises.forEach(exercise => {
-        if (exercise.name !== selectedExercise) return;
-
-        exercise.sets?.forEach(set => {
-          if (set.weight && set.reps && set.weight > 0 && set.reps > 0) {
-            const e1rm = calculateE1RM(set.weight, set.reps);
-            weeklyMaxE1RM[weekKey] = Math.max(weeklyMaxE1RM[weekKey] || 0, e1rm);
-          }
-        });
-      });
-    });
-
-    return Object.entries(weeklyMaxE1RM)
-      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([week, value]) => ({
-        week,
-        weekLabel: format(new Date(week), "MMM d"),
-        value: Math.round(value)
-      }));
-  }, [workouts, selectedExercise, parseExercises]);
-
-  // Get chart data based on metric type
-  const chartData = useMemo(() => {
-    return metricType === "volume" ? weeklyVolumeData : weeklyStrengthData;
-  }, [metricType, weeklyVolumeData, weeklyStrengthData]);
+  }, [volumeData, selectedPrimaryGroup, selectedMuscle]);
 
   // Calculate totals and trends
   const totalVolume = useMemo(() => {
-    return weeklyVolumeData.reduce((sum, d) => sum + d.value, 0);
-  }, [weeklyVolumeData]);
+    return dailyVolumeData.reduce((sum, d) => sum + d.value, 0);
+  }, [dailyVolumeData]);
 
-  const latestValue = chartData.length > 0 ? chartData[chartData.length - 1].value : 0;
+  const latestValue = dailyVolumeData.length > 0 ? dailyVolumeData[dailyVolumeData.length - 1].value : 0;
   
-  const trend = chartData.length >= 2
-    ? chartData[chartData.length - 1].value - chartData[chartData.length - 2].value
+  const trend = dailyVolumeData.length >= 2
+    ? dailyVolumeData[dailyVolumeData.length - 1].value - dailyVolumeData[dailyVolumeData.length - 2].value
     : 0;
 
+  // Get display name for current filter
+  const getFilterLabel = useCallback(() => {
+    if (selectedMuscle) {
+      return getMuscleDisplayName(selectedMuscle);
+    }
+    if (selectedPrimaryGroup) {
+      return selectedPrimaryGroup;
+    }
+    return "Overall";
+  }, [selectedPrimaryGroup, selectedMuscle]);
+
   return {
-    chartData,
-    weeklyVolumeData,
-    weeklyStrengthData,
+    chartData: dailyVolumeData,
+    dailyVolumeData,
     totalVolume,
     latestValue,
     trend,
     isLoading,
-    refetch: fetchWorkouts,
+    refetch: fetchVolumeData,
     // Filters
     selectedPrimaryGroup,
     setSelectedPrimaryGroup,
-    selectedSubGroup,
-    setSelectedSubGroup,
-    availableSubGroups,
-    // Metric type
-    metricType,
-    setMetricType,
-    // Strength exercise
-    selectedExercise,
-    setSelectedExercise,
-    exerciseFrequency,
-    defaultStrengthExercise,
-    isCoreTimeBasedOnly,
-    // Constants
-    PRIMARY_GROUP_SUBGROUPS
+    selectedMuscle,
+    setSelectedMuscle,
+    availableMuscles,
+    getFilterLabel,
+    // For backward compat - map to old interface
+    selectedSubGroup: selectedMuscle,
+    setSelectedSubGroup: setSelectedMuscle,
+    availableSubGroups: availableMuscles.map(m => getMuscleDisplayName(m)),
+    // Constants for UI
+    PRIMARY_GROUP_MUSCLES,
+    MUSCLE_DISPLAY_NAMES,
+    getMuscleDisplayName,
   };
 };

@@ -16,13 +16,15 @@ export const StrengthDetailModal = ({
   onOpenChange
 }: StrengthDetailModalProps) => {
   const {
-    weeklyVolumeData,
+    dailyVolumeData,
     totalVolume,
     selectedPrimaryGroup,
     setSelectedPrimaryGroup,
-    selectedSubGroup,
-    setSelectedSubGroup,
-    availableSubGroups,
+    selectedMuscle,
+    setSelectedMuscle,
+    availableMuscles,
+    getMuscleDisplayName,
+    getFilterLabel,
     refetch
   } = useEnhancedStrengthData();
 
@@ -33,7 +35,7 @@ export const StrengthDetailModal = ({
     }
   }, [open, refetch]);
 
-  const chartData = weeklyVolumeData;
+  const chartData = dailyVolumeData;
   const latestValue = chartData.length > 0 ? chartData[chartData.length - 1].value : 0;
   const trend = chartData.length >= 2
     ? chartData[chartData.length - 1].value - chartData[chartData.length - 2].value
@@ -44,16 +46,16 @@ export const StrengthDetailModal = ({
   const handlePrimaryGroupSelect = (group: PrimaryGroup | "Overall") => {
     if (group === "Overall") {
       setSelectedPrimaryGroup(null);
-      setSelectedSubGroup(null);
+      setSelectedMuscle(null);
     } else {
       setSelectedPrimaryGroup(group);
-      setSelectedSubGroup("All");
+      setSelectedMuscle(null);
     }
   };
 
-  // Handle subgroup selection
-  const handleSubGroupSelect = (subGroup: string) => {
-    setSelectedSubGroup(subGroup);
+  // Handle muscle selection
+  const handleMuscleSelect = (muscle: string | null) => {
+    setSelectedMuscle(muscle);
   };
 
   // Calculate trendline
@@ -84,13 +86,7 @@ export const StrengthDetailModal = ({
   };
 
   const getTitle = () => {
-    if (selectedPrimaryGroup) {
-      if (selectedSubGroup && selectedSubGroup !== "All") {
-        return `${selectedSubGroup} Volume`;
-      }
-      return `${selectedPrimaryGroup} Volume`;
-    }
-    return "Overall Volume";
+    return `${getFilterLabel()} Volume`;
   };
 
   return (
@@ -126,30 +122,30 @@ export const StrengthDetailModal = ({
             })}
           </div>
 
-          {/* SubGroup Filter Chips */}
-          {selectedPrimaryGroup && availableSubGroups.length > 0 && (
+          {/* Muscle Filter Chips */}
+          {selectedPrimaryGroup && availableMuscles.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => handleSubGroupSelect("All")}
+                onClick={() => handleMuscleSelect(null)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                  selectedSubGroup === "All" || !selectedSubGroup
+                  !selectedMuscle
                     ? "bg-secondary text-secondary-foreground"
                     : "bg-card/50 border border-border/50 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                All
+                All {selectedPrimaryGroup}
               </button>
-              {availableSubGroups.map((subGroup) => (
+              {availableMuscles.map((muscle) => (
                 <button
-                  key={subGroup}
-                  onClick={() => handleSubGroupSelect(subGroup)}
+                  key={muscle}
+                  onClick={() => handleMuscleSelect(muscle)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                    selectedSubGroup === subGroup
+                    selectedMuscle === muscle
                       ? "bg-secondary text-secondary-foreground"
                       : "bg-card/50 border border-border/50 text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {subGroup}
+                  {getMuscleDisplayName(muscle)}
                 </button>
               ))}
             </div>
@@ -165,7 +161,7 @@ export const StrengthDetailModal = ({
               <p className="text-xs text-muted-foreground">lbs</p>
             </div>
             <div className="bg-card border border-border rounded-xl p-3 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Last Week</p>
+              <p className="text-xs text-muted-foreground mb-1">Last Day</p>
               <p className="text-xl font-bold">
                 {formatVolume(latestValue)}
               </p>
@@ -197,7 +193,7 @@ export const StrengthDetailModal = ({
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {isTrendingUp 
-                    ? "Your weekly volume is trending upward" 
+                    ? "Your daily volume is trending upward" 
                     : "Focus on progressive overload to increase strength"}
                 </p>
               </div>
@@ -210,7 +206,7 @@ export const StrengthDetailModal = ({
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendlineData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <XAxis 
-                    dataKey="weekLabel" 
+                    dataKey="dateLabel" 
                     tick={{ fontSize: 11 }}
                     stroke="hsl(var(--muted-foreground))"
                   />
@@ -226,10 +222,10 @@ export const StrengthDetailModal = ({
                       borderRadius: '8px',
                       fontSize: '12px'
                     }}
-                    labelFormatter={(label) => `Week of ${label}`}
+                    labelFormatter={(label) => `${label}`}
                     formatter={(value: number) => [
                       `${Math.round(value).toLocaleString()} lbs`,
-                      "Volume"
+                      getFilterLabel()
                     ]}
                   />
                   <Line
@@ -263,18 +259,18 @@ export const StrengthDetailModal = ({
             </div>
           )}
 
-          {/* Recent Weeks */}
+          {/* Recent Days */}
           {chartData.length > 0 && (
             <div>
               <h4 className="font-medium mb-2 flex items-center gap-2">
                 <Calendar size={16} />
-                Recent Weeks
+                Recent Days
               </h4>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {[...chartData].reverse().slice(0, 5).map((entry, i) => (
                   <div key={i} className="flex justify-between items-center text-sm bg-card/50 rounded-lg px-3 py-2">
                     <span className="text-muted-foreground">
-                      Week of {entry.weekLabel}
+                      {entry.dateLabel}
                     </span>
                     <span className="font-medium">{Math.round(entry.value).toLocaleString()} lbs</span>
                   </div>
