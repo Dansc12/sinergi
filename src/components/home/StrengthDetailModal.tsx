@@ -129,24 +129,6 @@ export const StrengthDetailModal = ({
 
         <div className="space-y-4 pt-2">
 
-          {/* Muscle Filter Chips - All muscles auto-selected when primary group is chosen */}
-          {selectedPrimaryGroup && availableMuscles.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {availableMuscles.map((muscle) => (
-                <div
-                  key={muscle}
-                  className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground flex items-center gap-1.5"
-                >
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: getLineColor(muscle) }} 
-                  />
-                  {getMuscleDisplayName(muscle)}
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-card border border-border rounded-xl p-3 text-center">
@@ -244,13 +226,13 @@ export const StrengthDetailModal = ({
 
           {/* Legend for secondary lines */}
           {secondaryLineKeys.length > 0 && multiLineChartData.length > 0 && (
-            <div className="flex flex-wrap gap-3 justify-center">
-              <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex gap-3 justify-center overflow-x-auto">
+              <div className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                 <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: "#B46BFF" }} />
-                <span className="text-muted-foreground">{getFilterLabel()} Average</span>
+                <span className="text-muted-foreground">{getFilterLabel()} Avg</span>
               </div>
               {secondaryLineKeys.map((key) => (
-                <div key={key} className="flex items-center gap-1.5 text-xs">
+                <div key={key} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                   <div 
                     className="w-3 h-0.5 rounded-full opacity-50" 
                     style={{ backgroundColor: getLineColor(key), borderStyle: "dashed" }} 
