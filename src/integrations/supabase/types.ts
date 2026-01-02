@@ -744,6 +744,53 @@ export type Database = {
           },
         ]
       }
+      set_muscle_volume: {
+        Row: {
+          allocated_tonnage: number
+          created_at: string
+          exercise_name: string
+          id: string
+          log_date: string
+          muscle: string
+          primary_group: string
+          set_index: number
+          user_id: string
+          workout_log_id: string
+        }
+        Insert: {
+          allocated_tonnage?: number
+          created_at?: string
+          exercise_name: string
+          id?: string
+          log_date: string
+          muscle: string
+          primary_group: string
+          set_index: number
+          user_id: string
+          workout_log_id: string
+        }
+        Update: {
+          allocated_tonnage?: number
+          created_at?: string
+          exercise_name?: string
+          id?: string
+          log_date?: string
+          muscle?: string
+          primary_group?: string
+          set_index?: number
+          user_id?: string
+          workout_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_muscle_volume_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_streaks: {
         Row: {
           created_at: string

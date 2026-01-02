@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useSetMuscleVolume } from "./useSetMuscleVolume";
 import { Json } from "@/integrations/supabase/types";
 import { format, addWeeks, addMonths, addDays, isBefore, startOfDay } from "date-fns";
 
@@ -26,6 +27,7 @@ export const usePosts = () => {
   const { user, isLoading: authLoading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { createMuscleVolumeEntries } = useSetMuscleVolume();
 
   const fetchPosts = useCallback(async () => {
     if (authLoading) {
@@ -197,7 +199,7 @@ export const usePosts = () => {
         ? new Date(postData.logDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
 
-      await supabase
+      const { data: workoutLog, error: workoutError } = await supabase
         .from("workout_logs")
         .insert({
           user_id: user.id,
@@ -206,7 +208,33 @@ export const usePosts = () => {
           photos: postData.images || [],
           duration_seconds: (workoutData.durationSeconds as number) || null,
           log_date: logDate,
-        });
+        })
+        .select()
+        .single();
+
+      if (workoutError) throw workoutError;
+
+      // Create muscle volume entries for volume tracking
+      if (workoutLog) {
+        const exercises = workoutData.exercises as Array<{
+          name: string;
+          muscleGroup?: string;
+          primaryGroup?: string;
+          isCardio?: boolean;
+          sets: Array<{
+            weight?: string | number;
+            reps?: string | number;
+            completed?: boolean;
+          }>;
+        }>;
+        
+        await createMuscleVolumeEntries(
+          user.id,
+          workoutLog.id,
+          logDate,
+          exercises
+        );
+      }
     }
 
     // If this is a group, create the group first and get the ID
