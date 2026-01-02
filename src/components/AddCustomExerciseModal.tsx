@@ -28,16 +28,14 @@ const EXERCISE_TYPES = [
   "Other"
 ];
 
-const MUSCLE_GROUPS = [
-  "Chest",
-  "Back",
-  "Shoulders",
-  "Arms",
-  "Legs",
-  "Core",
-  "Full Body",
-  "Cardio"
-];
+// Category/Subcategory structure for muscle groups
+const MUSCLE_GROUP_CATEGORIES: Record<string, string[]> = {
+  "Push": ["Chest", "Shoulders", "Triceps"],
+  "Pull": ["Lats", "Upper back", "Rear delts", "Biceps"],
+  "Legs": ["Quads", "Hamstrings", "Glutes", "Calves"],
+  "Core": ["Abs", "Obliques", "Lower back"],
+  "Other": ["Full Body", "Cardio"]
+};
 
 export const AddCustomExerciseModal = ({
   isOpen,
@@ -197,10 +195,15 @@ export const AddCustomExerciseModal = ({
                     <SelectValue placeholder="Select muscle group..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {MUSCLE_GROUPS.map((muscle) => (
-                      <SelectItem key={muscle} value={muscle}>
-                        {muscle}
-                      </SelectItem>
+                    {Object.entries(MUSCLE_GROUP_CATEGORIES).map(([category, muscles]) => (
+                      <div key={category}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
+                        {muscles.map((muscle) => (
+                          <SelectItem key={muscle} value={muscle}>
+                            {muscle}
+                          </SelectItem>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
