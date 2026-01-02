@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, format, subWeeks } from "date-fns";
+import { startOfWeek, format, subWeeks, parseISO } from "date-fns";
 
 export type PrimaryGroup = "Push" | "Pull" | "Legs" | "Core";
 export type MetricType = "volume" | "strength";
@@ -170,7 +170,8 @@ export const useEnhancedStrengthData = () => {
     const frequencyMap: Record<string, ExerciseFrequency> = {};
 
     workouts.forEach(workout => {
-      const logDate = new Date(workout.log_date);
+      // Use parseISO to correctly parse date-only strings without timezone issues
+      const logDate = parseISO(workout.log_date);
       if (logDate < eightWeeksAgo) return;
 
       const exercises = parseExercises(workout);
@@ -228,7 +229,8 @@ export const useEnhancedStrengthData = () => {
     const weeklyVolumes: Record<string, number> = {};
 
     workouts.forEach(workout => {
-      const logDate = new Date(workout.log_date);
+      // Use parseISO to correctly parse date-only strings without timezone issues
+      const logDate = parseISO(workout.log_date);
       const weekStart = startOfWeek(logDate, { weekStartsOn: 1 });
       const weekKey = format(weekStart, "yyyy-MM-dd");
 
@@ -275,7 +277,8 @@ export const useEnhancedStrengthData = () => {
     const weeklyMaxE1RM: Record<string, number> = {};
 
     workouts.forEach(workout => {
-      const logDate = new Date(workout.log_date);
+      // Use parseISO to correctly parse date-only strings without timezone issues
+      const logDate = parseISO(workout.log_date);
       const weekStart = startOfWeek(logDate, { weekStartsOn: 1 });
       const weekKey = format(weekStart, "yyyy-MM-dd");
 
