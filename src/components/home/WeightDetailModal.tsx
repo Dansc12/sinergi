@@ -174,9 +174,9 @@ export const WeightDetailModal = ({
                   <Line
                     type="monotone"
                     dataKey="value"
-                    stroke="hsl(270, 91%, 65%)"
+                    stroke="#3DD6C6"
                     strokeWidth={2.5}
-                    dot={{ fill: "hsl(270, 91%, 65%)", strokeWidth: 0, r: 4 }}
+                    dot={{ fill: "#3DD6C6", strokeWidth: 0, r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -194,25 +194,8 @@ export const WeightDetailModal = ({
             </div>
           )}
 
-          {/* Logged Points */}
-          {chartData.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Calendar size={16} />
-                Recent Weigh-Ins
-              </h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {[...chartData].reverse().slice(0, 5).map((entry, i) => (
-                  <div key={i} className="flex justify-between items-center text-sm bg-card/50 rounded-lg px-3 py-2">
-                    <span className="text-muted-foreground">
-                      {format(new Date(entry.date), "MMM d, yyyy")}
-                    </span>
-                    <span className="font-medium">{entry.value.toFixed(1)} lbs</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Spacer to match Strength modal height */}
+          <div className="min-h-[40px]" />
         </div>
       </DialogContent>
     </Dialog>
