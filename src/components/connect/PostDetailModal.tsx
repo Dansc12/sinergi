@@ -667,82 +667,76 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-background flex flex-col"
           ref={containerRef}
         >
-          {/* Fullscreen image carousel */}
-          <motion.div
-            className="relative w-full h-full flex items-center justify-center"
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.2}
-            onDrag={handleVerticalDrag}
-            onDragEnd={handleDragEnd}
-          >
-            <motion.div
-              className="flex w-full"
-              onTouchStart={handleCarouselTouchStart}
-              onTouchMove={handleCarouselTouchMove}
-              onTouchEnd={handleCarouselTouchEnd}
-              animate={{ 
-                x: `calc(-${currentImageIndex * 100}% + ${isDragging ? carouselDrag : 0}px)`,
-              }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
-                damping: 30,
-              }}
-            >
-              {post.images?.map((img, idx) => (
-                <div key={idx} className="w-full flex-shrink-0 aspect-[4/5]">
-                  <img
-                    src={img}
-                    alt={`Post image ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                  />
+          {/* Top row - Profile and Close button (above the image) */}
+          <div className="px-4 py-3 flex items-center justify-between bg-background shrink-0">
+            {/* Profile info */}
+            <div className="flex items-center gap-3">
+              <Avatar className="w-10 h-10 border border-border">
+                <AvatarImage src={post.user.avatar} />
+                <AvatarFallback className="bg-muted">
+                  {post.user.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-semibold text-sm">{post.user.name}</p>
+                  <span className="text-sm text-muted-foreground">{post.user.handle}</span>
                 </div>
-              ))}
-            </motion.div>
-
-            {/* Gradient overlay for text legibility */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 pointer-events-none" />
-
-            {/* Top overlay - Profile info */}
-            <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between z-10">
-              {/* Profile info */}
-              <div className="flex items-center gap-3">
-                <Avatar className="w-10 h-10 border-2 border-white/30">
-                  <AvatarImage src={post.user.avatar} />
-                  <AvatarFallback className="bg-muted">
-                    {post.user.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-semibold text-sm text-white drop-shadow-md">{post.user.name}</p>
-                    <span className="text-sm text-white/80 drop-shadow-md">{post.user.handle}</span>
-                  </div>
-                  <p className="text-xs text-white/70 drop-shadow-md">{formattedDate}</p>
-                </div>
+                <p className="text-xs text-muted-foreground">{formattedDate}</p>
               </div>
-
-              {/* Close button */}
-              <button 
-                onClick={() => setImageExpanded(false)}
-                className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors"
-              >
-                <X size={20} className="text-white" />
-              </button>
             </div>
 
-            {/* Bottom overlay - Creation type/name */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 z-20">
-              <ContentTypePill type={post.type} title={contentTitle} />
+            {/* Close button */}
+            <button 
+              onClick={() => setImageExpanded(false)}
+              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Image container */}
+          <div className="flex-1 flex items-center justify-center bg-black overflow-hidden">
+            <motion.div
+              className="relative w-full"
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={0.2}
+              onDrag={handleVerticalDrag}
+              onDragEnd={handleDragEnd}
+            >
+              <motion.div
+                className="flex w-full"
+                onTouchStart={handleCarouselTouchStart}
+                onTouchMove={handleCarouselTouchMove}
+                onTouchEnd={handleCarouselTouchEnd}
+                animate={{ 
+                  x: `calc(-${currentImageIndex * 100}% + ${isDragging ? carouselDrag : 0}px)`,
+                }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 30,
+                }}
+              >
+                {post.images?.map((img, idx) => (
+                  <div key={idx} className="w-full flex-shrink-0 aspect-[4/5]">
+                    <img
+                      src={img}
+                      alt={`Post image ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
+                ))}
+              </motion.div>
 
               {/* Pagination dots */}
               {post.images && post.images.length > 1 && (
-                <div className="flex justify-center gap-1.5 mt-3">
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
                   {post.images.map((_, idx) => (
                     <div
                       key={idx}
@@ -753,8 +747,13 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                   ))}
                 </div>
               )}
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Bottom row - Content type/name (below the image) */}
+          <div className="px-4 py-3 bg-background shrink-0">
+            <ContentTypePill type={post.type} title={contentTitle} className="bg-muted [&>span]:text-foreground [&>svg]:text-foreground/80" />
+          </div>
         </motion.div>
       </AnimatePresence>
     );
