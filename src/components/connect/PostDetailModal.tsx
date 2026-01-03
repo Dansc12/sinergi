@@ -801,9 +801,9 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
               onDrag={handleVerticalDrag}
               onDragEnd={handleDragEnd}
             >
-              {/* Image carousel - fixed image height, center-cropped by container */}
+              {/* Image carousel - fixed image height, top-aligned and cropped by container */}
               <motion.div
-                className="flex w-full absolute top-1/2 -translate-y-1/2"
+                className="flex w-full absolute top-0 left-0"
                 style={{ height: collapsedImageHeight }}
                 onTouchStart={handleCarouselTouchStart}
                 onTouchMove={handleCarouselTouchMove}
