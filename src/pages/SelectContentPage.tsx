@@ -79,9 +79,15 @@ const SelectContentPage = () => {
 
         workouts?.forEach((w) => {
           const rawExercises = w.exercises as unknown;
-          const exercises = Array.isArray(rawExercises)
-            ? (rawExercises as Array<{ name: string }>)
-            : [];
+          // Handle both { exercises: [...] } and direct array formats
+          let exercises: Array<{ name: string }> = [];
+          if (rawExercises && typeof rawExercises === 'object') {
+            if (Array.isArray(rawExercises)) {
+              exercises = rawExercises as Array<{ name: string }>;
+            } else if ('exercises' in rawExercises && Array.isArray((rawExercises as { exercises: unknown }).exercises)) {
+              exercises = (rawExercises as { exercises: Array<{ name: string }> }).exercises;
+            }
+          }
 
           // Skip workouts with 0 exercises
           if (exercises.length === 0) return;
