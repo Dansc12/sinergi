@@ -816,11 +816,11 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                 }}
               >
                 {post.images?.map((img, idx) => (
-                  <div key={idx} className="w-full h-full flex-shrink-0">
+                  <div key={idx} className="w-full h-full flex-shrink-0 relative">
                     <img
                       src={img}
                       alt={`Post image ${idx + 1}`}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover object-center"
                       draggable={false}
                     />
                   </div>
