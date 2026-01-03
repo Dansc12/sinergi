@@ -743,57 +743,61 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
           const tags = post.tags || (post.contentData as Record<string, unknown>)?.tags as string[] | undefined;
 
           return (
-            <div className="flex items-start justify-between gap-3">
-              {/* Left side: Title with icon and tags */}
-              <div className="flex-1 min-w-0">
-                {contentTitle && (
-                  <div className="flex items-center gap-2">
-                    {TypeIcon && <TypeIcon size={20} className="text-muted-foreground shrink-0" />}
-                    <span className="font-semibold text-base truncate">{contentTitle}</span>
-                  </div>
-                )}
-                {tags && tags.length > 0 && (
-                  <div className="relative w-full overflow-hidden h-6 mt-1.5">
-                    <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar h-full">
-                      {tags.map((tag, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => onTagClick?.(tag)}
-                          className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
-                        >
-                          #{tag}
-                        </button>
-                      ))}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-start justify-between gap-3">
+                {/* Left side: Title with icon */}
+                <div className="flex-1 min-w-0">
+                  {contentTitle && (
+                    <div className="flex items-center gap-2">
+                      {TypeIcon && <TypeIcon size={20} className="text-muted-foreground shrink-0" />}
+                      <span className="font-semibold text-base truncate">{contentTitle}</span>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right side: Comment and Like buttons */}
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  onClick={() => setShowComments(!showComments)}
-                  className="flex items-center gap-1 transition-transform active:scale-90"
-                >
-                  <MessageCircle size={24} className="text-foreground" />
-                  {commentCount > 0 && (
-                    <span className="text-sm font-medium">{commentCount}</span>
                   )}
-                </button>
-                <button
-                  ref={heartButtonRef}
-                  onClick={handleLikeClick}
-                  className="flex items-center gap-1 transition-transform active:scale-90"
-                >
-                  <Heart
-                    size={24}
-                    className={`transition-all duration-150 ease-out ${
-                      isLiked ? "fill-primary text-primary" : "text-foreground"
-                    }`}
-                  />
-                </button>
+                </div>
+
+                {/* Right side: Comment and Like buttons */}
+                <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => setShowComments(!showComments)}
+                    className="flex items-center gap-1 transition-transform active:scale-90"
+                  >
+                    <MessageCircle size={24} className="text-foreground" />
+                    {commentCount > 0 && (
+                      <span className="text-sm font-medium">{commentCount}</span>
+                    )}
+                  </button>
+                  <button
+                    ref={heartButtonRef}
+                    onClick={handleLikeClick}
+                    className="flex items-center gap-1 transition-transform active:scale-90"
+                  >
+                    <Heart
+                      size={24}
+                      className={`transition-all duration-150 ease-out ${
+                        isLiked ? "fill-primary text-primary" : "text-foreground"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
+              
+              {/* Tags row - full width */}
+              {tags && tags.length > 0 && (
+                <div className="relative w-full overflow-hidden h-6">
+                  <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar h-full">
+                    {tags.map((tag, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => onTagClick?.(tag)}
+                        className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
