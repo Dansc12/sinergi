@@ -784,7 +784,6 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
               {/* Tags row - full width */}
               {tags && tags.length > 0 && (
                 <div className="relative w-full overflow-hidden h-6">
-                  <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar h-full">
                     {tags.map((tag, idx) => (
                       <button
