@@ -164,12 +164,28 @@ export const useWeightLogs = () => {
     fetchWeightLogs();
   }, [fetchWeightLogs]);
 
-  // Calculate chart data - only use actual weight logs
-  // The first logged weight IS the user's starting point (they should log their onboarding weight)
-  const chartData = weightLogs.map(log => ({
-    date: log.log_date,
-    value: log.weight
-  }));
+  // Calculate chart data - include onboarding weight as first data point if available
+  const chartData = (() => {
+    const logsData = weightLogs.map(log => ({
+      date: log.log_date,
+      value: log.weight
+    }));
+
+    // Add onboarding weight as starting point if we have it and it's not already in logs
+    if (onboardingWeight && onboardingDate) {
+      const onboardingDateStr = onboardingDate.split('T')[0];
+      const hasOnboardingDateInLogs = weightLogs.some(log => log.log_date === onboardingDateStr);
+      
+      if (!hasOnboardingDateInLogs) {
+        return [
+          { date: onboardingDateStr, value: onboardingWeight },
+          ...logsData
+        ];
+      }
+    }
+    
+    return logsData;
+  })();
 
   // Get latest weight
   const latestWeight = weightLogs.length > 0 
