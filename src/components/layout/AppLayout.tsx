@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { CreateModal } from "./CreateModal";
+import { usePostDetail } from "@/contexts/PostDetailContext";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -29,8 +30,10 @@ const HIDDEN_NAV_ROUTES = [
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const location = useLocation();
+  const { isPostDetailOpen } = usePostDetail();
   
-  const hideNav = HIDDEN_NAV_ROUTES.some(route => location.pathname.startsWith(route));
+  const hideNavByRoute = HIDDEN_NAV_ROUTES.some(route => location.pathname.startsWith(route));
+  const hideNav = hideNavByRoute || isPostDetailOpen;
 
   const isHome = location.pathname === "/";
 

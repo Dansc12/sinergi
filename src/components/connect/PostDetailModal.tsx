@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { X, BookOpen, Calendar, Users, Check, Heart, MessageCircle, Send } from 
 import { useGroupJoin } from "@/hooks/useGroupJoin";
 import { usePostReactions } from "@/hooks/usePostReactions";
 import { usePostComments } from "@/hooks/usePostComments";
+import { usePostDetail } from "@/contexts/PostDetailContext";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { ContentTypePill, getContentTypeIcon, getContentTypeLabel } from "@/components/connect/ContentTypePill";
 
@@ -112,6 +113,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
   const { isMember, hasRequestedInvite, isLoading: joinLoading, joinPublicGroup, requestInvite } = useGroupJoin(groupId);
   const { isLiked, toggleLike } = usePostReactions(post.id);
   const { comments, commentCount, addComment } = usePostComments(post.id);
+  const { setIsPostDetailOpen } = usePostDetail();
   
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -119,6 +121,12 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync open state with context to hide bottom nav
+  useEffect(() => {
+    setIsPostDetailOpen(open);
+    return () => setIsPostDetailOpen(false);
+  }, [open, setIsPostDetailOpen]);
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
