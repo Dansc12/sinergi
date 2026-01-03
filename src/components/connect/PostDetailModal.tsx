@@ -787,13 +787,13 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-background"
+          className="fixed inset-0 z-50 bg-background flex flex-col"
           ref={containerRef}
         >
           {/* Image Header - Collapsed/Cropped view */}
           {hasImages && (
             <motion.div
-              className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing"
+              className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing shrink-0"
               style={{ height: collapsedHeight }}
               drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
@@ -879,10 +879,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
           )}
 
           {/* Scrollable content */}
-          <ScrollArea 
-            className="flex-1" 
-            style={{ height: hasImages ? `calc(100vh - ${collapsedHeight})` : 'calc(100vh - 72px)' }}
-          >
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-4 space-y-4 pb-safe">
               {/* Title row with icon and action buttons */}
               <div className="flex items-start justify-between gap-3">
