@@ -753,16 +753,19 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
                   </div>
                 )}
                 {tags && tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {tags.map((tag, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => onTagClick?.(tag)}
-                        className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors"
-                      >
-                        #{tag}
-                      </button>
-                    ))}
+                  <div className="relative w-full overflow-hidden h-6 mt-1.5">
+                    <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar h-full">
+                      {tags.map((tag, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => onTagClick?.(tag)}
+                          className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
+                        >
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
