@@ -676,7 +676,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
   if (!open) return null;
 
   const hasImages = post.images && post.images.length > 0;
-  const collapsedHeight = 180; // Cropped view
+  const collapsedHeight = '50vh'; // 50% viewport height, extends to top
 
   // Expanded view - fullscreen overlay
   if (imageExpanded && hasImages) {
@@ -800,10 +800,9 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
               onDrag={handleVerticalDrag}
               onDragEnd={handleDragEnd}
             >
-              {/* Image carousel - images are cropped via object-cover and container height */}
+              {/* Image carousel - full height of container */}
               <motion.div
-                className="flex w-full absolute top-1/2 -translate-y-1/2"
-                style={{ height: 360 }} // Full image height, container crops it
+                className="flex w-full h-full"
                 onTouchStart={handleCarouselTouchStart}
                 onTouchMove={handleCarouselTouchMove}
                 onTouchEnd={handleCarouselTouchEnd}
@@ -831,8 +830,8 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
               {/* Gradient overlay for text legibility */}
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
 
-              {/* Top overlay - Profile and Close button */}
-              <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between z-20">
+              {/* Top overlay - Profile and Close button with safe area */}
+              <div className="absolute top-0 left-0 right-0 pt-safe px-4 pb-4 flex items-start justify-between z-20" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)' }}>
                 {/* Profile info */}
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 border-2 border-white/30">
@@ -910,7 +909,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
           {/* Scrollable content */}
           <ScrollArea 
             className="flex-1" 
-            style={{ height: hasImages ? `calc(100vh - ${collapsedHeight}px)` : 'calc(100vh - 72px)' }}
+            style={{ height: hasImages ? `calc(100vh - ${collapsedHeight})` : 'calc(100vh - 72px)' }}
           >
             <div className="p-4 space-y-4 pb-safe">
               {/* Title row with icon and action buttons */}
