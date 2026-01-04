@@ -80,7 +80,7 @@ const DailyLogPage = () => {
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={goToPreviousDay}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -145,14 +145,14 @@ const DailyLogPage = () => {
           
           <button
             onClick={goToNextDay}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight size={20} />
           </button>
         </div>
         
         {/* Segmented Control */}
-        <div className="bg-muted rounded-lg p-0.5 flex">
+        <div className="flex">
           <button
             onClick={() => {
               if (activeTab !== "nutrition") {
@@ -161,13 +161,16 @@ const DailyLogPage = () => {
               }
             }}
             className={cn(
-              "flex-1 py-1.5 px-4 rounded-md text-sm font-medium transition-all duration-200",
+              "relative flex-1 py-2 px-4 text-sm font-medium transition-all duration-200",
               activeTab === "nutrition"
-                ? "bg-card text-foreground shadow-sm"
+                ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             Nutrition
+            {activeTab === "nutrition" && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full shadow-[0_0_8px_2px_hsl(var(--primary)/0.5)]" />
+            )}
           </button>
           <button
             onClick={() => {
@@ -177,13 +180,16 @@ const DailyLogPage = () => {
               }
             }}
             className={cn(
-              "flex-1 py-1.5 px-4 rounded-md text-sm font-medium transition-all duration-200",
+              "relative flex-1 py-2 px-4 text-sm font-medium transition-all duration-200",
               activeTab === "fitness"
-                ? "bg-card text-foreground shadow-sm"
+                ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             Fitness
+            {activeTab === "fitness" && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full shadow-[0_0_8px_2px_hsl(var(--primary)/0.5)]" />
+            )}
           </button>
         </div>
       </header>
