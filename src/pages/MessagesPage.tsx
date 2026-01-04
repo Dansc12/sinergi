@@ -234,8 +234,8 @@ const GroupChatView = ({ groupId, onBack }: GroupChatViewProps) => {
       </div>
 
       {/* Message Input */}
-      <div className="sticky bottom-0 bg-background px-4 pt-4 pb-3 safe-area-bottom">
-        <div className="flex items-center justify-center gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/30 safe-area-bottom">
+        <div className="flex items-center gap-2 px-4 py-2">
           <input
             type="text"
             value={newMessage}
@@ -254,6 +254,8 @@ const GroupChatView = ({ groupId, onBack }: GroupChatViewProps) => {
           </Button>
         </div>
       </div>
+      {/* Spacer for fixed input */}
+      <div className="h-16 safe-area-bottom" />
     </div>
   );
 };
@@ -347,8 +349,8 @@ const DMChatView = ({ otherUserId, onBack }: DMChatViewProps) => {
       </div>
 
       {/* Message Input */}
-      <div className="sticky bottom-0 bg-background px-4 pt-4 pb-3 safe-area-bottom">
-        <div className="flex items-center justify-center gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/30 safe-area-bottom">
+        <div className="flex items-center gap-2 px-4 py-2">
           <input
             type="text"
             value={newMessage}
@@ -367,6 +369,8 @@ const DMChatView = ({ otherUserId, onBack }: DMChatViewProps) => {
           </Button>
         </div>
       </div>
+      {/* Spacer for fixed input */}
+      <div className="h-16 safe-area-bottom" />
     </div>
   );
 };
