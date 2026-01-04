@@ -434,6 +434,9 @@ export const NutritionView = ({ selectedDate }: NutritionViewProps) => {
         </div>
       </div>
 
+      {/* Divider */}
+      <div className="h-px bg-border/40 mx-4" />
+
       {/* Logged Meals */}
       <div>
         <h3 className="font-semibold mb-3">Logged Meals</h3>
