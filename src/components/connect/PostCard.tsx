@@ -654,7 +654,7 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="bg-card border-b border-border"
+        className="bg-background border-b border-border"
       >
         {/* Header area - user info clickable to profile, rest clickable to post details */}
         <div className="flex items-center gap-3 p-4">
