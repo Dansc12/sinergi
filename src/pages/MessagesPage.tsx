@@ -242,7 +242,7 @@ const GroupChatView = ({ groupId, onBack }: GroupChatViewProps) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 bg-muted border-0 rounded-full py-3 px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 bg-muted border-0 rounded-full h-10 px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <Button 
             size="icon" 
@@ -355,7 +355,7 @@ const DMChatView = ({ otherUserId, onBack }: DMChatViewProps) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 bg-muted border-0 rounded-full py-3 px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 bg-muted border-0 rounded-full h-10 px-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <Button 
             size="icon" 
