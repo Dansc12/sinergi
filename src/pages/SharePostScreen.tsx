@@ -37,6 +37,7 @@ interface LocationState {
   directShareUsers?: string[];
   directShareGroupNames?: string[];
   directShareUserNames?: string[];
+  visibility?: Visibility;
 }
 
 const visibilityOptions = [
@@ -55,7 +56,7 @@ const SharePostScreen = () => {
   const fromSelection = (state as LocationState & { fromSelection?: boolean })?.fromSelection;
 
   const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState<Visibility>(null);
+  const [visibility, setVisibility] = useState<Visibility>(state?.visibility ?? null);
   const [images, setImages] = useState<string[]>(state?.images || []);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -67,13 +68,14 @@ const SharePostScreen = () => {
   const [directShareGroupNames, setDirectShareGroupNames] = useState<string[]>(state?.directShareGroupNames || []);
   const [directShareUserNames, setDirectShareUserNames] = useState<string[]>(state?.directShareUserNames || []);
   
-  // Update direct share state when returning from selection screen
+  // Update direct share state and visibility when returning from selection screen
   useEffect(() => {
     if (state?.directShareGroups) setDirectShareGroups(state.directShareGroups);
     if (state?.directShareUsers) setDirectShareUsers(state.directShareUsers);
     if (state?.directShareGroupNames) setDirectShareGroupNames(state.directShareGroupNames);
     if (state?.directShareUserNames) setDirectShareUserNames(state.directShareUserNames);
-  }, [state?.directShareGroups, state?.directShareUsers, state?.directShareGroupNames, state?.directShareUserNames]);
+    if (state?.visibility !== undefined) setVisibility(state.visibility);
+  }, [state?.directShareGroups, state?.directShareUsers, state?.directShareGroupNames, state?.directShareUserNames, state?.visibility]);
   
   // Workout-specific state
   const isWorkout = state?.contentType === "workout";
@@ -468,7 +470,7 @@ const SharePostScreen = () => {
 
   const hasDirectRecipients = directShareGroups.length > 0 || directShareUsers.length > 0;
   const isSharing = visibility === "public" || visibility === "friends";
-  const showDescription = isSharing || hasDirectRecipients;
+  const showDescription = true; // Always show caption section
 
   // Render content details based on content type
   const renderContentDetails = () => {
@@ -1648,11 +1650,22 @@ const SharePostScreen = () => {
                   // Only visibility selected (no direct recipients)
                   if (opt) {
                     const Icon = opt.icon;
+                    const descriptions: Record<string, string> = {
+                      public: "Anyone can see this post",
+                      friends: "Only your friends will see this",
+                    };
                     return (
-                      <>
-                        <Icon size={18} />
-                        <span>{opt.label}</span>
-                      </>
+                      <div className="flex flex-col items-start text-left w-full">
+                        <div className="flex items-center gap-2">
+                          <Icon size={18} />
+                          <span>{opt.label}</span>
+                        </div>
+                        {(opt.value === "public" || opt.value === "friends") && (
+                          <span className="text-xs text-muted-foreground ml-6">
+                            {descriptions[opt.value]}
+                          </span>
+                        )}
+                      </div>
                     );
                   }
                   
@@ -1691,13 +1704,14 @@ const SharePostScreen = () => {
                   
                   const handleVisibilityClick = () => {
                     if (isDirect) {
-                      // Navigate to direct share selection
+                      // Navigate to direct share selection, preserving visibility
                       navigate("/direct-share", {
                         state: {
                           shareState: {
                             ...state,
                             images,
                             description,
+                            visibility,
                           },
                           selectedGroups: directShareGroups,
                           selectedUsers: directShareUsers,
