@@ -61,6 +61,7 @@ export type OnboardingStep =
   | 'goal_weight'
   | 'pace'
   | 'calculate_targets'
+  | 'edit_answers'
   | 'first_win';
 
 interface OnboardingContextType {

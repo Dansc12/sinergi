@@ -14,6 +14,7 @@ import { CurrentWeightScreen } from '@/components/onboarding/CurrentWeightScreen
 import { GoalWeightScreen } from '@/components/onboarding/GoalWeightScreen';
 import { PaceScreen } from '@/components/onboarding/PaceScreen';
 import { CalculateTargetsScreen } from '@/components/onboarding/CalculateTargetsScreen';
+import { EditAnswersScreen } from '@/components/onboarding/EditAnswersScreen';
 import { FirstWinScreen } from '@/components/onboarding/FirstWinScreen';
 import { AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,6 +96,8 @@ function OnboardingFlow() {
         return <PaceScreen />;
       case 'calculate_targets':
         return <CalculateTargetsScreen />;
+      case 'edit_answers':
+        return <EditAnswersScreen />;
       case 'first_win':
         return <FirstWinScreen />;
       default:

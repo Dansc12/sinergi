@@ -35,8 +35,9 @@ export function ProfilePhotoBioScreen() {
       if (!user) throw new Error('Not authenticated');
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      // Path must be: {user_id}/filename to match RLS policy
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -107,24 +108,28 @@ export function ProfilePhotoBioScreen() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className={cn(
-                "relative w-32 h-32 rounded-full overflow-hidden",
-                "border-2 border-dashed border-border hover:border-primary transition-colors",
-                "flex items-center justify-center bg-muted"
-              )}
+              className="relative w-32 h-32 rounded-full overflow-hidden group"
             >
-              {isUploading ? (
-                <Loader2 size={32} className="animate-spin text-muted-foreground" />
-              ) : data.avatarUrl ? (
-                <img 
-                  src={data.avatarUrl} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={48} className="text-muted-foreground" />
-              )}
-              <div className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              {/* Background circle */}
+              <div className={cn(
+                "absolute inset-0 rounded-full",
+                "border-2 border-dashed border-border group-hover:border-primary transition-colors",
+                "bg-muted flex items-center justify-center"
+              )}>
+                {isUploading ? (
+                  <Loader2 size={40} className="animate-spin text-muted-foreground" />
+                ) : data.avatarUrl ? (
+                  <img 
+                    src={data.avatarUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <User size={48} className="text-muted-foreground" />
+                )}
+              </div>
+              {/* Camera badge - positioned outside the circle */}
+              <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-background">
                 <Camera size={18} className="text-primary-foreground" />
               </div>
             </button>

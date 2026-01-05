@@ -137,8 +137,8 @@ export function CalculateTargetsScreen() {
   };
 
   const handleEdit = () => {
-    // Go back to the first target-related step
-    setCurrentStep('primary_goal');
+    // Go to the edit answers list view
+    setCurrentStep('edit_answers');
   };
 
   return (
