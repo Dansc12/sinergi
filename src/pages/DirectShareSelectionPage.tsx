@@ -119,20 +119,30 @@ const DirectShareSelectionPage = () => {
   };
 
   const handleBack = () => {
+    // Save current selections when going back (same as Done)
     navigate("/share", {
-      state: state?.shareState,
+      state: {
+        ...state?.shareState,
+        directShareGroups: selectedGroups,
+        directShareUsers: selectedUsers,
+        directShareGroupNames: groups.filter(g => selectedGroups.includes(g.id)).map(g => g.name),
+        directShareUserNames: friends.filter(f => selectedUsers.includes(f.user_id)).map(f => f.first_name || "User"),
+      },
     });
   };
 
   const totalSelected = selectedGroups.length + selectedUsers.length;
 
-  // Filter based on search
+  // Filter based on search - strip @ from username searches
+  const searchTerm = searchQuery.toLowerCase();
+  const usernameSearch = searchTerm.startsWith("@") ? searchTerm.slice(1) : searchTerm;
+  
   const filteredGroups = groups.filter(g => 
-    g.name.toLowerCase().includes(searchQuery.toLowerCase())
+    g.name.toLowerCase().includes(searchTerm)
   );
   const filteredFriends = friends.filter(f => 
-    (f.first_name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (f.username?.toLowerCase().includes(searchQuery.toLowerCase()))
+    (f.first_name?.toLowerCase().includes(searchTerm)) ||
+    (f.username?.toLowerCase().includes(usernameSearch))
   );
 
   return (
