@@ -12,6 +12,8 @@ import { ChooseSetupPathScreen } from '@/components/onboarding/ChooseSetupPathSc
 import { PrimaryGoalScreen } from '@/components/onboarding/PrimaryGoalScreen';
 import { SexHeightScreen } from '@/components/onboarding/SexHeightScreen';
 import { CurrentWeightScreen } from '@/components/onboarding/CurrentWeightScreen';
+import { DailyActivityScreen } from '@/components/onboarding/DailyActivityScreen';
+import { ExerciseFrequencyScreen } from '@/components/onboarding/ExerciseFrequencyScreen';
 import { GoalWeightScreen } from '@/components/onboarding/GoalWeightScreen';
 import { PaceScreen } from '@/components/onboarding/PaceScreen';
 import { CalculateTargetsScreen } from '@/components/onboarding/CalculateTargetsScreen';
@@ -92,6 +94,10 @@ function OnboardingFlow() {
         return <SexHeightScreen />;
       case 'current_weight':
         return <CurrentWeightScreen />;
+      case 'daily_activity':
+        return <DailyActivityScreen />;
+      case 'exercise_frequency':
+        return <ExerciseFrequencyScreen />;
       case 'goal_weight':
         return <GoalWeightScreen />;
       case 'pace':

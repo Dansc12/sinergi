@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Target, User, Ruler, Scale, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Target, User, Ruler, Scale, TrendingUp, Activity, Dumbbell } from 'lucide-react';
 
 const goalLabels: Record<string, string> = {
   fat_loss: 'Fat loss',
@@ -65,6 +65,18 @@ export function EditAnswersScreen() {
       value: formatWeight(data.currentWeight),
       icon: Scale,
       step: 'current_weight' as const,
+    },
+    {
+      label: 'Daily activity',
+      value: data.activityLevelLabel || 'Not set',
+      icon: Activity,
+      step: 'daily_activity' as const,
+    },
+    {
+      label: 'Exercise frequency',
+      value: data.exerciseFrequency ? `${data.exerciseFrequency} days/week` : 'Not set',
+      icon: Dumbbell,
+      step: 'exercise_frequency' as const,
     },
     {
       label: 'Goal weight',

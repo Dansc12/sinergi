@@ -31,11 +31,18 @@ export interface OnboardingData {
   // Step 8: Setup path choice
   setupPath: 'targets' | 'just_log' | '';
   
-  // Targets flow (Steps 9-13)
+  // Targets flow
   goalType: 'fat_loss' | 'build_muscle' | 'get_stronger' | 'improve_health' | 'maintain' | '';
   sexAtBirth: 'male' | 'female' | '';
   heightValue: number;
   currentWeight: number;
+  
+  // Activity & Exercise
+  activityMultiplier: number;
+  activityLevelLabel: string;
+  exerciseFrequency: string;
+  exerciseBump: number;
+  
   hasGoalWeight: boolean;
   goalWeight: number;
   pace: 'gentle' | 'standard' | 'aggressive' | '';
@@ -60,6 +67,8 @@ export type OnboardingStep =
   | 'primary_goal'
   | 'sex_height'
   | 'current_weight'
+  | 'daily_activity'
+  | 'exercise_frequency'
   | 'goal_weight'
   | 'pace'
   | 'calculate_targets'
@@ -96,6 +105,10 @@ const defaultData: OnboardingData = {
   sexAtBirth: '',
   heightValue: 0,
   currentWeight: 0,
+  activityMultiplier: 0,
+  activityLevelLabel: '',
+  exerciseFrequency: '',
+  exerciseBump: 0,
   hasGoalWeight: false,
   goalWeight: 0,
   pace: '',
@@ -122,6 +135,8 @@ const TARGETS_STEPS: OnboardingStep[] = [
   'primary_goal',
   'sex_height',
   'current_weight',
+  'daily_activity',
+  'exercise_frequency',
   'goal_weight',
   'pace',
   'calculate_targets',
