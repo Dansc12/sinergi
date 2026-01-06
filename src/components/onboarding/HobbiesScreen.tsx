@@ -203,23 +203,20 @@ export function HobbiesScreen() {
         )}
 
         {/* Custom input */}
-        <div className="flex gap-2 mb-6">
+        <div className="mb-6">
           <input
             type="text"
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addCustomHobby()}
-            placeholder="Add your own..."
-            className="flex-1 px-4 py-2 rounded-xl border border-border bg-background text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomHobby();
+              }
+            }}
+            placeholder="Add your own hobby and press Enter..."
+            className="w-full px-4 py-2 rounded-xl border border-border bg-background text-sm"
           />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={addCustomHobby}
-            disabled={!customInput.trim()}
-          >
-            Add
-          </Button>
         </div>
 
         {/* Categories */}
