@@ -30,7 +30,7 @@ const MONTHS = [
   { value: 12, label: 'December' },
 ];
 
-const MINIMUM_AGE = 13;
+const MINIMUM_AGE = 18;
 
 export function UnitsAgeScreen() {
   const { data, updateData, goBack, setCurrentStep } = useOnboarding();
@@ -161,7 +161,7 @@ export function UnitsAgeScreen() {
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[40vh]">
                   {MONTHS.map((month) => (
                     <SelectItem key={month.value} value={String(month.value)}>
                       {month.label}
@@ -177,7 +177,7 @@ export function UnitsAgeScreen() {
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[40vh]">
                   {years.map((year) => (
                     <SelectItem key={year} value={String(year)}>
                       {year}

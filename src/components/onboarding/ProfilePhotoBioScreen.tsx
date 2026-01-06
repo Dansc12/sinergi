@@ -5,15 +5,22 @@ import { Label } from '@/components/ui/label';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { OnboardingProgress } from './OnboardingProgress';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Camera, User, Loader2 } from 'lucide-react';
+import { ChevronLeft, Camera, User, Loader2, Upload, ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function ProfilePhotoBioScreen() {
   const { data, updateData, goBack, setCurrentStep } = useOnboarding();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,6 +66,13 @@ export function ProfilePhotoBioScreen() {
     }
   };
 
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value.length <= 160) {
+      updateData({ bio: value });
+    }
+  };
+
   const handleContinue = async () => {
     // Save progress
     const { data: { user } } = await supabase.auth.getUser();
@@ -98,6 +112,7 @@ export function ProfilePhotoBioScreen() {
         <div className="space-y-8">
           {/* Avatar Upload */}
           <div className="flex flex-col items-center">
+            {/* Hidden file inputs */}
             <input
               ref={fileInputRef}
               type="file"
@@ -105,34 +120,53 @@ export function ProfilePhotoBioScreen() {
               onChange={handleFileSelect}
               className="hidden"
             />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="relative w-32 h-32 rounded-full overflow-hidden group"
-            >
-              {/* Background circle */}
-              <div className={cn(
-                "absolute inset-0 rounded-full",
-                "border-2 border-dashed border-border group-hover:border-primary transition-colors",
-                "bg-muted flex items-center justify-center"
-              )}>
-                {isUploading ? (
-                  <Loader2 size={40} className="animate-spin text-muted-foreground" />
-                ) : data.avatarUrl ? (
-                  <img 
-                    src={data.avatarUrl} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  <User size={48} className="text-muted-foreground" />
-                )}
-              </div>
-              {/* Camera badge - positioned outside the circle */}
-              <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-background">
-                <Camera size={18} className="text-primary-foreground" />
-              </div>
-            </button>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild disabled={isUploading}>
+                <button className="relative w-32 h-32 rounded-full group focus:outline-none">
+                  {/* Main circle */}
+                  <div className={cn(
+                    "w-full h-full rounded-full",
+                    "border-2 border-dashed border-border group-hover:border-primary transition-colors",
+                    "bg-muted flex items-center justify-center overflow-hidden"
+                  )}>
+                    {isUploading ? (
+                      <Loader2 size={40} className="animate-spin text-muted-foreground" />
+                    ) : data.avatarUrl ? (
+                      <img 
+                        src={data.avatarUrl} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={48} className="text-muted-foreground" />
+                    )}
+                  </div>
+                  {/* Camera badge */}
+                  <div className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-background">
+                    <Camera size={16} className="text-primary-foreground" />
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Take Photo
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <ImageIcon className="mr-2 h-4 w-4" />
+                  Choose from Library
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <p className="text-sm text-muted-foreground mt-3">Tap to add a photo</p>
           </div>
 
@@ -143,11 +177,13 @@ export function ProfilePhotoBioScreen() {
               id="bio"
               placeholder="Tell us a bit about yourself..."
               value={data.bio}
-              onChange={(e) => updateData({ bio: e.target.value })}
+              onChange={handleBioChange}
               className="min-h-[100px] resize-none"
-              maxLength={160}
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className={cn(
+              "text-xs text-right",
+              data.bio.length >= 160 ? "text-destructive" : "text-muted-foreground"
+            )}>
               {data.bio.length}/160
             </p>
           </div>
