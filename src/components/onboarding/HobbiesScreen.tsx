@@ -8,12 +8,106 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const HOBBY_SUGGESTIONS = [
-  'Running', 'Yoga', 'Weightlifting', 'Cycling', 'Swimming',
-  'Hiking', 'Basketball', 'Soccer', 'Tennis', 'Dance',
-  'Martial Arts', 'Pilates', 'CrossFit', 'Rock Climbing', 'Skiing',
-  'Cooking', 'Meal Prep', 'Nutrition', 'Meditation', 'Walking'
+const HOBBY_CATEGORIES = [
+  {
+    title: "🏋️‍♂️ Fitness & Training",
+    hobbies: [
+      "🏋️ Strength Training",
+      "🏃 Running",
+      "🚶 Walking",
+      "🚴 Cycling",
+      "🏊 Swimming",
+      "🧘 Yoga",
+      "🧘‍♀️ Pilates",
+      "⚡ HIIT / Functional Fitness",
+      "🤸 Mobility / Stretching",
+      "🥋 Martial Arts",
+      "🏠 Home Workouts"
+    ]
+  },
+  {
+    title: "🏟️ Sports",
+    hobbies: [
+      "🏀 Basketball",
+      "🏈 Football",
+      "⚾ Baseball",
+      "🏒 Hockey",
+      "⚽ Soccer",
+      "🏐 Volleyball",
+      "🎾 Tennis",
+      "🏓 Pickleball",
+      "🏸 Badminton",
+      "🥏 Frisbee",
+      "⛳ Golf",
+      "🎳 Bowling"
+    ]
+  },
+  {
+    title: "🍳 Eats & Ideas",
+    hobbies: [
+      "🍽️ Trying New Restaurants",
+      "👨‍🍳 Cooking",
+      "🥡 Meal Prep (Quick & Easy)",
+      "🍗 High-Protein Everything",
+      "🥗 Healthy-ish Swaps",
+      "🍿 Snack Connoisseur",
+      "☕ Coffee Culture",
+      "📸 Food Pics",
+      "🍟 Air Fryer Era",
+      "🧪 Recipe Remixing"
+    ]
+  },
+  {
+    title: "🏕️ Outdoors & Adventure",
+    hobbies: [
+      "🥾 Hiking",
+      "🏕️ Camping",
+      "🧗 Rock Climbing",
+      "🏂 Skiing / Snowboarding",
+      "🌲 Trail Running",
+      "🚵 Road / Mountain Biking",
+      "🏖️ Beach Days",
+      "🎣 Fishing",
+      "✈️ Traveling",
+      "📷 Travel Photography"
+    ]
+  },
+  {
+    title: "✨ Reset & Recharge",
+    hobbies: [
+      "🧘 Meditation",
+      "🌿 Yoga Flow",
+      "🤸‍♂️ Stretch & Mobility",
+      "😴 Sleep Goals",
+      "🚶‍♀️ Hot Girl / Hot Guy Walks",
+      "📓 Journaling",
+      "🌳 Nature Time",
+      "🌬️ Breathwork",
+      "🔥🧊 Sauna / Cold Plunge",
+      "🫶 Low-Stress Living"
+    ]
+  },
+  {
+    title: "🎉 Fun & Interests",
+    hobbies: [
+      "🏈 Watching NFL",
+      "🏀 NBA Fan",
+      "⚾ MLB Fan",
+      "🎮 Video Games",
+      "🃏 Cards / Board Games",
+      "💰 Investing / Finance",
+      "🎧 Podcasts",
+      "🎤 Concerts / Live Music",
+      "🎬 Movies & Shows",
+      "🤝 Social Hangouts",
+      "🎯 Trivia Nights",
+      "🐶 Pet Person"
+    ]
+  }
 ];
+
+// Derived flat list for filtering/searching
+const ALL_HOBBIES = HOBBY_CATEGORIES.flatMap(c => c.hobbies);
 
 export function HobbiesScreen() {
   const { data, updateData, goBack, setCurrentStep } = useOnboarding();
@@ -128,22 +222,31 @@ export function HobbiesScreen() {
           </Button>
         </div>
 
-        {/* Suggestions */}
-        <div className="flex flex-wrap gap-2">
-          {HOBBY_SUGGESTIONS.filter(h => !selected.includes(h)).map((hobby, index) => (
-            <motion.button
-              key={hobby}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
-              onClick={() => toggleHobby(hobby)}
-              className={cn(
-                "px-4 py-2 rounded-full border transition-all text-sm",
-                "border-border bg-card hover:border-primary hover:bg-primary/5"
-              )}
-            >
-              {hobby}
-            </motion.button>
+        {/* Categories */}
+        <div className="space-y-6">
+          {HOBBY_CATEGORIES.map((category, catIndex) => (
+            <div key={category.title}>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">
+                {category.title}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {category.hobbies.filter(h => !selected.includes(h)).map((hobby, index) => (
+                  <motion.button
+                    key={hobby}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (catIndex * 0.05) + (index * 0.01) }}
+                    onClick={() => toggleHobby(hobby)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full border transition-all text-sm",
+                      "border-border bg-card hover:border-primary hover:bg-primary/5"
+                    )}
+                  >
+                    {hobby}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
