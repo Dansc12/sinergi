@@ -7,17 +7,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
-// Simple BMR/TDEE calculation
+// TDEE calculation with activity multiplier and exercise bump
 function calculateTargets(data: {
   sexAtBirth: string;
   heightValue: number;
   currentWeight: number;
   birthYear: number;
+  birthMonth: number;
   goalType: string;
   pace: string;
   unitsSystem: string;
   goalWeight: number;
   hasGoalWeight: boolean;
+  activityMultiplier: number;
+  exerciseBump: number;
 }) {
   // Convert to metric if needed
   let weightKg = data.currentWeight;
@@ -28,11 +31,16 @@ function calculateTargets(data: {
     heightCm = data.heightValue * 2.54; // heightValue is in total inches
   }
 
-  // Calculate age
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - data.birthYear;
+  // Calculate age from birth month/year
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  let age = currentYear - data.birthYear;
+  if (data.birthMonth > currentMonth) {
+    age--; // Birthday hasn't occurred yet this year
+  }
 
-  // Mifflin-St Jeor Equation
+  // Mifflin-St Jeor Equation for BMR
   let bmr: number;
   if (data.sexAtBirth === 'male') {
     bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
@@ -40,40 +48,54 @@ function calculateTargets(data: {
     bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
   }
 
-  // Apply activity multiplier (assume lightly active)
-  const tdee = Math.round(bmr * 1.375);
+  // Calculate final multiplier: activity_multiplier + exercise_bump, clamped at 1.70
+  const activityMult = data.activityMultiplier || 1.375; // Default to "On your feet a lot"
+  const exerciseBump = data.exerciseBump || 0;
+  const finalMultiplier = Math.min(activityMult + exerciseBump, 1.70);
+
+  // Calculate TDEE
+  const tdee = Math.round(bmr * finalMultiplier);
 
   // Determine if gaining or losing based on goal weight
   const isGaining = data.hasGoalWeight && data.goalWeight > data.currentWeight;
 
-  // Apply goal adjustment
+  // Pace deficits/surpluses
+  // gentle: 250 kcal/day, standard: 400 kcal/day, aggressive: 550 kcal/day
+  const paceValues = {
+    gentle: 250,
+    standard: 400,
+    aggressive: 550,
+  };
+  const paceAdjustment = paceValues[data.pace as keyof typeof paceValues] || paceValues.standard;
+
   let calorieTarget = tdee;
-  const paceMultiplier = data.pace === 'gentle' ? 250 : data.pace === 'aggressive' ? 750 : 500;
 
   if (data.hasGoalWeight) {
     // Use goal weight to determine surplus/deficit
     if (isGaining) {
-      // Gaining weight - apply surplus
-      const gainMultiplier = data.pace === 'gentle' ? 125 : data.pace === 'aggressive' ? 375 : 250;
-      calorieTarget = tdee + gainMultiplier;
+      // Gaining weight - apply surplus (smaller for muscle gain)
+      const gainAdjustment = Math.round(paceAdjustment * 0.5); // Half for gains
+      calorieTarget = tdee + gainAdjustment;
     } else {
       // Losing weight - apply deficit
-      calorieTarget = tdee - paceMultiplier;
+      calorieTarget = tdee - paceAdjustment;
     }
   } else {
     // No goal weight - use goalType
     switch (data.goalType) {
       case 'fat_loss':
-        calorieTarget = tdee - paceMultiplier;
+        calorieTarget = tdee - paceAdjustment;
         break;
       case 'build_muscle':
-        calorieTarget = tdee + Math.round(paceMultiplier * 0.5);
+        calorieTarget = tdee + Math.round(paceAdjustment * 0.5);
         break;
       case 'get_stronger':
-        calorieTarget = tdee + Math.round(paceMultiplier * 0.3);
+        calorieTarget = tdee + Math.round(paceAdjustment * 0.3);
         break;
+      case 'improve_health':
+      case 'maintain':
       default:
-        // maintain or improve_health - stay at TDEE
+        // Stay at TDEE
         break;
     }
   }
@@ -82,10 +104,10 @@ function calculateTargets(data: {
   const minCalories = data.sexAtBirth === 'male' ? 1500 : 1200;
   calorieTarget = Math.max(calorieTarget, minCalories);
 
-  // Calculate macros (simple split)
-  // Protein: 0.8-1g per lb bodyweight (or 1.8-2.2g per kg)
+  // Calculate macros
+  // Protein: ~2g per kg bodyweight
   const proteinG = Math.round(weightKg * 2);
-  // Fat: 25-30% of calories
+  // Fat: 25% of calories
   const fatG = Math.round((calorieTarget * 0.25) / 9);
   // Carbs: remainder
   const carbsG = Math.round((calorieTarget - (proteinG * 4) - (fatG * 9)) / 4);
@@ -117,11 +139,14 @@ export function CalculateTargetsScreen() {
         heightValue: data.heightValue,
         currentWeight: data.currentWeight,
         birthYear: data.birthYear,
+        birthMonth: data.birthMonth,
         goalType: data.goalType,
         pace: data.pace || 'standard',
         unitsSystem: data.unitsSystem,
         goalWeight: data.goalWeight,
         hasGoalWeight: data.hasGoalWeight,
+        activityMultiplier: data.activityMultiplier,
+        exerciseBump: data.exerciseBump,
       });
 
       setTargets(calculated);

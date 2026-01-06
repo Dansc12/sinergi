@@ -24,7 +24,7 @@ export function CurrentWeightScreen() {
         setIsEditingFromTargets(false);
         setCurrentStep('calculate_targets');
       } else {
-        setCurrentStep('goal_weight');
+        setCurrentStep('daily_activity');
       }
     }
   };
