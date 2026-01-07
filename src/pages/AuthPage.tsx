@@ -187,7 +187,7 @@ const AuthPage = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 w-full lg:w-1/2 px-6 py-8 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center lg:items-start"
+        className="relative z-10 w-full lg:w-1/2 px-6 pt-8 pb-0 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center lg:items-start"
       >
         {/* Logo & Brand */}
         <div className="flex items-center gap-3 mb-6">
@@ -232,7 +232,7 @@ const AuthPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="relative z-10 w-full lg:w-1/2 px-6 pt-4 pb-8 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center justify-center"
+        className="relative z-10 w-full lg:w-1/2 px-6 pt-0 pb-8 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center justify-center"
       >
         <div className="w-full max-w-md">
           {/* Auth Card */}
