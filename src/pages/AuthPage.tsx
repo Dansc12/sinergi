@@ -18,7 +18,7 @@ const loginSchema = z.object({
 const benefitCards = [
   {
     icon: Zap,
-    title: "Make consistency fun",
+    title: "Make fitness fun",
     body: "Turn logging into a feed you actually want to open.",
   },
   {
@@ -29,7 +29,7 @@ const benefitCards = [
   {
     icon: Utensils,
     title: "Meal + workout inspo",
-    body: "Save ideas, remix them, and share your own.",
+    body: "Save ideas, discover, and share your own.",
   },
 ];
 
@@ -172,9 +172,12 @@ const AuthPage = () => {
         {/* Secondary accent glow */}
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
         {/* Subtle noise texture overlay */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }} />
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
       </div>
 
       {/* Left Column - Marketing/Value Content */}
@@ -199,8 +202,7 @@ const AuthPage = () => {
 
         {/* Headline */}
         <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground text-center lg:text-left mb-4 leading-tight">
-          Fitness + nutrition logging,{" "}
-          <span className="gradient-text">made social.</span>
+          Fitness + nutrition logging, <span className="gradient-text">made social.</span>
         </h2>
 
         {/* Subhead */}
@@ -229,7 +231,7 @@ const AuthPage = () => {
               </motion.div>
             ))}
           </div>
-          
+
           {/* Desktop: stacked list */}
           <div className="hidden lg:flex flex-col gap-4">
             {benefitCards.map((card, index) => (
@@ -308,8 +310,8 @@ const AuthPage = () => {
             >
               <Mail className="w-5 h-5 mr-2 text-muted-foreground" />
               Continue with Email
-              <ChevronDown 
-                className={`w-4 h-4 ml-auto text-muted-foreground transition-transform duration-200 ${showEmailForm ? 'rotate-180' : ''}`} 
+              <ChevronDown
+                className={`w-4 h-4 ml-auto text-muted-foreground transition-transform duration-200 ${showEmailForm ? "rotate-180" : ""}`}
               />
             </Button>
 
@@ -340,9 +342,7 @@ const AuthPage = () => {
                           className="pl-12 h-14 bg-input/50 border-border/50 rounded-xl text-base placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/20"
                         />
                       </div>
-                      {errors.email && (
-                        <p className="text-destructive text-sm">{errors.email}</p>
-                      )}
+                      {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
                     </div>
 
                     {/* Password Field */}
@@ -379,9 +379,7 @@ const AuthPage = () => {
                           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                       </div>
-                      {errors.password && (
-                        <p className="text-destructive text-sm">{errors.password}</p>
-                      )}
+                      {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
                     </div>
 
                     {/* Submit Button */}
