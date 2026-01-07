@@ -236,7 +236,7 @@ const AuthPage = () => {
       >
         <div className="w-full max-w-md">
           {/* Auth Card */}
-          <div className="rounded-2xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-elevated">
+          <div className="rounded-2xl border border-primary/20 bg-card/80 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(139,92,246,0.15)] ring-1 ring-primary/10">
             {/* Toggle button - top right corner */}
             <div className="flex justify-end -mt-2 -mr-2 mb-2">
               <button
