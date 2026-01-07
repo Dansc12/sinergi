@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, Hand, Zap, Users, Utensils } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sparkles, Zap, Users, Utensils } from "lucide-react";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -195,10 +195,9 @@ const AuthPage = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.4 }}
-            className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center glow-primary relative"
+            className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center glow-primary"
           >
-            <Hand className="w-6 h-6 text-primary-foreground absolute -rotate-12 -translate-x-0.5" />
-            <Hand className="w-6 h-6 text-primary-foreground absolute rotate-12 translate-x-0.5 scale-x-[-1]" />
+            <Sparkles className="w-7 h-7 text-primary-foreground" />
           </motion.div>
           <h1 className="text-4xl font-bold gradient-text">Sinergi</h1>
         </div>
@@ -209,7 +208,7 @@ const AuthPage = () => {
         </h2>
 
         {/* Subhead */}
-        <p className="text-lg text-muted-foreground text-center lg:text-left max-w-md mb-3 lg:mb-8">
+        <p className="text-lg text-muted-foreground text-center lg:text-left max-w-md mb-4 lg:mb-8">
           Share workouts and meals, follow friends, and save inspo that keeps you consistent.
         </p>
 
@@ -391,40 +390,26 @@ const AuthPage = () => {
           </div>
 
           {/* Mobile: Benefit Cards below auth card with pagination */}
-          <div className="lg:hidden mt-3">
+          <div className="lg:hidden mt-4">
             <div 
               ref={carouselRef}
-              className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory hide-scrollbar scroll-smooth"
-              style={{ scrollPaddingInline: 'calc(50% - 130px)' }}
+              className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory hide-scrollbar"
+              style={{ scrollSnapType: 'x mandatory' }}
               onScroll={(e) => {
                 const container = e.currentTarget;
                 const cardWidth = 260 + 12; // card width + gap
                 const scrollLeft = container.scrollLeft;
-                const centerOffset = container.offsetWidth / 2 - 130;
-                const index = Math.round((scrollLeft + centerOffset) / cardWidth);
+                const index = Math.round(scrollLeft / cardWidth);
                 setActiveCardIndex(Math.max(0, Math.min(index, benefitCards.length - 1)));
-              }}
-              onTouchEnd={(e) => {
-                const container = carouselRef.current;
-                if (!container) return;
-                const cardWidth = 260 + 12;
-                const scrollLeft = container.scrollLeft;
-                const centerOffset = container.offsetWidth / 2 - 130;
-                const targetIndex = Math.round((scrollLeft + centerOffset) / cardWidth);
-                const clampedIndex = Math.max(0, Math.min(targetIndex, benefitCards.length - 1));
-                container.scrollTo({ left: clampedIndex * cardWidth - centerOffset, behavior: 'smooth' });
               }}
             >
               {benefitCards.map((card, index) => (
-                <motion.div
+                <div
                   key={card.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + index * 0.1 }}
                   className="flex-shrink-0 w-[260px] snap-center first:ml-[calc(50vw-130px)] last:mr-[calc(50vw-130px)]"
                 >
                   <BenefitCard {...card} />
-                </motion.div>
+                </div>
               ))}
             </div>
             {/* Pagination dots */}
