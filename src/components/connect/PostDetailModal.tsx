@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format } from "date-fns";
-import { X, BookOpen, Calendar, Users, Check, Heart, MessageCircle, Send, Dumbbell } from "lucide-react";
+import { X, BookOpen, Calendar, Users, Check, Heart, MessageCircle, Send, Dumbbell, Utensils } from "lucide-react";
 import { getMuscleContributions, getMuscleDisplayName } from "@/lib/muscleContributions";
 import { useGroupJoin } from "@/hooks/useGroupJoin";
 import { usePostReactions } from "@/hooks/usePostReactions";
@@ -173,8 +173,15 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
         }
         return "Workout";
       }
-      case "meal":
-        return (contentData.mealType as string) || "Meal";
+      case "meal": {
+        // Check for actual meal name first, fallback to mealType display name
+        const mealName = (contentData.name as string);
+        if (mealName) return mealName;
+        const mealType = (contentData.mealType as string);
+        // Don't return "saved_meal" as display name
+        if (mealType && mealType !== "saved_meal") return mealType;
+        return "Meal";
+      }
       case "recipe":
         return (contentData.title as string) || "Recipe";
       case "routine":
@@ -414,90 +421,201 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
   };
 
   const renderMealDetails = () => {
-    const mealType = contentData?.mealType as string;
     const foods = (contentData?.foods as MealFood[]) || [];
     const totalCalories = (contentData?.totalCalories as number) || foods.reduce((sum, f) => sum + (f.calories || 0), 0);
     const totalProtein = (contentData?.totalProtein as number) || foods.reduce((sum, f) => sum + (f.protein || 0), 0);
     const totalCarbs = (contentData?.totalCarbs as number) || foods.reduce((sum, f) => sum + (f.carbs || 0), 0);
     const totalFat = (contentData?.totalFats as number) || foods.reduce((sum, f) => sum + (f.fat || f.fats || 0), 0);
 
+    // Macro colors matching MealSavedCard
+    const proteinColor = '#3DD6C6';
+    const carbsColor = '#5B8CFF';
+    const fatsColor = '#B46BFF';
+    
+    const totalMacros = totalProtein + totalCarbs + totalFat;
+    const proteinRatio = totalMacros > 0 ? Math.max((totalProtein / totalMacros), 0.08) : 0.33;
+    const carbsRatio = totalMacros > 0 ? Math.max((totalCarbs / totalMacros), 0.08) : 0.33;
+    const fatsRatio = totalMacros > 0 ? Math.max((totalFat / totalMacros), 0.08) : 0.33;
+    
+    const totalRatio = proteinRatio + carbsRatio + fatsRatio;
+    const normalizedProtein = proteinRatio / totalRatio;
+    const normalizedCarbs = carbsRatio / totalRatio;
+    const normalizedFats = fatsRatio / totalRatio;
+    
+    const proteinSize = 40 + normalizedProtein * 50;
+    const carbsSize = 40 + normalizedCarbs * 50;
+    const fatsSize = 40 + normalizedFats * 50;
+    
+    const proteinOpacity = totalMacros > 0 ? 0.6 + (totalProtein / totalMacros) * 0.4 : 0.75;
+    const carbsOpacity = totalMacros > 0 ? 0.6 + (totalCarbs / totalMacros) * 0.4 : 0.75;
+    const fatsOpacity = totalMacros > 0 ? 0.6 + (totalFat / totalMacros) * 0.4 : 0.75;
+
     return (
       <div className="space-y-4">
-        {/* Macro summary - liquid style */}
-        <div className="relative rounded-xl p-4 overflow-hidden">
-          {/* Macro gradient background */}
+        {/* Nutrition Summary Bar - matching MealSavedCard style */}
+        <div className="relative w-full h-14 rounded-xl overflow-hidden shadow-lg shadow-black/30">
+          {/* Liquid blob background */}
+          <div className="absolute inset-0 bg-card">
+            {/* Protein blob */}
+            <motion.div
+              className="absolute rounded-full blur-2xl"
+              style={{
+                width: `${proteinSize}%`,
+                height: `${proteinSize * 2}%`,
+                background: `radial-gradient(circle, ${proteinColor} 0%, transparent 70%)`,
+                opacity: proteinOpacity,
+                left: '5%',
+                top: '-20%',
+              }}
+              animate={{
+                x: [0, 15, -10, 5, 0],
+                y: [0, -10, 15, -5, 0],
+                scale: [1, 1.1, 0.95, 1.05, 1],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+            {/* Carbs blob */}
+            <motion.div
+              className="absolute rounded-full blur-2xl"
+              style={{
+                width: `${carbsSize}%`,
+                height: `${carbsSize * 2}%`,
+                background: `radial-gradient(circle, ${carbsColor} 0%, transparent 70%)`,
+                opacity: carbsOpacity,
+                right: '10%',
+                top: '-30%',
+              }}
+              animate={{
+                x: [0, -20, 10, -5, 0],
+                y: [0, 15, -10, 5, 0],
+                scale: [1, 0.95, 1.1, 0.98, 1],
+              }}
+              transition={{
+                duration: 9,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 0.5,
+              }}
+            />
+            {/* Fats blob */}
+            <motion.div
+              className="absolute rounded-full blur-2xl"
+              style={{
+                width: `${fatsSize}%`,
+                height: `${fatsSize * 2}%`,
+                background: `radial-gradient(circle, ${fatsColor} 0%, transparent 70%)`,
+                opacity: fatsOpacity,
+                left: '30%',
+                bottom: '-50%',
+              }}
+              animate={{
+                x: [0, 10, -15, 8, 0],
+                y: [0, -15, 10, -8, 0],
+                scale: [1, 1.08, 0.92, 1.04, 1],
+              }}
+              transition={{
+                duration: 7,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 1,
+              }}
+            />
+          </div>
+          
+          {/* Frosted glass overlay */}
           <div 
-            className="absolute inset-0 opacity-30"
+            className="absolute inset-0 backdrop-blur-[2px]"
             style={{
               background: `linear-gradient(90deg, 
-                hsl(var(--primary)) 0%, 
-                hsl(var(--primary)) ${(totalProtein * 4 / totalCalories) * 100}%, 
-                hsl(var(--success)) ${(totalProtein * 4 / totalCalories) * 100}%, 
-                hsl(var(--success)) ${((totalProtein * 4 + totalCarbs * 4) / totalCalories) * 100}%, 
-                hsl(45, 100%, 50%) ${((totalProtein * 4 + totalCarbs * 4) / totalCalories) * 100}%, 
-                hsl(45, 100%, 50%) 100%)`
+                rgba(0, 0, 0, 0.08) 0%, 
+                rgba(0, 0, 0, 0) 12%, 
+                rgba(0, 0, 0, 0) 88%, 
+                rgba(0, 0, 0, 0.08) 100%)`,
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.12)',
             }}
           />
-          <div className="relative grid grid-cols-4 gap-2">
-            <div className="text-center">
-              <p className="text-xl font-bold">{Math.round(totalCalories)}</p>
-              <p className="text-xs text-muted-foreground">cal</p>
+          
+          {/* Border overlay */}
+          <div 
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          />
+          
+          {/* Content */}
+          <div className="relative z-10 flex items-center h-full px-4">
+            {/* Left: Icon + Count */}
+            <div className="flex items-center gap-2 text-white">
+              <Utensils size={20} />
+              <span className="font-semibold">{foods.length}</span>
             </div>
-            <div className="text-center">
-              <p className="text-xl font-bold text-primary">{Math.round(totalProtein)}g</p>
-              <p className="text-xs text-muted-foreground">protein</p>
+            
+            {/* Center: Macros */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-sm">
+              <span style={{ color: proteinColor }}>P {Math.round(totalProtein)}g</span>
+              <span style={{ color: carbsColor }}>C {Math.round(totalCarbs)}g</span>
+              <span style={{ color: fatsColor }}>F {Math.round(totalFat)}g</span>
             </div>
-            <div className="text-center">
-              <p className="text-xl font-bold text-success">{Math.round(totalCarbs)}g</p>
-              <p className="text-xs text-muted-foreground">carbs</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xl font-bold text-amber-500">{Math.round(totalFat)}g</p>
-              <p className="text-xs text-muted-foreground">fat</p>
+            
+            {/* Right: Calories */}
+            <div className="ml-auto text-sm text-white">
+              <span>{Math.round(totalCalories)} cal</span>
             </div>
           </div>
         </div>
         
-        {/* Food items with macro gradient bars */}
+        {/* Food items with macro gradient bars - matching MealSavedCard style */}
         <div className="space-y-2">
           {foods.map((food, idx) => {
-            const foodCals = food.calories || 0;
-            const foodProtein = food.protein || 0;
-            const foodCarbs = food.carbs || 0;
-            const foodFat = food.fat || food.fats || 0;
-            const total = (foodProtein * 4) + (foodCarbs * 4) + (foodFat * 9);
-
+            const p = food.protein || 0;
+            const c = food.carbs || 0;
+            const f = food.fat || food.fats || 0;
+            const total = p + c + f;
+            const itemPPct = total > 0 ? (p / total) * 100 : 0;
+            const itemCPct = total > 0 ? (c / total) * 100 : 0;
+            
             return (
-              <div key={idx} className="bg-muted/50 rounded-xl p-3 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{food.name}</p>
-                    {food.servings && (
-                      <p className="text-xs text-muted-foreground">
-                        {food.servings} {food.servingSize || 'serving'}
-                      </p>
-                    )}
+              <div 
+                key={idx} 
+                className="rounded-xl bg-muted/30 border border-border/50 relative overflow-hidden"
+              >
+                {/* Macro gradient bar at top */}
+                {total > 0 && (
+                  <div 
+                    className="absolute left-0 right-0 top-0 h-1"
+                    style={{
+                      background: `linear-gradient(90deg, ${proteinColor} 0%, ${proteinColor} ${itemPPct * 0.7}%, ${carbsColor} ${itemPPct + itemCPct * 0.3}%, ${carbsColor} ${itemPPct + itemCPct * 0.7}%, ${fatsColor} ${itemPPct + itemCPct + (100 - itemPPct - itemCPct) * 0.3}%, ${fatsColor} 100%)`,
+                    }}
+                  />
+                )}
+                <div className="p-3 pt-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-primary">
+                      {(() => {
+                        const servings = food.servings ?? 1;
+                        const servingSize = food.servingSize || 'g';
+                        const hasNumber = /\d/.test(servingSize);
+                        if (hasNumber) {
+                          return servings > 1 ? `${servings} × ${servingSize}` : servingSize;
+                        }
+                        return `${servings}${servingSize}`;
+                      })()}
+                    </span>
+                    <span className="font-medium text-foreground text-sm">{food.name}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground shrink-0 ml-2">{foodCals} cal</p>
-                </div>
-                {/* Macro colorbar */}
-                <div className="h-1 rounded-full overflow-hidden bg-muted flex">
-                  {total > 0 && (
-                    <>
-                      <div 
-                        className="h-full bg-primary" 
-                        style={{ width: `${(foodProtein * 4 / total) * 100}%` }}
-                      />
-                      <div 
-                        className="h-full bg-success" 
-                        style={{ width: `${(foodCarbs * 4 / total) * 100}%` }}
-                      />
-                      <div 
-                        className="h-full bg-amber-500" 
-                        style={{ width: `${(foodFat * 9 / total) * 100}%` }}
-                      />
-                    </>
-                  )}
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="text-xs text-foreground">{Math.round(food.calories || 0)} cal</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span style={{ color: proteinColor }}>P: {Math.round(p)}g</span>
+                      <span style={{ color: carbsColor }}>C: {Math.round(c)}g</span>
+                      <span style={{ color: fatsColor }}>F: {Math.round(f)}g</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
