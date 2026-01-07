@@ -180,12 +180,12 @@ const AuthPage = () => {
         />
       </div>
 
-      {/* Left Column - Marketing/Value Content */}
+      {/* Left Column - Marketing/Value Content (Desktop only) */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 w-full lg:w-1/2 px-6 py-12 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center lg:items-start"
+        className="relative z-10 w-full lg:w-1/2 px-6 py-8 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center lg:items-start"
       >
         {/* Logo & Brand */}
         <div className="flex items-center gap-3 mb-6">
@@ -206,58 +206,37 @@ const AuthPage = () => {
         </h2>
 
         {/* Subhead */}
-        <p className="text-lg text-muted-foreground text-center lg:text-left max-w-md mb-4">
+        <p className="text-lg text-muted-foreground text-center lg:text-left max-w-md lg:mb-8">
           Share workouts and meals, follow friends, and save inspo that keeps you consistent.
         </p>
 
-        {/* Benefit Cards - Horizontal scroll on mobile, grid on desktop */}
-        <div className="w-full lg:max-w-lg">
-          {/* Mobile: horizontal scroll */}
-          <div className="lg:hidden flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar -mx-6 px-6">
-            {benefitCards.map((card, index) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-                className="flex-shrink-0 w-[260px] snap-center"
-              >
-                <BenefitCard {...card} />
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Desktop: stacked list */}
-          <div className="hidden lg:flex flex-col gap-4">
-            {benefitCards.map((card, index) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-              >
-                <BenefitCard {...card} />
-              </motion.div>
-            ))}
-          </div>
+        {/* Desktop: stacked benefit cards */}
+        <div className="hidden lg:flex lg:max-w-lg flex-col gap-4">
+          {benefitCards.map((card, index) => (
+            <motion.div
+              key={card.title}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+            >
+              <BenefitCard {...card} />
+            </motion.div>
+          ))}
         </div>
       </motion.div>
 
-      {/* Right Column - Auth Card */}
+      {/* Right Column - Auth Card + Mobile Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="relative z-10 w-full lg:w-1/2 px-6 pt-4 pb-8 lg:py-0 lg:px-16 xl:px-24 flex items-center justify-center"
+        className="relative z-10 w-full lg:w-1/2 px-6 pt-4 pb-8 lg:py-0 lg:px-16 xl:px-24 flex flex-col items-center justify-center"
       >
         <div className="w-full max-w-md">
           {/* Auth Card */}
           <div className="rounded-2xl border border-white/10 bg-card/60 backdrop-blur-xl p-6 shadow-elevated">
-            {/* Card Header with Toggle */}
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-semibold text-foreground">
-                {isLogin ? "Welcome back" : "Create your account"}
-              </h3>
+            {/* Toggle button - top right */}
+            <div className="flex justify-end mb-3">
               <button
                 type="button"
                 onClick={() => {
@@ -270,8 +249,13 @@ const AuthPage = () => {
               </button>
             </div>
 
-            {/* Trust line */}
-            <p className="text-sm text-muted-foreground/70 mb-6">
+            {/* Card Header - centered */}
+            <h3 className="text-xl font-semibold text-foreground text-center">
+              {isLogin ? "Welcome back" : "Create your account"}
+            </h3>
+
+            {/* Trust line - reduced padding */}
+            <p className="text-sm text-muted-foreground/70 text-center mt-1 mb-6">
               Free to start • Share only what you want
             </p>
 
@@ -400,6 +384,21 @@ const AuthPage = () => {
                 </form>
               </motion.div>
             )}
+          </div>
+
+          {/* Mobile: Benefit Cards below auth card */}
+          <div className="lg:hidden mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar scroll-px-[calc(50vw-130px)]">
+            {benefitCards.map((card, index) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.1 }}
+                className="flex-shrink-0 w-[260px] snap-center"
+              >
+                <BenefitCard {...card} />
+              </motion.div>
+            ))}
           </div>
         </div>
       </motion.div>
