@@ -70,6 +70,7 @@ interface RoutineExercise {
   category?: string;
   muscleGroup?: string;
   isCardio?: boolean;
+  notes?: string;
 }
 
 interface RoutineDay {
@@ -794,6 +795,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
 
   const renderRoutineDetails = () => {
     const routineName = contentData?.routineName as string || contentData?.name as string;
+    const description = contentData?.description as string;
     const exercises = (contentData?.exercises as RoutineExercise[]) || [];
     const scheduledDays = (contentData?.scheduledDays as string[]) || [];
 
@@ -806,7 +808,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
       }
     });
 
-    // Helper to get set label
+    // Helper to get set label (matching workout logic)
     const getSetLabel = (setType: string | undefined, normalSetNumber: number): string => {
       switch (setType) {
         case "warmup": return "W";
@@ -816,7 +818,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
       }
     };
 
-    // Get styling for set type badge
+    // Get styling for set type badge (matching workout logic)
     const getSetBadgeStyle = (setType: string | undefined): string => {
       switch (setType) {
         case "warmup": return "bg-yellow-500/20 text-yellow-600";
@@ -826,8 +828,27 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
       }
     };
 
+    // Calculate normal set number (only counts normal sets, matching workout logic)
+    const getNormalSetNumber = (sets: RoutineSet[], currentIndex: number): number => {
+      let count = 0;
+      for (let i = 0; i <= currentIndex; i++) {
+        const setType = sets[i]?.type;
+        if (!setType || setType === "normal") {
+          count++;
+        }
+      }
+      return count;
+    };
+
     return (
       <div className="space-y-3">
+        {/* Routine description */}
+        {description && (
+          <div className="bg-muted/30 rounded-xl p-4 mb-2">
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+        )}
+
         {/* Scheduled days */}
         {scheduledDays.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -881,12 +902,20 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                     </div>
                   </div>
                   
+                  {/* Notes - directly below exercise header (matching workout style) */}
+                  {exercise.notes && (
+                    <p className="text-sm text-foreground italic">
+                      {exercise.notes}
+                    </p>
+                  )}
+                  
                   {/* Sets - row format matching workout style */}
                   {setsArray.length > 0 && (
                     <div className="space-y-1.5">
                       {setsArray.map((set, setIdx) => {
                         const setType = set.type;
-                        const setLabel = getSetLabel(setType, setIdx + 1);
+                        const normalSetNumber = getNormalSetNumber(setsArray, setIdx);
+                        const setLabel = getSetLabel(setType, normalSetNumber);
                         const badgeStyle = getSetBadgeStyle(setType);
 
                         return (
