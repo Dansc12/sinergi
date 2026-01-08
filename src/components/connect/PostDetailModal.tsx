@@ -846,16 +846,6 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
 
     return (
       <div className="space-y-4">
-        {scheduledDays.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {scheduledDays.map((day, idx) => (
-              <span key={idx} className="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-sm">
-                {day}
-              </span>
-            ))}
-          </div>
-        )}
-        
         <div className="space-y-3">
           {exercises.map((exercise, idx) => {
             const setsArray = Array.isArray(exercise.sets) ? exercise.sets : [];
@@ -1329,7 +1319,7 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
               {tags && tags.length > 0 && (
                 <div className="relative w-full max-w-full overflow-hidden">
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full max-w-full min-w-0">
-                    {tags.map((tag, idx) => (
+                    {(post.type === "routine" ? tags.slice(0, 5) : tags).map((tag, idx) => (
                       <span
                         key={idx}
                         className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap flex-shrink-0 inline-block max-w-[60vw] overflow-hidden text-ellipsis"
@@ -1338,6 +1328,11 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                         #{tag}
                       </span>
                     ))}
+                    {post.type === "routine" && tags.length > 5 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap flex-shrink-0">
+                        +{tags.length - 5}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
