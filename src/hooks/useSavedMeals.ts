@@ -92,6 +92,7 @@ export interface SavedMeal {
   created_at: string;
   tags: string[];
   description: string | null;
+  creator?: Creator;
 }
 
 export interface CommunityRecipe {
@@ -229,14 +230,14 @@ export const useSavedMeals = () => {
 
       if (savedError) throw savedError;
 
-      // Fetch the actual posts for saved meals
+      // Fetch the actual posts for saved meals (include user_id to get creator info)
       const savedPostIds = (savedPostsData || []).map(sp => sp.post_id);
-      let savedMealPosts: typeof ownMeals = [];
+      let savedMealPosts: { id: string; content_data: unknown; images: string[] | null; created_at: string; content_type?: string; user_id: string }[] = [];
       
       if (savedPostIds.length > 0) {
         const { data: savedPosts, error: fetchError } = await supabase
           .from("posts")
-          .select("id, content_data, images, created_at, content_type")
+          .select("id, content_data, images, created_at, content_type, user_id")
           .in("id", savedPostIds);
         
         if (!fetchError && savedPosts) {
@@ -244,8 +245,32 @@ export const useSavedMeals = () => {
         }
       }
 
+      // Fetch profiles for creators of saved posts
+      const savedPostUserIds = [...new Set(savedMealPosts.map(p => p.user_id))];
+      let creatorMap = new Map<string, Creator>();
+      
+      if (savedPostUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, first_name, last_name, username, avatar_url")
+          .in("user_id", savedPostUserIds);
+        
+        creatorMap = new Map(
+          (profiles || []).map((p) => [
+            p.user_id,
+            {
+              id: p.user_id,
+              name: [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
+              username: p.username,
+              avatar_url: p.avatar_url,
+            },
+          ])
+        );
+      }
+
       // Combine own meals and saved meals (deduped by id)
-      const allMealPosts = [...(ownMeals || []), ...savedMealPosts];
+      const ownMealsWithUserId = (ownMeals || []).map(m => ({ ...m, user_id: user.id }));
+      const allMealPosts = [...ownMealsWithUserId, ...savedMealPosts];
       const uniqueMeals = new Map<string, typeof allMealPosts[0]>();
       allMealPosts.forEach(post => uniqueMeals.set(post.id, post));
 
@@ -264,6 +289,7 @@ export const useSavedMeals = () => {
 
       const meals: SavedMeal[] = Array.from(uniqueMeals.values()).map((post) => {
         const contentData = post.content_data as unknown as SavedMealContentData;
+        const isOwnMeal = post.user_id === user.id;
         
         return {
           id: post.id,
@@ -274,11 +300,14 @@ export const useSavedMeals = () => {
           totalProtein: contentData?.totalProtein || 0,
           totalCarbs: contentData?.totalCarbs || 0,
           totalFats: contentData?.totalFats || 0,
-          coverPhoto: contentData?.coverPhoto || (post.images && post.images[0]) || null,
+          // Always prioritize coverPhoto from content_data over images array
+          coverPhoto: contentData?.coverPhoto || null,
           images: post.images || [],
           created_at: post.created_at,
           tags: contentData?.tags || [],
           description: contentData?.description || null,
+          // Include creator info for saved posts from other users
+          creator: !isOwnMeal ? creatorMap.get(post.user_id) : undefined,
         };
       });
 
