@@ -785,7 +785,7 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
               {tags && tags.length > 0 && (
                 <div className="relative w-full overflow-hidden h-6">
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar h-full w-full max-w-full min-w-0">
-                    {tags.map((tag, idx) => (
+                    {((post.type === "routine") ? tags.slice(0, 5) : tags).map((tag, idx) => (
                       <button
                         key={idx}
                         onClick={() => onTagClick?.(tag)}
@@ -795,6 +795,11 @@ export const PostCard = ({ post, onPostClick, onTagClick }: PostCardProps) => {
                         #{tag}
                       </button>
                     ))}
+                    {post.type === "routine" && tags.length > 5 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap flex-shrink-0">
+                        +{tags.length - 5}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
