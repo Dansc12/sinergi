@@ -223,11 +223,14 @@ const SelectContentPage = () => {
 
   const handleNext = () => {
     if (!selectedItem) return;
+    // For meals, include the cover photo in images array
+    const coverPhotoUrl = selectedItem.data.coverPhotoUrl as string | undefined;
+    const images = coverPhotoUrl ? [coverPhotoUrl] : [];
     navigate("/share", {
       state: {
         contentType: selectedItem.type,
         contentData: selectedItem.data,
-        images: [],
+        images,
         returnTo: "/select-content",
         fromSelection: true,
       },

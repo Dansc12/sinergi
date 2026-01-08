@@ -278,7 +278,9 @@ const SharePostScreen = () => {
       if (isWorkout) {
         contentData = { ...contentData, title: workoutTitle, tags: workoutTags };
       } else if (isSavedMeal) {
-        contentData = { ...contentData, name: mealTitle, tags: mealTags };
+        // Include coverPhoto explicitly in content_data so it can be retrieved when saved
+        const coverPhoto = images.length > 0 ? images[0] : (state?.contentData?.coverPhotoUrl as string | undefined);
+        contentData = { ...contentData, name: mealTitle, tags: mealTags, coverPhoto };
       } else if (isRecipe) {
         contentData = { ...contentData, title: recipeTitle, tags: recipeTags };
       } else if (isRoutine) {
