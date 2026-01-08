@@ -145,7 +145,8 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
         reps: set.reps?.toString() || "",
         distance: set.distance?.toString() || "",
         time: set.time || "",
-        type: set.type || set.setType || "normal",
+        completed: false,
+        setType: set.setType || set.type || "normal",
       })),
     }));
 
