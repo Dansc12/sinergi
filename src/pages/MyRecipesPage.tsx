@@ -196,7 +196,7 @@ const MyRecipesPage = () => {
                   key={meal.id}
                   title={meal.title}
                   items={meal.foods}
-                  creator={currentUserCreator}
+                  creator={meal.creator || currentUserCreator}
                   createdAt={meal.created_at}
                   onCopy={() => handleUseMeal(meal)}
                   copyButtonText="Use"
