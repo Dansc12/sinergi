@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Dumbbell, Plus, Trash2, Check, Bookmark, Compass, Loader2, ChevronDown, ChevronUp, X, MoreVertical, ArrowUpDown, Clock, ChevronRight, CalendarDays } from "lucide-react";
+import { ArrowLeft, Dumbbell, Plus, Trash2, Check, Bookmark, Compass, Loader2, ChevronDown, ChevronUp, X, MoreVertical, ArrowUpDown, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useExerciseHistory } from "@/hooks/useExerciseHistory";
 import { getMuscleContributions, getMuscleDisplayName } from "@/lib/muscleContributions";
 import { useRecentWorkouts, RecentWorkout, RecentRoutine, RecentItem } from "@/hooks/useRecentWorkouts";
-import { format } from "date-fns";
+import WorkoutSavedCard from "@/components/workout/WorkoutSavedCard";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,6 +88,7 @@ const CreateWorkoutPage = () => {
   const { createPost } = usePosts();
   const { getLastExerciseData } = useExerciseHistory();
   const { recentItems, isLoading: isLoadingRecent } = useRecentWorkouts(10);
+  const { user } = useAuth();
   
   const [title, setTitle] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -782,52 +784,43 @@ const CreateWorkoutPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {recentItems.map((item) => (
-                      <motion.button
-                        key={item.id}
-                        onClick={() => handleSelectRecentItem(item)}
-                        className="w-full text-left rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors relative overflow-hidden"
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="h-10 w-10 shrink-0 rounded-lg bg-primary/20 flex items-center justify-center">
-                              {item.type === "routine" ? (
-                                <CalendarDays size={18} className="text-primary" />
-                              ) : (
-                                <Dumbbell size={18} className="text-primary" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-foreground truncate">{item.title}</span>
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize shrink-0">
-                                  {item.type}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                                <span>{item.exerciseCount} exercise{item.exerciseCount !== 1 ? 's' : ''}</span>
-                                {item.type === "workout" && (
-                                  <>
-                                    <span>•</span>
-                                    <span>{(item as RecentWorkout).totalSets} sets</span>
-                                    <span>•</span>
-                                    <span>{format(new Date((item as RecentWorkout).logDate), "MMM d")}</span>
-                                  </>
-                                )}
-                                {item.type === "routine" && (item as RecentRoutine).dayOfWeek && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="capitalize">{(item as RecentRoutine).dayOfWeek}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <ChevronRight size={20} className="text-muted-foreground shrink-0" />
-                        </div>
-                      </motion.button>
-                    ))}
+                    {recentItems.map((item) => {
+                      // Build creator object - for recent items it's always the current user
+                      const creator = {
+                        id: user?.id || "",
+                        name: "You",
+                        username: null,
+                        avatar_url: null,
+                      };
+                      
+                      // Convert exercises to the format WorkoutSavedCard expects
+                      const cardExercises = item.type === "workout" 
+                        ? (item as RecentWorkout).exercises 
+                        : (item as RecentRoutine).exercises.map(ex => ({
+                            ...ex,
+                            isCardio: false,
+                            sets: ex.sets.map(s => ({
+                              ...s,
+                              weight: "",
+                              reps: "",
+                              distance: "",
+                              time: "",
+                            })),
+                          }));
+                      
+                      return (
+                        <WorkoutSavedCard
+                          key={item.id}
+                          title={item.title}
+                          exercises={cardExercises}
+                          creator={creator}
+                          createdAt={item.createdAt}
+                          onCopy={() => handleSelectRecentItem(item)}
+                          copyButtonText="Copy"
+                          isRoutine={item.type === "routine"}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>
