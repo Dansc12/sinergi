@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format } from "date-fns";
-import { X, BookOpen, Calendar, Users, Check, Heart, MessageCircle, Send, Dumbbell, Utensils } from "lucide-react";
+import { X, BookOpen, Calendar, Users, Check, Heart, MessageCircle, Send, Dumbbell, Utensils, Copy } from "lucide-react";
 import { useSavedPosts } from "@/hooks/useSavedPosts";
 import { getMuscleContributions, getMuscleDisplayName } from "@/lib/muscleContributions";
 import { useGroupJoin } from "@/hooks/useGroupJoin";
@@ -114,6 +115,7 @@ const setTypeBadges: Record<string, { label: string; color: string }> = {
 };
 
 export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) => {
+  const navigate = useNavigate();
   const contentData = post.contentData as Record<string, unknown> | undefined;
   const groupId = post.type === 'group' ? (contentData?.groupId as string) : undefined;
   const { isMember, hasRequestedInvite, isLoading: joinLoading, joinPublicGroup, requestInvite } = useGroupJoin(groupId);
@@ -121,6 +123,44 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
   const { comments, commentCount, addComment } = usePostComments(post.id);
   const { setIsPostDetailOpen } = usePostDetail();
   const { isSaved, toggleSave } = useSavedPosts(post.id, post.type);
+
+  // Handle copying workout to Log Workout screen
+  const handleCopyWorkout = () => {
+    const exercises = (contentData?.exercises as Exercise[]) || [];
+    const workoutTitle = (contentData?.title as string) || (contentData?.name as string) || "Workout";
+    const workoutTags = (contentData?.tags as string[]) || post.tags || [];
+    
+    // Transform exercises to match CreateWorkoutPage format
+    const transformedExercises = exercises.map((ex, index) => ({
+      id: `copied-${index}-${Date.now()}`,
+      name: ex.name,
+      notes: ex.notes || "",
+      category: ex.category || "",
+      muscleGroup: ex.muscleGroup || "",
+      isCardio: ex.isCardio || false,
+      supersetGroupId: ex.supersetGroupId || (ex.supersetGroup !== undefined ? String(ex.supersetGroup) : undefined),
+      sets: (ex.sets || []).map((set, setIdx) => ({
+        id: `set-${index}-${setIdx}-${Date.now()}`,
+        weight: set.weight?.toString() || "",
+        reps: set.reps?.toString() || "",
+        distance: set.distance?.toString() || "",
+        time: set.time || "",
+        type: set.type || set.setType || "normal",
+      })),
+    }));
+
+    onClose();
+    
+    navigate("/log-workout", {
+      state: {
+        restoredExercises: transformedExercises,
+        restoredTitle: workoutTitle,
+        restoredTags: workoutTags,
+        sourcePostId: post.id,
+      },
+      replace: true,
+    });
+  };
   
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -1169,8 +1209,18 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                       }`}
                     />
                   </button>
-                  {/* Save button - only for saveable content types */}
-                  {(post.type === "meal" || post.type === "recipe" || post.type === "workout" || post.type === "routine") && (
+                  {/* Copy button for workouts, Save button for other saveable types */}
+                  {post.type === "workout" && (
+                    <Button
+                      onClick={handleCopyWorkout}
+                      size="sm"
+                      className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-150 ease-out"
+                    >
+                      <Copy size={14} className="mr-1.5" />
+                      Copy
+                    </Button>
+                  )}
+                  {(post.type === "meal" || post.type === "recipe" || post.type === "routine") && (
                     <Button
                       onClick={() => toggleSave()}
                       size="sm"
