@@ -607,22 +607,22 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
           />
           
           {/* Content */}
-          <div className="relative z-10 flex items-center h-full px-4">
+          <div className="relative z-10 flex items-center justify-between h-full px-4 gap-2">
             {/* Left: Icon + Count */}
-            <div className="flex items-center gap-2 text-white">
+            <div className="flex items-center gap-2 text-white shrink-0">
               <Utensils size={20} />
               <span className="font-semibold">{foods.length}</span>
             </div>
             
             {/* Center: Macros */}
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-sm">
-              <span style={{ color: proteinColor }}>P {Math.round(totalProtein)}g</span>
-              <span style={{ color: carbsColor }}>C {Math.round(totalCarbs)}g</span>
-              <span style={{ color: fatsColor }}>F {Math.round(totalFat)}g</span>
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <span className="whitespace-nowrap" style={{ color: proteinColor }}>P {Math.round(totalProtein)}g</span>
+              <span className="whitespace-nowrap" style={{ color: carbsColor }}>C {Math.round(totalCarbs)}g</span>
+              <span className="whitespace-nowrap" style={{ color: fatsColor }}>F {Math.round(totalFat)}g</span>
             </div>
             
             {/* Right: Calories */}
-            <div className="ml-auto text-sm text-white">
+            <div className="text-sm text-white shrink-0">
               <span>{Math.round(totalCalories)} cal</span>
             </div>
           </div>
