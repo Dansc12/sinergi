@@ -59,6 +59,7 @@ interface RoutineSet {
   minReps: string;
   maxReps: string;
   type?: string;
+  setType?: string; // Alternative field name from CreateRoutinePage
 }
 
 interface RoutineExercise {
@@ -67,6 +68,7 @@ interface RoutineExercise {
   minReps?: number;
   maxReps?: number;
   supersetGroup?: number;
+  supersetGroupId?: string; // Alternative field name from CreateRoutinePage
   category?: string;
   muscleGroup?: string;
   isCardio?: boolean;
@@ -799,12 +801,14 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
     const exercises = (contentData?.exercises as RoutineExercise[]) || [];
     const scheduledDays = (contentData?.scheduledDays as string[]) || [];
 
-    // Group exercises by superset for coloring
-    const supersetGroups = new Map<number, number>();
+    // Group exercises by superset for coloring - handle both supersetGroup (number) and supersetGroupId (string)
+    const supersetGroups = new Map<string, number>();
     let groupIndex = 0;
     exercises.forEach(ex => {
-      if (ex.supersetGroup !== undefined && !supersetGroups.has(ex.supersetGroup)) {
-        supersetGroups.set(ex.supersetGroup, groupIndex++);
+      // Use supersetGroupId (string) or supersetGroup (number) - convert to string for consistent Map key
+      const ssGroup = ex.supersetGroupId ?? (ex.supersetGroup !== undefined ? String(ex.supersetGroup) : undefined);
+      if (ssGroup !== undefined && !supersetGroups.has(ssGroup)) {
+        supersetGroups.set(ssGroup, groupIndex++);
       }
     });
 
@@ -832,7 +836,8 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
     const getNormalSetNumber = (sets: RoutineSet[], currentIndex: number): number => {
       let count = 0;
       for (let i = 0; i <= currentIndex; i++) {
-        const setType = sets[i]?.type;
+        // Check both 'type' and 'setType' field names
+        const setType = sets[i]?.type || sets[i]?.setType;
         if (!setType || setType === "normal") {
           count++;
         }
@@ -862,8 +867,10 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
         
         {/* Exercises - matching workout style */}
         {exercises.map((exercise, idx) => {
-          const supersetGroupIndex = exercise.supersetGroup !== undefined 
-            ? supersetGroups.get(exercise.supersetGroup) 
+          // Get superset group key (handle both supersetGroupId and supersetGroup)
+          const ssGroupKey = exercise.supersetGroupId ?? (exercise.supersetGroup !== undefined ? String(exercise.supersetGroup) : undefined);
+          const supersetGroupIndex = ssGroupKey !== undefined 
+            ? supersetGroups.get(ssGroupKey) 
             : undefined;
           const supersetColor = supersetGroupIndex !== undefined 
             ? supersetColors[supersetGroupIndex % supersetColors.length]
@@ -913,7 +920,8 @@ export const PostDetailModal = ({ open, onClose, post }: PostDetailModalProps) =
                   {setsArray.length > 0 && (
                     <div className="space-y-1.5">
                       {setsArray.map((set, setIdx) => {
-                        const setType = set.type;
+                        // Check both 'type' and 'setType' field names
+                        const setType = set.type || set.setType;
                         const normalSetNumber = getNormalSetNumber(setsArray, setIdx);
                         const setLabel = getSetLabel(setType, normalSetNumber);
                         const badgeStyle = getSetBadgeStyle(setType);
