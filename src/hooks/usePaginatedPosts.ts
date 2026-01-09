@@ -31,9 +31,22 @@ export interface PostFilters {
   types: string[];
   visibility: "all" | "friends";
   searchQuery?: string;
+  imagesOnly?: boolean;
 }
 
 const PAGE_SIZE = 15;
+
+// Simple in-memory cache to prevent empty flicker on navigation
+const feedCache = new Map<string, { posts: FeedPost[]; cursor: Cursor | null; timestamp: number }>();
+const CACHE_TTL = 60000; // 1 minute cache TTL
+
+const getCacheKey = (filters?: PostFilters): string => {
+  return JSON.stringify({
+    types: filters?.types || [],
+    visibility: filters?.visibility || "all",
+    imagesOnly: filters?.imagesOnly ?? false,
+  });
+};
 
 export const usePaginatedPosts = (filters?: PostFilters) => {
   const { user, isLoading: authLoading } = useAuth();
@@ -41,14 +54,38 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
   const cursorRef = useRef<Cursor | null>(null);
   const fetchingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  // Initialize from cache on mount
+  useEffect(() => {
+    mountedRef.current = true;
+    const cacheKey = getCacheKey(filters);
+    const cached = feedCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      setPosts(cached.posts);
+      cursorRef.current = cached.cursor;
+      setHasFetchedOnce(true);
+      setIsLoading(false);
+    }
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchPosts = useCallback(async (cursor?: Cursor) => {
     if (authLoading || !user) {
       if (!authLoading && !user) {
-        setPosts([]);
-        setIsLoading(false);
+        if (mountedRef.current) {
+          setPosts([]);
+          setIsLoading(false);
+          setHasFetchedOnce(true);
+        }
       }
       return;
     }
@@ -56,6 +93,7 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
     // Prevent multiple simultaneous fetches
     if (fetchingRef.current) return;
     fetchingRef.current = true;
+    setError(null);
 
     try {
       // Use the RPC function to get posts with counts in a single query
@@ -68,18 +106,22 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
           p_cursor_created_at: cursor?.created_at || null,
           p_cursor_id: cursor?.id || null,
           p_limit: PAGE_SIZE,
+          p_images_only: filters?.imagesOnly ?? false,
         }
       );
 
       if (postsError) throw postsError;
 
+      if (!mountedRef.current) return;
+
       if (!postsData || postsData.length === 0) {
         setHasMore(false);
         if (!cursor) {
           setPosts([]);
-          setIsLoading(false);
         }
+        setIsLoading(false);
         setIsLoadingMore(false);
+        setHasFetchedOnce(true);
         fetchingRef.current = false;
         return;
       }
@@ -134,19 +176,44 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
         setPosts(prev => {
           const existingIds = new Set(prev.map(p => p.id));
           const newPosts = postsWithProfiles.filter(p => !existingIds.has(p.id));
-          return [...prev, ...newPosts];
+          const updatedPosts = [...prev, ...newPosts];
+          
+          // Update cache
+          const cacheKey = getCacheKey(filters);
+          feedCache.set(cacheKey, {
+            posts: updatedPosts,
+            cursor: cursorRef.current,
+            timestamp: Date.now(),
+          });
+          
+          return updatedPosts;
         });
       } else {
         setPosts(postsWithProfiles);
+        
+        // Update cache
+        const cacheKey = getCacheKey(filters);
+        feedCache.set(cacheKey, {
+          posts: postsWithProfiles,
+          cursor: cursorRef.current,
+          timestamp: Date.now(),
+        });
       }
+      
+      setHasFetchedOnce(true);
     } catch (err) {
       console.error("Error fetching posts:", err);
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err : new Error("Failed to fetch posts"));
+      }
     } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
       fetchingRef.current = false;
     }
-  }, [user, authLoading, filters?.types, filters?.visibility]);
+  }, [user, authLoading, filters?.types, filters?.visibility, filters?.imagesOnly]);
 
   // Filter posts locally based on search query
   const filteredPosts = posts.filter(post => {
@@ -199,14 +266,30 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
     return false;
   });
 
-  // Initial fetch - re-fetch when filters change
+  // Initial fetch - re-fetch when filters change (but don't clear cache)
   useEffect(() => {
-    cursorRef.current = null;
-    setHasMore(true);
-    setPosts([]);
-    setIsLoading(true);
+    const cacheKey = getCacheKey(filters);
+    const cached = feedCache.get(cacheKey);
+    
+    // If we have a fresh cache, use it and skip fetch
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && cached.posts.length > 0) {
+      setPosts(cached.posts);
+      cursorRef.current = cached.cursor;
+      setHasFetchedOnce(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    // Only clear posts if we don't have cached data
+    if (!cached || cached.posts.length === 0) {
+      cursorRef.current = null;
+      setHasMore(true);
+      setPosts([]);
+      setIsLoading(true);
+    }
+    
     fetchPosts();
-  }, [fetchPosts, filters?.types?.join(","), filters?.visibility]);
+  }, [fetchPosts, filters?.types?.join(","), filters?.visibility, filters?.imagesOnly]);
 
   // Real-time subscription for new posts (prepend to top)
   useEffect(() => {
@@ -242,7 +325,19 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
             profile: profileData || null,
           };
 
-          setPosts(prev => [postWithProfile, ...prev]);
+          setPosts(prev => {
+            const updated = [postWithProfile, ...prev];
+            
+            // Update cache
+            const cacheKey = getCacheKey(filters);
+            feedCache.set(cacheKey, {
+              posts: updated,
+              cursor: cursorRef.current,
+              timestamp: Date.now(),
+            });
+            
+            return updated;
+          });
         }
       )
       .on(
@@ -254,7 +349,19 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
         },
         (payload) => {
           const deletedId = (payload.old as { id: string }).id;
-          setPosts(prev => prev.filter(p => p.id !== deletedId));
+          setPosts(prev => {
+            const updated = prev.filter(p => p.id !== deletedId);
+            
+            // Update cache
+            const cacheKey = getCacheKey(filters);
+            feedCache.set(cacheKey, {
+              posts: updated,
+              cursor: cursorRef.current,
+              timestamp: Date.now(),
+            });
+            
+            return updated;
+          });
         }
       )
       .subscribe();
@@ -262,7 +369,7 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, filters]);
 
   // Update post counts when reactions/comments change (optimistic updates from PostCard)
   const updatePostCounts = useCallback((postId: string, updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean }) => {
@@ -279,12 +386,17 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
   }, [isLoadingMore, hasMore, fetchPosts]);
 
   const refresh = useCallback(() => {
+    // Clear cache for this filter
+    const cacheKey = getCacheKey(filters);
+    feedCache.delete(cacheKey);
+    
     cursorRef.current = null;
     setHasMore(true);
     setPosts([]);
     setIsLoading(true);
+    setHasFetchedOnce(false);
     fetchPosts();
-  }, [fetchPosts]);
+  }, [fetchPosts, filters]);
 
   return {
     posts: filteredPosts,
@@ -294,5 +406,7 @@ export const usePaginatedPosts = (filters?: PostFilters) => {
     loadMore,
     refresh,
     updatePostCounts,
+    error,
+    hasFetchedOnce,
   };
 };
