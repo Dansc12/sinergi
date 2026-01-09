@@ -5,10 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PostDetailProvider } from "@/contexts/PostDetailContext";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ensureProfile } from "@/lib/ensureProfile";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import HomePage from "./pages/HomePage";
 import DailyLogPage from "./pages/DailyLogPage";
 import DiscoverPage from "./pages/DiscoverPage";
@@ -143,13 +142,15 @@ const AppRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <PostDetailProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </PostDetailProvider>
+      <AuthProvider>
+        <PostDetailProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </PostDetailProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

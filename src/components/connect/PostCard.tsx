@@ -9,6 +9,7 @@ import { usePostReactions } from "@/hooks/usePostReactions";
 import { usePostComments } from "@/hooks/usePostComments";
 import { formatDistanceToNow } from "date-fns";
 import { PostDetailModal } from "./PostDetailModal";
+import { getOptimizedImageUrl } from "@/lib/imageUpload";
 
 interface FloatingEmoji {
   id: number;
@@ -143,18 +144,7 @@ const ContentCarousel = ({
   const renderItem = (item: CarouselItem) => {
     if (item.type === 'image') {
       const originalUrl = item.content as string;
-      
-      // Optimize image URL for Supabase storage
-      const getOptimizedUrl = (url: string): string => {
-        if (url.includes('/storage/v1/object/')) {
-          const renderUrl = url.replace('/storage/v1/object/', '/storage/v1/render/image/');
-          const separator = renderUrl.includes('?') ? '&' : '?';
-          return `${renderUrl}${separator}width=800&quality=80`;
-        }
-        return url;
-      };
-      
-      const optimizedUrl = getOptimizedUrl(originalUrl);
+      const optimizedUrl = getOptimizedImageUrl(originalUrl, 800, 80);
       
       return (
         <div className="w-full h-full bg-muted">

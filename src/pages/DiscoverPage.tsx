@@ -1,11 +1,34 @@
 import { useRef, useEffect, useCallback, memo, useState } from "react";
-import { Compass, Search, X } from "lucide-react";
+import { Compass, Search, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { usePaginatedPosts, FeedPost, PostFilters } from "@/hooks/usePaginatedPosts";
 import { formatDistanceToNow } from "date-fns";
 import { PostCard } from "@/components/connect/PostCard";
+
+const LoadingFeedSkeleton = () => (
+  <div className="flex flex-col items-center justify-center py-16 gap-3">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <p className="text-muted-foreground text-sm">Loading posts...</p>
+  </div>
+);
+
+const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
+  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+    <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+      <RefreshCw size={32} className="text-destructive" />
+    </div>
+    <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+    <p className="text-muted-foreground text-sm max-w-[280px] mb-4">
+      We couldn't load the feed. Please try again.
+    </p>
+    <Button onClick={onRetry} variant="outline" className="gap-2">
+      <RefreshCw size={16} />
+      Retry
+    </Button>
+  </div>
+);
 
 const EmptyFeedState = () => {
   const navigate = useNavigate();
@@ -30,6 +53,18 @@ const EmptyFeedState = () => {
     </div>
   );
 };
+
+const NoSearchResultsState = () => (
+  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+      <Search size={32} className="text-muted-foreground" />
+    </div>
+    <h3 className="text-lg font-semibold mb-2">No results found</h3>
+    <p className="text-muted-foreground text-sm max-w-[280px]">
+      Try searching for a different workout, meal, user, or tag.
+    </p>
+  </div>
+);
 
 interface PostData {
   id: string;
@@ -84,15 +119,31 @@ const MemoizedPostCard = memo(({ post, onTagClick, onCountChange }: MemoizedPost
 MemoizedPostCard.displayName = "MemoizedPostCard";
 
 const DiscoverPage = () => {
-  const [filters, setFilters] = useState<PostFilters>({ types: [], visibility: "all", searchQuery: "" });
+  const [filters, setFilters] = useState<PostFilters>({ 
+    types: [], 
+    visibility: "all", 
+    searchQuery: "",
+    imagesOnly: false, // Show all posts, not just those with images
+  });
   const [searchInput, setSearchInput] = useState("");
   
-  const { posts, isLoading, isLoadingMore, hasMore, loadMore, updatePostCounts } = usePaginatedPosts(filters);
+  const { 
+    posts, 
+    isLoading, 
+    isLoadingMore, 
+    hasMore, 
+    loadMore, 
+    updatePostCounts,
+    refresh,
+    error,
+    hasFetchedOnce,
+  } = usePaginatedPosts(filters);
   
   // Callback to update post counts from PostCard
   const handleCountChange = useCallback((postId: string, updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean }) => {
     updatePostCounts(postId, updates);
   }, [updatePostCounts]);
+  
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
   const isLoadingMoreRef = useRef(isLoadingMore);
@@ -141,34 +192,24 @@ const DiscoverPage = () => {
     };
   }, [hasMore, loadMore]);
 
-  // Transform posts for display and filter to only show posts with images
-  const feedPosts = posts
-    .map(transformPost)
-    .filter(post => post.images && post.images.length > 0);
+  // Transform posts for display
+  const feedPosts = posts.map(transformPost);
 
   const renderFeed = () => {
-    if (isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground text-sm">Loading posts...</p>
-        </div>
-      );
+    // Show loading skeleton while loading AND before first fetch completes
+    if (isLoading && !hasFetchedOnce) {
+      return <LoadingFeedSkeleton />;
+    }
+
+    // Show error state with retry option
+    if (error) {
+      return <ErrorState onRetry={refresh} />;
     }
     
-    if (feedPosts.length === 0) {
+    // Only show empty state after we've fetched at least once
+    if (feedPosts.length === 0 && hasFetchedOnce) {
       if (searchInput.trim()) {
-        return (
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Search size={32} className="text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No results found</h3>
-            <p className="text-muted-foreground text-sm max-w-[280px]">
-              Try searching for a different workout, meal, user, or tag.
-            </p>
-          </div>
-        );
+        return <NoSearchResultsState />;
       }
       return <EmptyFeedState />;
     }
