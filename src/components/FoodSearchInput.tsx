@@ -5,6 +5,8 @@ import { Search, Loader2, Plus, Utensils } from "lucide-react";
 
 // USDA FoodData Central API
 const USDA_API_URL = "https://api.nal.usda.gov/fdc/v1/foods/search";
+// DEMO_KEY is a free public API key provided by USDA for demo/testing purposes
+// For production, consider using environment variables or a proper API key
 const USDA_API_KEY = "DEMO_KEY";
 
 // USDA API response types
@@ -140,7 +142,6 @@ export const FoodSearchInput = ({
           `${USDA_API_URL}?api_key=${USDA_API_KEY}&query=${encodeURIComponent(value)}&pageSize=50&dataType=Foundation,SR Legacy`,
           {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
           }
         );
 
