@@ -118,15 +118,15 @@ export function PaceScreen() {
                     : "border-border bg-card hover:border-primary/50"
                 )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-center gap-4">
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+                    "w-12 h-12 rounded-xl flex items-center justify-center",
                     isSelected ? "bg-primary/20" : "bg-muted"
                   )}>
                     <Icon size={24} className={isSelected ? "text-primary" : "text-muted-foreground"} />
                   </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
                       <p className="font-semibold">{pace.label}</p>
                       {pace.recommended && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
@@ -136,7 +136,7 @@ export function PaceScreen() {
                     </div>
                     <p className="text-sm text-muted-foreground">{description}</p>
                   </div>
-                  <span className="text-sm text-muted-foreground text-right shrink-0 pt-0.5">{detail}</span>
+                  <span className="text-sm text-muted-foreground">{detail}</span>
                 </div>
               </motion.button>
             );
