@@ -162,13 +162,13 @@ export const FoodSearchInput = ({
             // Extract nutrients from the food data
             const nutrients = food.foodNutrients || [];
             
-            const getNutrient = (nameOrNumber: string): number => {
+            const getNutrient = (nameOrNumber: string): number | null => {
               const needle = nameOrNumber.toLowerCase();
               const nutrient = nutrients.find((n: USDANutrient) =>
                 String(n.nutrientNumber) === nameOrNumber ||
                 n.nutrientName?.toLowerCase().includes(needle)
               );
-              return Math.round(Number(nutrient?.value) || 0);
+              return nutrient?.value != null ? Math.round(Number(nutrient.value)) : null;
             };
 
             // Get energy in kcal (prefer nutrientNumber 1008)
@@ -202,9 +202,9 @@ export const FoodSearchInput = ({
               description: food.description,
               brandName: food.brandName || food.brandOwner,
               calories: getEnergyKcal(),
-              protein: getNutrient('protein') || getNutrient('1003'),
-              carbs: getNutrient('carbohydrate') || getNutrient('1005'),
-              fats: getNutrient('fat') || getNutrient('1004'),
+              protein: getNutrient('protein') ?? getNutrient('1003') ?? 0,
+              carbs: getNutrient('carbohydrate') ?? getNutrient('1005') ?? 0,
+              fats: getNutrient('fat') ?? getNutrient('1004') ?? 0,
               servingSize: servingDescription,
               servingSizeValue: servingSizeValue,
               servingSizeUnit: servingSizeUnit,

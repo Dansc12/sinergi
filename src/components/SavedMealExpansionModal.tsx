@@ -194,13 +194,13 @@ export const SavedMealExpansionModal = ({
             // Extract nutrients
             const nutrients = usdaFood.foodNutrients || [];
             
-            const getNutrient = (nameOrNumber: string): number => {
+            const getNutrient = (nameOrNumber: string): number | null => {
               const needle = nameOrNumber.toLowerCase();
               const nutrient = nutrients.find((n: USDANutrient) =>
                 String(n.nutrientNumber) === nameOrNumber ||
                 n.nutrientName?.toLowerCase().includes(needle)
               );
-              return Number(nutrient?.value) || 0;
+              return nutrient?.value != null ? Number(nutrient.value) : null;
             };
 
             const getEnergyKcal = (): number => {
@@ -221,9 +221,9 @@ export const SavedMealExpansionModal = ({
 
             const usda = {
               calories: getEnergyKcal(),
-              protein: getNutrient('protein') || getNutrient('1003'),
-              carbs: getNutrient('carbohydrate') || getNutrient('1005'),
-              fats: getNutrient('fat') || getNutrient('1004'),
+              protein: getNutrient('protein') ?? getNutrient('1003') ?? 0,
+              carbs: getNutrient('carbohydrate') ?? getNutrient('1005') ?? 0,
+              fats: getNutrient('fat') ?? getNutrient('1004') ?? 0,
               servingSizeValue: usdaFood.servingSize || 100,
               servingSizeUnit: usdaFood.servingSizeUnit || 'g',
             };
