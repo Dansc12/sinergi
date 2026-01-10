@@ -200,7 +200,8 @@ export const SavedMealExpansionModal = ({
                 String(n.nutrientNumber) === nameOrNumber ||
                 n.nutrientName?.toLowerCase().includes(needle)
               );
-              return nutrient?.value != null ? Number(nutrient.value) : null;
+              if (nutrient?.value == null) return null;
+              return Math.round(Number(nutrient.value));
             };
 
             const getEnergyKcal = (): number => {

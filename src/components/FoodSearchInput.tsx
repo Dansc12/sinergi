@@ -168,7 +168,8 @@ export const FoodSearchInput = ({
                 String(n.nutrientNumber) === nameOrNumber ||
                 n.nutrientName?.toLowerCase().includes(needle)
               );
-              return nutrient?.value != null ? Math.round(Number(nutrient.value)) : null;
+              if (nutrient?.value == null) return null;
+              return Math.round(Number(nutrient.value));
             };
 
             // Get energy in kcal (prefer nutrientNumber 1008)
@@ -188,7 +189,9 @@ export const FoodSearchInput = ({
               const anyEnergyKcal = nutrients.find((n: USDANutrient) =>
                 n.nutrientName?.toLowerCase().includes("energy") && String(n.unitName).toLowerCase() === "kcal"
               );
-              return Math.round(Number(anyEnergyKcal?.value) || 0);
+              if (anyEnergyKcal?.value != null) return Math.round(Number(anyEnergyKcal.value));
+              
+              return 0;
             };
 
             // Parse serving size into value and unit
