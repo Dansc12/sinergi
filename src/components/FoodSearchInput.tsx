@@ -175,3 +175,5 @@ const CreateMealPage = () => {
 };
 
 export default CreateMealPage;
+export { FoodSearchInput };
+export type { FoodItem, SavedMealFood };
