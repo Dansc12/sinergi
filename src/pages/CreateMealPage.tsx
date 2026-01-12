@@ -1197,189 +1197,189 @@ const CreateMealPage = () => {
           const carbsOpacity = totalMacros > 0 ? 0.6 + (totalCarbs / totalMacros) * 0.4 : 0.75;
           const fatsOpacity = totalMacros > 0 ? 0.6 + (totalFats / totalMacros) * 0.4 : 0.75;
 
-return (
-  <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
-    <button
-      onClick={() => setShowFoodsList(true)}
-      className="relative w-full h-14 rounded-xl overflow-hidden shadow-lg shadow-black/30"
-    >
-      {/* Liquid blob background */}
-      <div className="absolute inset-0 bg-card">
-        {/* Protein blob */}
-        <motion.div
-          className="absolute rounded-full blur-2xl"
-          style={{
-            width: `${proteinSize}%`,
-            height: `${proteinSize * 2}%`,
-            background: `radial-gradient(circle, ${proteinColor} 0%, transparent 70%)`,
-            opacity: proteinOpacity,
-            left: "5%",
-            top: "-20%",
-          }}
-          animate={{
-            x: [0, 15, -10, 5, 0],
-            y: [0, -10, 15, -5, 0],
-            scale: [1, 1.1, 0.95, 1.05, 1],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        {/* Carbs blob */}
-        <motion.div
-          className="absolute rounded-full blur-2xl"
-          style={{
-            width: `${carbsSize}%`,
-            height: `${carbsSize * 2}%`,
-            background: `radial-gradient(circle, ${carbsColor} 0%, transparent 70%)`,
-            opacity: carbsOpacity,
-            right: "10%",
-            top: "-30%",
-          }}
-          animate={{
-            x: [0, -20, 10, -5, 0],
-            y: [0, 15, -10, 5, 0],
-            scale: [1, 0.95, 1.1, 0.98, 1],
-          }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.5,
-          }}
-        />
-        {/* Fats blob */}
-        <motion.div
-          className="absolute rounded-full blur-2xl"
-          style={{
-            width: `${fatsSize}%`,
-            height: `${fatsSize * 2}%`,
-            background: `radial-gradient(circle, ${fatsColor} 0%, transparent 70%)`,
-            opacity: fatsOpacity,
-            left: "30%",
-            bottom: "-50%",
-          }}
-          animate={{
-            x: [0, 10, -15, 8, 0],
-            y: [0, -15, 10, -8, 0],
-            scale: [1, 1.08, 0.92, 1.04, 1],
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-      </div>
+          return (
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
+              <button
+                onClick={() => setShowFoodsList(true)}
+                className="relative w-full h-14 rounded-xl overflow-hidden shadow-lg shadow-black/30"
+              >
+                {/* Liquid blob background */}
+                <div className="absolute inset-0 bg-card">
+                  {/* Protein blob */}
+                  <motion.div
+                    className="absolute rounded-full blur-2xl"
+                    style={{
+                      width: `${proteinSize}%`,
+                      height: `${proteinSize * 2}%`,
+                      background: `radial-gradient(circle, ${proteinColor} 0%, transparent 70%)`,
+                      opacity: proteinOpacity,
+                      left: "5%",
+                      top: "-20%",
+                    }}
+                    animate={{
+                      x: [0, 15, -10, 5, 0],
+                      y: [0, -10, 15, -5, 0],
+                      scale: [1, 1.1, 0.95, 1.05, 1],
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                  {/* Carbs blob */}
+                  <motion.div
+                    className="absolute rounded-full blur-2xl"
+                    style={{
+                      width: `${carbsSize}%`,
+                      height: `${carbsSize * 2}%`,
+                      background: `radial-gradient(circle, ${carbsColor} 0%, transparent 70%)`,
+                      opacity: carbsOpacity,
+                      right: "10%",
+                      top: "-30%",
+                    }}
+                    animate={{
+                      x: [0, -20, 10, -5, 0],
+                      y: [0, 15, -10, 5, 0],
+                      scale: [1, 0.95, 1.1, 0.98, 1],
+                    }}
+                    transition={{
+                      duration: 9,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5,
+                    }}
+                  />
+                  {/* Fats blob */}
+                  <motion.div
+                    className="absolute rounded-full blur-2xl"
+                    style={{
+                      width: `${fatsSize}%`,
+                      height: `${fatsSize * 2}%`,
+                      background: `radial-gradient(circle, ${fatsColor} 0%, transparent 70%)`,
+                      opacity: fatsOpacity,
+                      left: "30%",
+                      bottom: "-50%",
+                    }}
+                    animate={{
+                      x: [0, 10, -15, 8, 0],
+                      y: [0, -15, 10, -8, 0],
+                      scale: [1, 1.08, 0.92, 1.04, 1],
+                    }}
+                    transition={{
+                      duration: 7,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1,
+                    }}
+                  />
+                </div>
 
-      {/* Frosted glass overlay with subtle side vignette */}
-      <div
-        className="absolute inset-0 backdrop-blur-[2px]"
-        style={{
-          background: `linear-gradient(90deg, 
-          rgba(0, 0, 0, 0.08) 0%, 
-          rgba(0, 0, 0, 0) 12%, 
-          rgba(0, 0, 0, 0) 88%, 
-          rgba(0, 0, 0, 0.08) 100%)`,
-          boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.12)",
-        }}
-      />
+                {/* Frosted glass overlay with subtle side vignette */}
+                <div
+                  className="absolute inset-0 backdrop-blur-[2px]"
+                  style={{
+                    background: `linear-gradient(90deg, 
+                    rgba(0, 0, 0, 0.08) 0%, 
+                    rgba(0, 0, 0, 0) 12%, 
+                    rgba(0, 0, 0, 0) 88%, 
+                    rgba(0, 0, 0, 0.08) 100%)`,
+                    boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.12)",
+                  }}
+                />
 
-      {/* Border overlay */}
-      <div
-        className="absolute inset-0 rounded-xl pointer-events-none"
-        style={{
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-        }}
-      />
+                {/* Border overlay */}
+                <div
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  style={{
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                  }}
+                />
 
-      {/* Content */}
-      <div className="relative z-10 flex items-center h-full px-4">
-        {/* Left: Icon + Count */}
-        <div className="flex items-center gap-2 text-white">
-          <Utensils size={20} />
-          <span className="font-semibold">{selectedFoods.length}</span>
-        </div>
+                {/* Content */}
+                <div className="relative z-10 flex items-center h-full px-4">
+                  {/* Left: Icon + Count */}
+                  <div className="flex items-center gap-2 text-white">
+                    <Utensils size={20} />
+                    <span className="font-semibold">{selectedFoods.length}</span>
+                  </div>
 
-        {/* Center: Alternating Macros / Hint Text */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={showMacrosHint ? "hint" : "macros"}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="flex items-center gap-3 text-sm"
-            >
-              {showMacrosHint ? (
-                <span className="text-white/90 font-medium">Tap to view your foods</span>
-              ) : (
-                <>
-                  <span style={{ color: proteinColor }}>P {totalProtein.toFixed(0)}g</span>
-                  <span style={{ color: carbsColor }}>C {totalCarbs.toFixed(0)}g</span>
-                  <span style={{ color: fatsColor }}>F {totalFats.toFixed(0)}g</span>
-                </>
+                  {/* Center: Alternating Macros / Hint Text */}
+                  <div className="absolute left-1/2 -translate-x-1/2">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={showMacrosHint ? "hint" : "macros"}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex items-center gap-3 text-sm"
+                      >
+                        {showMacrosHint ? (
+                          <span className="text-white/90 font-medium">Tap to view your foods</span>
+                        ) : (
+                          <>
+                            <span style={{ color: proteinColor }}>P {totalProtein.toFixed(0)}g</span>
+                            <span style={{ color: carbsColor }}>C {totalCarbs.toFixed(0)}g</span>
+                            <span style={{ color: fatsColor }}>F {totalFats.toFixed(0)}g</span>
+                          </>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Right: Calories */}
+                  <div className="ml-auto text-sm text-white">
+                    <span>{totalCalories} cal</span>
+                  </div>
+                </div>
+              </button>
+
+              {showScanner && (
+                <div
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0,0,0,0.85)",
+                    zIndex: 2000,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      maxWidth: 420,
+                      width: "90%",
+                      background: "#222",
+                      borderRadius: 12,
+                      boxShadow: "0 2px 22px #0008",
+                      position: "relative",
+                    }}
+                  >
+                    <BarcodeScanner
+                      onDetected={(barcode) => {
+                        setShowScanner(false);
+                        fetchFoodByBarcode(barcode);
+                      }}
+                      onClose={() => setShowScanner(false)}
+                    />
+                    <Button
+                      variant="outline"
+                      style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}
+                      onClick={() => setShowScanner(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
               )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Right: Calories */}
-        <div className="ml-auto text-sm text-white">
-          <span>{totalCalories} cal</span>
-        </div>
-      </div>
-    </button>
-
-    {/* -- Place the barcode scanner modal OUTSIDE and AFTER everything else -- */}
-    {showScanner && (
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(0,0,0,0.85)",
-          zIndex: 2000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 420,
-            width: "90%",
-            background: "#222",
-            borderRadius: 12,
-            boxShadow: "0 2px 22px #0008",
-            position: "relative",
-          }}
-        >
-          <BarcodeScanner
-            onDetected={(barcode) => {
-              setShowScanner(false);
-              fetchFoodByBarcode(barcode);
-            }}
-            onClose={() => setShowScanner(false)}
-          />
-          <Button
-            variant="outline"
-            style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}
-            onClick={() => setShowScanner(false)}
-          >
-            Close
-          </Button>
-        </div>
-      </div>
-    )}
-  </div>
-);
+            </div>
+          );
+        })()}
 
       {/* Hidden file input for gallery */}
       <input ref={inputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
@@ -1484,7 +1484,6 @@ return (
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
   );
 };
 
