@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/dialog";
 import { useRecentFoods } from "@/hooks/useRecentFoods";
 import { usePosts } from "@/hooks/usePosts";
-import BarcodeScanner from "@/components/BarcodeScanner"; // <-- Import your Quagga-based scanner
 
 // ... keep all your interfaces and custom hooks as is
 
