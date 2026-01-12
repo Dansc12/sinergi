@@ -109,13 +109,17 @@ export const FoodSearchInput = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/functions/v1/search-foods?q=${encodeURIComponent(value)}`, {
-          method: "GET",
-          headers: {
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcGtueGpyZWZxbmtjeHN5dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODg1NDAsImV4cCI6MjA4MzU2NDU0MH0.9MVhZ5xEmA4HrXdX38m6wlGd89Z2YFfsypdQEWgmy98",
-          },
-        });
+        const response = await fetch(
+          "https://tfpknxjrefqnkcxsyvhl.supabase.co/functions/v1/search-foods?q=" + encodeURIComponent(value),
+          {
+            method: "GET",
+            headers: {
+              Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcGtueGpyZWZxbmtjeHN5dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODg1NDAsImV4cCI6MjA4MzU2NDU0MH0.9MVhZ5xEmA4HrXdX38m6wlGd89Z2YFfsypdQEWgmy98",
+            },
+          }
+        );
+      },
+    });
 
         if (!response.ok) {
           console.error("API error:", response.status);
