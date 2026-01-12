@@ -114,24 +114,20 @@ export const FoodSearchInput = ({
           {
             method: "GET",
             headers: {
-              Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcGtueGpyZWZxbmtjeHN5dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODg1NDAsImV4cCI6MjA4MzU2NDU0MH0.9MVhZ5xEmA4HrXdX38m6wlGd89Z2YFfsypdQEWgmy98",
+              Authorization:
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcGtueGpyZWZxbmtjeHN5dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODg1NDAsImV4cCI6MjA4MzU2NDU0MH0.9MVhZ5xEmA4HrXdX38m6wlGd89Z2YFfsypdQEWgmy98",
             },
-          }
+          },
         );
-      },
-    });
 
         if (!response.ok) {
           console.error("API error:", response.status);
           throw new Error("Failed to search foods");
         }
 
-        // The API returns an array of normalized objects
         const resultsFromApi = await response.json();
 
-        // Map OFF-normalized data to your FoodItem type
         const foods: FoodItem[] = (resultsFromApi || []).map((item: any) => ({
-          // Use external_id for ID (there is no fdcId in OFF)
           fdcId: item.external_id,
           description: item.name,
           brandName: item.brand,
@@ -139,7 +135,6 @@ export const FoodSearchInput = ({
           protein: item.nutrients_per_100g?.protein ?? 0,
           carbs: item.nutrients_per_100g?.carbs ?? 0,
           fats: item.nutrients_per_100g?.fat ?? 0,
-          // Use the serving suggestion field OFF provides, fallback to "100 g"
           servingSize: item.serving_suggestion ?? "100 g",
           servingSizeValue: undefined,
           servingSizeUnit: undefined,
@@ -155,8 +150,9 @@ export const FoodSearchInput = ({
       } finally {
         setIsLoading(false);
       }
-    }, 600);
+    }, 600); // <-- THIS IS WHERE setTimeout BLOCK ENDS!
 
+    // Cleanup function
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
