@@ -24,8 +24,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
           numOfWorkers: navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 4,
           decoder: {
             readers: [
-              "ean_reader",      // Most common food barcodes
-              "upc_reader",      // US barcodes
+              "ean_reader", // Most common food barcodes
+              "upc_reader", // US barcodes
               "code_128_reader", // Sometimes used
             ],
           },
@@ -37,7 +37,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
           } else {
             Quagga.start();
           }
-        }
+        },
       );
 
       Quagga.onDetected(handleDetected);
@@ -92,4 +92,4 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, onClose }) 
     </div>
   );
 };
-eort default BarcodeScann
+export default BarcodeScanner;
