@@ -1484,6 +1484,7 @@ const CreateMealPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
   );
 };
 
