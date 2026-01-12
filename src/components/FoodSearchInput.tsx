@@ -1,170 +1,236 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Utensils, X, Camera, ChevronRight, Clock, Loader2, ChefHat, Compass, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { FoodDetailModal } from "@/components/FoodDetailModal";
-import { SavedMealExpansionModal } from "@/components/SavedMealExpansionModal";
-import { AddCustomFoodModal } from "@/components/AddCustomFoodModal";
-import { CameraCapture, PhotoChoiceDialog } from "@/components/CameraCapture";
-import { usePhotoPicker } from "@/hooks/useCamera";
-import PhotoGallerySheet from "@/components/PhotoGallerySheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useRecentFoods } from "@/hooks/useRecentFoods";
-import { usePosts } from "@/hooks/usePosts";
+import { Search, Loader2, Plus, Utensils } from "lucide-react";
 
-// ... keep all your interfaces and custom hooks as is
+// Type definitions
+export interface SavedMealFood {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  servings?: number;
+  servingSize?: string;
+  rawQuantity?: number;
+  rawUnit?: string;
+}
 
-const CreateMealPage = () => {
-  const [showScanner, setShowScanner] = useState(false);
-  const [barcodeResult, setBarcodeResult] = useState<string | null>(null);
-  const [foodFromBarcode, setFoodFromBarcode] = useState<any>(null);
+export interface FoodItem {
+  fdcId: number;
+  description: string;
+  brandName?: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  servingSize?: string;
+  servingSizeValue?: number;
+  servingSizeUnit?: string;
+  isCustom?: boolean;
+  baseUnit?: string;
+  isSavedMeal?: boolean;
+  isRecipe?: boolean;
+  savedMealFoods?: SavedMealFood[];
+  savedMealCoverPhoto?: string;
+}
 
-  // Function to fetch food using barcode
-  const fetchFoodByBarcode = async (barcode: string) => {
-    setFoodFromBarcode(null);
-    setBarcodeResult(barcode);
-    try {
-      const resp = await fetch(
-        `https://tfpknxjrefqnkcxsyvhl.supabase.co/functions/v1/search-foods?barcode=${barcode}`,
-        {
-          headers: {
-            Authorization: "Bearer YOUR_SUPABASE_ANON_KEY",
+interface FoodSearchInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (food: FoodItem) => void;
+  onAddCustom?: (searchTerm: string) => void;
+  placeholder?: string;
+}
+
+// Component
+export const FoodSearchInput = ({
+  value,
+  onChange,
+  onSelect,
+  onAddCustom,
+  placeholder = "Search for a food...",
+}: FoodSearchInputProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<FoodItem[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
+
+  // Rank foods based on search term relevance
+  const rankFoods = (foods: FoodItem[], searchTerm: string): FoodItem[] => {
+    const lowerSearch = searchTerm.toLowerCase().trim();
+    return foods.sort((a, b) => {
+      const aDesc = a.description.toLowerCase();
+      const bDesc = b.description.toLowerCase();
+      // Custom first
+      if (a.isCustom && !b.isCustom) return -1;
+      if (b.isCustom && !a.isCustom) return 1;
+      // Exact match
+      const aExact = aDesc === lowerSearch;
+      const bExact = bDesc === lowerSearch;
+      if (aExact && !bExact) return -1;
+      if (bExact && !aExact) return 1;
+      // Starts with term
+      const aStarts = aDesc.startsWith(lowerSearch);
+      const bStarts = bDesc.startsWith(lowerSearch);
+      if (aStarts && !bStarts) return -1;
+      if (bStarts && !aStarts) return 1;
+      // By length
+      return aDesc.length - bDesc.length;
+    });
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (value.trim().length < 3) {
+      setResults([]);
+      setIsOpen(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `https://tfpknxjrefqnkcxsyvhl.supabase.co/functions/v1/search-foods?q=${encodeURIComponent(value)}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer YOUR_SUPABASE_ANON_KEY",
+            },
           },
-        },
-      );
-      const data = await resp.json();
-      setFoodFromBarcode(data);
-      // Optionally auto-select/add food if data is valid here
-    } catch (e) {
-      setFoodFromBarcode({ error: "Lookup failed" });
+        );
+        if (!response.ok) throw new Error("Failed to search foods");
+        const resultsFromApi = await response.json();
+        const foods: FoodItem[] = (resultsFromApi || []).map((item: any) => ({
+          fdcId: item.external_id,
+          description: item.name,
+          brandName: item.brand,
+          calories: item.nutrients_per_100g?.calories ?? 0,
+          protein: item.nutrients_per_100g?.protein ?? 0,
+          carbs: item.nutrients_per_100g?.carbs ?? 0,
+          fats: item.nutrients_per_100g?.fat ?? 0,
+          servingSize: item.serving_suggestion ?? "100 g",
+          servingSizeValue: undefined,
+          servingSizeUnit: undefined,
+          isCustom: false,
+          baseUnit: "g",
+        }));
+        setResults(rankFoods(foods, value).slice(0, 15));
+        setIsOpen(true);
+      } catch (err) {
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 600);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [value]);
+
+  const handleSelect = (food: FoodItem) => {
+    onSelect(food);
+    onChange(food.description);
+    setIsOpen(false);
+  };
+
+  const handleAddCustomClick = () => {
+    if (onAddCustom) {
+      onAddCustom(value);
+      setIsOpen(false);
     }
   };
 
-  // ... all your normal state, effects, and handlers as before
-
   return (
-    <div className="min-h-screen bg-background pb-40">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4">
-        {/* Header and other top-of-page code unchanged */}
-
-        {/* --- Food Search and Barcode Scanner UI --- */}
-        <div className="mb-4 flex gap-2 items-start">
-          <Button onClick={() => setShowScanner(true)} type="button" className="h-12">
-            <Camera size={18} style={{ marginRight: 6 }} />
-            Scan Barcode
-          </Button>
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-10" />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
         </div>
-
-        {/* Barcode result display */}
-        {barcodeResult && (
-          <div className="mb-3 p-3 rounded-xl border bg-card">
-            <div className="text-xs text-muted-foreground mb-1">
-              Scanned barcode: <span className="font-mono">{barcodeResult}</span>
-            </div>
-            {foodFromBarcode === null && <div className="text-sm">Loading food...</div>}
-            {foodFromBarcode && foodFromBarcode.not_found && (
-              <div className="text-destructive">No food found for this barcode.</div>
-            )}
-            {foodFromBarcode && foodFromBarcode.name && (
-              <div>
-                <div className="font-bold text-lg mb-1">
-                  {foodFromBarcode.name} {foodFromBarcode.brand && <span>({foodFromBarcode.brand})</span>}
-                </div>
-                {foodFromBarcode.image_url && (
-                  <img src={foodFromBarcode.image_url} alt={foodFromBarcode.name} width={100} className="mb-2" />
-                )}
-                <div>
-                  <span>Calories: {foodFromBarcode.nutrients_per_100g?.calories ?? "?"} cal / 100g</span>
-                  <br />
-                  <span>Protein: {foodFromBarcode.nutrients_per_100g?.protein ?? "?"}g</span>
-                  <br />
-                  <span>Carbs: {foodFromBarcode.nutrients_per_100g?.carbs ?? "?"}g</span>
-                  <br />
-                  <span>Fat: {foodFromBarcode.nutrients_per_100g?.fat ?? "?"}g</span>
-                  <br />
-                  {foodFromBarcode.serving_suggestion && <span>Serving: {foodFromBarcode.serving_suggestion}</span>}
-                </div>
-              </div>
-            )}
-            {foodFromBarcode && foodFromBarcode.error && (
-              <div className="text-destructive">Something went wrong fetching food details.</div>
-            )}
-          </div>
-        )}
-
-        {/* Barcode Scanner Modal */}
-        {showScanner && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.85)",
-              zIndex: 2000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-80 overflow-y-auto"
           >
-            <div
-              style={{
-                maxWidth: 420,
-                width: "90%",
-                background: "#222",
-                borderRadius: 12,
-                boxShadow: "0 2px 22px #0008",
-                position: "relative",
-              }}
-            >
-              <BarcodeScanner
-                onDetected={(barcode) => {
-                  setShowScanner(false);
-                  fetchFoodByBarcode(barcode);
-                }}
-                onClose={() => setShowScanner(false)}
-              />
-              <Button
-                variant="outline"
-                style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}
-                onClick={() => setShowScanner(false)}
+            {onAddCustom && (
+              <button
+                type="button"
+                onClick={handleAddCustomClick}
+                className="w-full text-left px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border flex items-center gap-3 bg-primary/5"
               >
-                Close
-              </Button>
-            </div>
-          </div>
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Plus size={16} className="text-primary" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm text-primary">Can't find it? Add a custom food</div>
+                  <div className="text-xs text-muted-foreground">
+                    {value.trim() ? `Create "${value.trim()}"` : "Enter your own food with macros"}
+                  </div>
+                </div>
+              </button>
+            )}
+            {results.length > 0
+              ? results.map((food) => (
+                  <button
+                    key={`${food.fdcId}-${food.isCustom ? "custom" : "usda"}`}
+                    type="button"
+                    onClick={() => handleSelect(food)}
+                    className="w-full text-left px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border last:border-0"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{food.description}</div>
+                        {food.isCustom && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">
+                              Custom
+                            </span>
+                          </div>
+                        )}
+                        {!food.isCustom && food.brandName && (
+                          <div className="text-xs text-muted-foreground truncate">{food.brandName}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                      <span>{food.calories} cal</span>
+                      <span style={{ color: "#3DD6C6" }}>P: {food.protein}g</span>
+                      <span style={{ color: "#5B8CFF" }}>C: {food.carbs}g</span>
+                      <span style={{ color: "#B46BFF" }}>F: {food.fats}g</span>
+                      {food.isCustom && <span className="text-muted-foreground/70">per 1{food.baseUnit}</span>}
+                    </div>
+                  </button>
+                ))
+              : !onAddCustom &&
+                value.trim().length >= 3 &&
+                !isLoading && <div className="px-4 py-3 text-sm text-muted-foreground text-center">No foods found</div>}
+          </motion.div>
         )}
-
-        {/* --- Rest of your component --- */}
-        {/* Existing Meal creation, Food list, Modals, etc., all remain below unchanged */}
-        {/* ... */}
-      </motion.div>
-      {/* ...any other components, modals, dialogs... */}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default CreateMealPage;
-export { FoodSearchInput };
+// Export types and component for use elsewhere
 export type { FoodItem, SavedMealFood };
+export { FoodSearchInput };
