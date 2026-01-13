@@ -194,7 +194,18 @@ const CreateMealPage = () => {
   function parseServingSize(servingSuggestion: string | undefined): { quantity: number; unit: string } {
     const ALLOWED_UNITS = ["g", "ml", "oz", "lb", "cup"];
     if (!servingSuggestion) return { quantity: 100, unit: "g" };
-    const match = servingSuggestion.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
+
+    // Try to extract "(61g)" or "(61 g)"
+    const matchParen = servingSuggestion.match(/\(([\d.]+)\s*([a-zA-Z]+)\)/);
+    if (matchParen) {
+      const unit = matchParen[2].toLowerCase();
+      return {
+        quantity: ALLOWED_UNITS.includes(unit) ? parseFloat(matchParen[1]) : 100,
+        unit: ALLOWED_UNITS.includes(unit) ? unit : "g",
+      };
+    }
+    // Try to extract "61g", "61 g", "1 cup"
+    const match = servingSuggestion.match(/([\d.]+)\s*([a-zA-Z]+)/);
     if (match) {
       const unit = match[2].toLowerCase();
       return {
