@@ -163,6 +163,27 @@ const CreateMealPage = () => {
     }
   }, []);
 
+  // Barcode: Pop up modal after scan
+  useEffect(() => {
+    if (foodFromBarcode && foodFromBarcode.name) {
+      const food: FoodItem = {
+        fdcId: foodFromBarcode.external_id || Date.now(),
+        description: foodFromBarcode.name,
+        brandName: foodFromBarcode.brand,
+        calories: foodFromBarcode.nutrients_per_100g?.calories ?? 0,
+        protein: foodFromBarcode.nutrients_per_100g?.protein ?? 0,
+        carbs: foodFromBarcode.nutrients_per_100g?.carbs ?? 0,
+        fats: foodFromBarcode.nutrients_per_100g?.fat ?? 0,
+        servingSize: foodFromBarcode.serving_suggestion || "100g",
+        isCustom: false,
+        baseUnit: "g",
+      };
+      handleFoodSelect(food, 100, "g");
+      setFoodFromBarcode(null); // Prevent repeated popups
+      setBarcodeResult(null);
+    }
+  }, [foodFromBarcode]);
+
   const handleBack = () => {
     if (selectedFoods.length > 0) {
       setShowBackConfirm(true);
