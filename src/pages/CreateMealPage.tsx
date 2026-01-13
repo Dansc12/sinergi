@@ -166,6 +166,11 @@ const CreateMealPage = () => {
   useEffect(() => {
     if (foodFromBarcode && foodFromBarcode.name) {
       const { quantity, unit } = parseServingSize(foodFromBarcode.serving_suggestion);
+      const ALLOWED_UNITS = ["g", "ml", "oz", "lb", "cup"];
+      // Only use allowed units, else fall back to grams
+      const finalUnit = ALLOWED_UNITS.includes(unit) ? unit : "g";
+      const finalQuantity = ALLOWED_UNITS.includes(unit) ? quantity : 100;
+
       const food: FoodItem = {
         fdcId: foodFromBarcode.external_id || Date.now(),
         description: foodFromBarcode.name,
@@ -174,24 +179,26 @@ const CreateMealPage = () => {
         protein: foodFromBarcode.nutrients_per_100g?.protein ?? 0,
         carbs: foodFromBarcode.nutrients_per_100g?.carbs ?? 0,
         fats: foodFromBarcode.nutrients_per_100g?.fat ?? 0,
-        servingSize: foodFromBarcode.serving_suggestion || `${quantity} ${unit}`,
+        servingSize: foodFromBarcode.serving_suggestion || `${finalQuantity} ${finalUnit}`,
         isCustom: false,
-        baseUnit: unit,
+        baseUnit: finalUnit,
       };
-      handleFoodSelect(food, quantity, unit);
-      setFoodFromBarcode(null); // Prevent repeat popup
+      // This ensures your modal shows the correct default quantity/unit
+      handleFoodSelect(food, finalQuantity, finalUnit);
+      setFoodFromBarcode(null);
       setBarcodeResult(null);
     }
   }, [foodFromBarcode]);
 
   function parseServingSize(servingSuggestion: string | undefined): { quantity: number; unit: string } {
+    const ALLOWED_UNITS = ["g", "ml", "oz", "lb", "cup"];
     if (!servingSuggestion) return { quantity: 100, unit: "g" };
-    // Try "56 g", "1 cup", etc.
     const match = servingSuggestion.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
     if (match) {
+      const unit = match[2].toLowerCase();
       return {
-        quantity: parseFloat(match[1]),
-        unit: match[2].toLowerCase(),
+        quantity: ALLOWED_UNITS.includes(unit) ? parseFloat(match[1]) : 100,
+        unit: ALLOWED_UNITS.includes(unit) ? unit : "g",
       };
     }
     return { quantity: 100, unit: "g" };
