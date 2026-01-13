@@ -5,7 +5,7 @@ import {
   ArrowLeft,
   Utensils,
   X,
-  Barcode,
+  Camera,
   ChevronRight,
   Clock,
   Images,
@@ -478,7 +478,7 @@ const CreateMealPage = () => {
         </div>
 
         {/* Food Search */}
-        <div className="mb-4">
+        <div className="mb-4 flex gap-2 items-center">
           <FoodSearchInput
             value={searchValue}
             onChange={setSearchValue}
@@ -486,18 +486,14 @@ const CreateMealPage = () => {
             onAddCustom={handleAddCustomFood}
             placeholder="Search for a food..."
           />
-        </div>
-
-        {/* Scan Barcode Button */}
-        <div className="mb-4">
           <Button
-            variant="outline"
-            className="w-full gap-2 h-12 rounded-xl border-border bg-card hover:bg-muted hover:border-primary/30 transition-colors"
             onClick={() => setShowScanner(true)}
+            variant="ghost"
+            size="icon"
+            className="ml-2 h-10 w-10 flex items-center justify-center rounded-full"
             aria-label="Scan Barcode"
           >
-            <Barcode size={18} className="text-primary" />
-            <span>Scan Barcode</span>
+            <Camera size={22} />
           </Button>
         </div>
 
