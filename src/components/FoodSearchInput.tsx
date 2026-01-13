@@ -61,21 +61,30 @@ export const FoodSearchInput = ({
 
   const rankFoods = (foods: FoodItem[], searchTerm: string): FoodItem[] => {
     const lowerSearch = searchTerm.toLowerCase().trim();
-    return foods.sort((a, b) => {
-      const aDesc = a.description.toLowerCase();
-      const bDesc = b.description.toLowerCase();
-      if (a.isCustom && !b.isCustom) return -1;
-      if (b.isCustom && !a.isCustom) return 1;
-      const aExact = aDesc === lowerSearch;
-      const bExact = bDesc === lowerSearch;
-      if (aExact && !bExact) return -1;
-      if (bExact && !aExact) return 1;
-      const aStarts = aDesc.startsWith(lowerSearch);
-      const bStarts = bDesc.startsWith(lowerSearch);
-      if (aStarts && !bStarts) return -1;
-      if (bStarts && !aStarts) return 1;
-      return aDesc.length - bDesc.length;
-    });
+
+    function score(food: FoodItem): number {
+      const desc = food.description.toLowerCase();
+
+      // Highest priority: exact match
+      if (desc === lowerSearch) return 10000;
+      // Next: starts with
+      if (desc.startsWith(lowerSearch)) return 9000;
+      // Next: full word match in name
+      if (desc.split(/\b/).includes(lowerSearch)) return 8000;
+      // Next: contains as substring
+      if (desc.includes(lowerSearch)) return 7000;
+      // Brand or parenthetical match is nice, but lower priority
+      if (food.brandName && food.brandName.toLowerCase().includes(lowerSearch)) return 6000;
+      if (food.description.match(new RegExp(`\\b${lowerSearch}\\b`, "i"))) return 5000;
+
+      // Penalty: longer names, far-off words
+      let penalty = desc.length;
+      // bonus if description is short (single food, not branded)
+      if (desc.length < 15) penalty -= 10;
+      return 100 - penalty;
+    }
+
+    return [...foods].sort((a, b) => score(b) - score(a));
   };
 
   useEffect(() => {
