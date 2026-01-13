@@ -61,22 +61,44 @@ export const FoodSearchInput = ({
 
   const rankFoods = (foods: FoodItem[], searchTerm: string): FoodItem[] => {
     const lowerSearch = searchTerm.toLowerCase().trim();
+    const searchWords = lowerSearch.split(/\s+/);
 
     function score(food: FoodItem): number {
       const desc = food.description?.toLowerCase() || "";
 
-      // Highest: Exact match
-      if (desc === lowerSearch) return 10000;
-      // Full word match (e.g. "chicken" in "large chicken breast")
-      if (desc.split(/[\s,()./]+/).includes(lowerSearch)) return 9000;
-      // Starts with
-      if (desc.startsWith(lowerSearch)) return 8000;
-      // Contains (but not full word)
-      if (desc.includes(lowerSearch)) return 7000;
-      // Brand name match (lower score)
-      if (food.brandName && food.brandName.toLowerCase().includes(lowerSearch)) return 6000;
+      // Highest: Exact match (whole field or as phrase)
+      if (desc === lowerSearch) return 20000;
+
+      // Exact phrase at start ("medium egg ..." or "medium egg, ...")
+      if (desc.startsWith(lowerSearch)) return 19000;
+
+      // Exact phrase anywhere (still beats separated words)
+      if (desc.includes(lowerSearch)) return 18000;
+
+      // All words present in order, even if separated ("medium jumbo egg", "medium brown egg")
+      const descNoPunct = desc.replace(/[^\w\s]/g, " ");
+      if (
+        descNoPunct.includes(searchWords.join(" ")) || // phrase found
+        (searchWords.every((w) => descNoPunct.includes(w)) &&
+          descNoPunct.indexOf(searchWords[0]) < descNoPunct.indexOf(searchWords[searchWords.length - 1]))
+      ) {
+        return 17000;
+      }
+
+      // All search words present, any order
+      if (searchWords.every((w) => desc.includes(w))) return 16000;
+
+      // Starts with one of the words
+      if (searchWords.some((w) => desc.startsWith(w))) return 15000;
+
+      // Contains any search word
+      if (searchWords.some((w) => desc.includes(w))) return 14000;
+
+      // Brand name match
+      if (food.brandName && food.brandName.toLowerCase().includes(lowerSearch)) return 13000;
+
       // Shorter names slightly preferred
-      return 5000 - desc.length;
+      return 12000 - desc.length;
     }
 
     return [...foods].sort((a, b) => score(b) - score(a));
