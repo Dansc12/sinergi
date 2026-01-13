@@ -34,6 +34,7 @@ export interface FoodItem {
   isRecipe?: boolean;
   savedMealFoods?: SavedMealFood[];
   savedMealCoverPhoto?: string;
+  basis?: string; // "per_100g" | "per_serving"
 }
 
 interface FoodSearchInputProps {
@@ -118,6 +119,7 @@ export const FoodSearchInput = ({
           carbs: item.nutrients_per_100g?.carbs ?? 0,
           fats: item.nutrients_per_100g?.fat ?? 0,
           servingSize: item.serving_suggestion ?? "100 g",
+          basis: item.nutrients_per_100g?.basis ?? "per_100g",
           servingSizeValue: undefined,
           servingSizeUnit: undefined,
           isCustom: false,
