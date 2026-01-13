@@ -46,6 +46,7 @@ import {
 import { useRecentFoods } from "@/hooks/useRecentFoods";
 import { usePosts } from "@/hooks/usePosts";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import { X } from "lucide-react";
 interface SelectedFood {
   id: string;
   name: string;
@@ -1426,52 +1427,33 @@ const CreateMealPage = () => {
         })()}
 
       {showScanner && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.93)",
-            zIndex: 2000,
-            display: "flex",
-            alignItems: "stretch",
-            justifyContent: "stretch",
-          }}
-        >
-          <BarcodeScanner
-            onDetected={(barcode) => {
-              setShowScanner(false);
-              setBarcodeResult(barcode);
-              fetchFoodByBarcode(barcode);
-            }}
-            onClose={() => setShowScanner(false)}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-          <button
-            aria-label="Close"
-            onClick={() => setShowScanner(false)}
-            style={{
-              position: "fixed",
-              top: 14,
-              right: 20,
-              zIndex: 2100,
-              background: "rgba(0,0,0,0.72)",
-              border: "none",
-              color: "#fff",
-              borderRadius: "100%",
-              width: 40,
-              height: 40,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 20,
-              cursor: "pointer",
-            }}
-          >
-            <X size={26} />
-          </button>
+        <div className="fixed inset-0 z-50 bg-black">
+          {/* Top bar with only X */}
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+            <button
+              onClick={() => setShowScanner(false)}
+              className="text-white hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center"
+              aria-label="Close"
+            >
+              <X size={24} />
+            </button>
+            {/* Empty right side for symmetry */}
+            <div style={{ width: 40 }} />
+          </div>
+          {/* Camera Livefeed Fullscreen */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <BarcodeScanner
+              onDetected={(barcode) => {
+                setShowScanner(false);
+                setBarcodeResult(barcode);
+                fetchFoodByBarcode(barcode);
+              }}
+              onClose={() => setShowScanner(false)}
+              // If your BarcodeScanner supports className or style props for sizing:
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {/* Optional: loading state or error could be overlayed here */}
         </div>
       )}
 
