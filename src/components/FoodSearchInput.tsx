@@ -40,7 +40,7 @@ export interface FoodItem {
 interface FoodSearchInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSelect: (food: FoodItem) => void;
+  onSelect: (food: FoodItem, initialQuantity?: number, initialUnit?: string) => void;
   onAddCustom?: (searchTerm: string) => void;
   placeholder?: string;
 }
@@ -165,8 +165,34 @@ export const FoodSearchInput = ({
     };
   }, [value]);
 
+  function parseServingSize(servingSuggestion: string | undefined): { quantity: number; unit: string } {
+    const ALLOWED_UNITS = ["g", "ml", "oz", "lb", "cup"];
+    if (!servingSuggestion) return { quantity: 100, unit: "g" };
+    // Try "(61g)" etc
+    const matchParen = servingSuggestion.match(/\(([\d.]+)\s*([a-zA-Z]+)\)/);
+    if (matchParen) {
+      const unit = matchParen[2].toLowerCase();
+      return {
+        quantity: ALLOWED_UNITS.includes(unit) ? parseFloat(matchParen[1]) : 100,
+        unit: ALLOWED_UNITS.includes(unit) ? unit : "g",
+      };
+    }
+    // Try "61g", "61 g", etc
+    const match = servingSuggestion.match(/([\d.]+)\s*([a-zA-Z]+)/);
+    if (match) {
+      const unit = match[2].toLowerCase();
+      return {
+        quantity: ALLOWED_UNITS.includes(unit) ? parseFloat(match[1]) : 100,
+        unit: ALLOWED_UNITS.includes(unit) ? unit : "g",
+      };
+    }
+    return { quantity: 100, unit: "g" };
+  }
+
   const handleSelect = (food: FoodItem) => {
-    onSelect(food);
+    // Get initial serving from servingSize
+    const { quantity, unit } = parseServingSize(food.servingSize);
+    onSelect(food, quantity, unit); // Pass values to parent
     onChange(food.description);
     setIsOpen(false);
   };
