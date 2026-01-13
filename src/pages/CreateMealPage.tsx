@@ -181,7 +181,6 @@ const CreateMealPage = () => {
         carbs: foodFromBarcode.nutrients_per_100g?.carbs ?? 0,
         fats: foodFromBarcode.nutrients_per_100g?.fat ?? 0,
         servingSize: foodFromBarcode.serving_suggestion || `${finalQuantity} ${finalUnit}`,
-        basis: foodFromBarcode.nutrients_per_100g?.basis ?? "per_100g",
         isCustom: false,
         baseUnit: finalUnit,
       };
@@ -510,7 +509,10 @@ const CreateMealPage = () => {
                   <img src={foodFromBarcode.image_url} alt={foodFromBarcode.name} width={100} className="mb-2" />
                 )}
                 <div>
-                  <span>Calories: {foodFromBarcode.nutrients_per_100g?.calories ?? "?"} cal / 100g</span>
+                  <span>
+                    Calories: {foodFromBarcode.nutrients_per_100g?.calories ?? "?"}
+                    {foodFromBarcode.nutrients_per_100g?.basis === "per_serving" ? " cal / serving" : " cal / 100g"}
+                  </span>
                   <br />
                   <span>Protein: {foodFromBarcode.nutrients_per_100g?.protein ?? "?"}g</span>
                   <br />
