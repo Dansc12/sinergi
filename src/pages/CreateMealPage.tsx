@@ -1426,7 +1426,7 @@ const CreateMealPage = () => {
         })()}
 
       {showScanner && (
-        <div className="fixed inset-0 z-50 bg-black">
+        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
           {/* Top bar with only X */}
           <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
             <button
@@ -1439,8 +1439,8 @@ const CreateMealPage = () => {
             {/* Empty right side for symmetry */}
             <div style={{ width: 40 }} />
           </div>
-          {/* Camera Livefeed Fullscreen */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Centered, responsive scanner box */}
+          <div className="relative w-[92vw] max-w-[430px] h-[62vw] max-h-[420px] rounded-2xl bg-[#222] shadow-2xl flex items-center justify-center">
             <BarcodeScanner
               onDetected={(barcode) => {
                 setShowScanner(false);
