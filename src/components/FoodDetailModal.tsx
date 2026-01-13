@@ -18,6 +18,7 @@ export interface FoodItem {
   servingSizeUnit?: string;
   isCustom?: boolean;
   baseUnit?: string; // 'g' or 'oz' for custom foods
+  basis?: string;
 }
 
 interface FoodDetailModalProps {
@@ -40,7 +41,7 @@ const STANDARD_UNITS = [
 
 // Get the gram equivalent for a unit
 const getGramsForUnit = (unit: string): { grams: number; isEstimate: boolean } => {
-  const found = STANDARD_UNITS.find(u => u.value === unit);
+  const found = STANDARD_UNITS.find((u) => u.value === unit);
   return {
     grams: found?.gramsEquivalent || 1,
     isEstimate: found?.hasEstimate || false,
@@ -52,16 +53,16 @@ const calculateMultiplier = (
   selectedUnit: string,
   quantity: number,
   baseUnit: string, // 'g' or 'oz' - what the food's macros are stored per
-  isUSDA: boolean
+  isUSDA: boolean,
 ): number => {
   const { grams: selectedGrams } = getGramsForUnit(selectedUnit);
-  
+
   if (isUSDA) {
     // USDA foods are per 100g
     return (quantity * selectedGrams) / 100;
   } else {
     // Custom foods are per 1g or 1oz
-    const baseGrams = baseUnit === 'oz' ? 28.35 : 1;
+    const baseGrams = baseUnit === "oz" ? 28.35 : 1;
     return (quantity * selectedGrams) / baseGrams;
   }
 };
@@ -76,7 +77,7 @@ export const FoodDetailModal = ({
 }: FoodDetailModalProps) => {
   // Cache food for exit animation - only update when we get a new non-null food
   const [cachedFood, setCachedFood] = useState<FoodItem | null>(food);
-  
+
   useEffect(() => {
     if (food) {
       setCachedFood(food);
@@ -101,17 +102,17 @@ export const FoodDetailModal = ({
   const [manualCarbs, setManualCarbs] = useState("");
   const [manualFats, setManualFats] = useState("");
   const macroEditRef = useRef<HTMLDivElement>(null);
-  
+
   // Drag state for quantity adjustment
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef<number>(0);
   const dragStartQuantity = useRef<number>(0);
   const lastDragQuantity = useRef<number>(0);
-  
+
   // Use cached food for rendering (allows exit animation to play)
   const displayFood = cachedFood;
   const isCustomFood = displayFood?.isCustom || false;
-  const baseUnit = displayFood?.baseUnit || 'g';
+  const baseUnit = displayFood?.baseUnit || "g";
   const isUSDA = !isCustomFood;
 
   // Determine default quantity based on unit
@@ -143,18 +144,18 @@ export const FoodDetailModal = ({
   useEffect(() => {
     if (isOpen && food) {
       // Use initial values if provided, otherwise use defaults
-      const defaultUnit = initialUnit || (isUSDA ? "g" : (food.baseUnit || "g"));
+      const defaultUnit = initialUnit || (isUSDA ? "g" : food.baseUnit || "g");
       const defaultQty = initialQuantity ?? getDefaultQuantity(defaultUnit);
-      
+
       setSelectedUnit(defaultUnit);
       setQuantity(defaultQty);
       setQuantityInput(String(defaultQty));
       setIsEditingQuantity(false);
       setManualOverride(false);
       setIsEditingManual(false);
-      
+
       // Initialize manual values
-      const initMultiplier = calculateMultiplier(defaultUnit, defaultQty, food.baseUnit || 'g', !food.isCustom);
+      const initMultiplier = calculateMultiplier(defaultUnit, defaultQty, food.baseUnit || "g", !food.isCustom);
       setManualCalories(String(Math.round(food.calories * initMultiplier)));
       setManualProtein(String(Math.round(food.protein * initMultiplier * 10) / 10));
       setManualCarbs(String(Math.round(food.carbs * initMultiplier * 10) / 10));
@@ -170,7 +171,16 @@ export const FoodDetailModal = ({
       setManualCarbs(String(Math.round(calculatedCarbs * 10) / 10));
       setManualFats(String(Math.round(calculatedFats * 10) / 10));
     }
-  }, [quantity, selectedUnit, manualOverride, food, calculatedCalories, calculatedProtein, calculatedCarbs, calculatedFats]);
+  }, [
+    quantity,
+    selectedUnit,
+    manualOverride,
+    food,
+    calculatedCalories,
+    calculatedProtein,
+    calculatedCarbs,
+    calculatedFats,
+  ]);
 
   const finalizeManualValues = () => {
     const normalize = (v: string) => {
@@ -207,10 +217,10 @@ export const FoodDetailModal = ({
   if (!displayFood) return null;
 
   // Use manual values if override is enabled
-  const adjustedCalories = manualOverride ? (parseFloat(manualCalories) || 0) : calculatedCalories;
-  const adjustedProtein = manualOverride ? (parseFloat(manualProtein) || 0) : calculatedProtein;
-  const adjustedCarbs = manualOverride ? (parseFloat(manualCarbs) || 0) : calculatedCarbs;
-  const adjustedFats = manualOverride ? (parseFloat(manualFats) || 0) : calculatedFats;
+  const adjustedCalories = manualOverride ? parseFloat(manualCalories) || 0 : calculatedCalories;
+  const adjustedProtein = manualOverride ? parseFloat(manualProtein) || 0 : calculatedProtein;
+  const adjustedCarbs = manualOverride ? parseFloat(manualCarbs) || 0 : calculatedCarbs;
+  const adjustedFats = manualOverride ? parseFloat(manualFats) || 0 : calculatedFats;
 
   const totalMacros = adjustedProtein + adjustedCarbs + adjustedFats;
   const proteinPercentage = totalMacros > 0 ? (adjustedProtein / totalMacros) * 100 : 0;
@@ -314,7 +324,6 @@ export const FoodDetailModal = ({
     }
   };
 
-
   return (
     <AnimatePresence mode="wait" onExitComplete={handleExitComplete}>
       {isOpen && (
@@ -363,33 +372,33 @@ export const FoodDetailModal = ({
               {/* Nutrition Card - Rectangle with blob background */}
               <div ref={macroEditRef}>
                 {(() => {
-                  const proteinColor = '#3DD6C6';
-                  const carbsColor = '#5B8CFF';
-                  const fatsColor = '#B46BFF';
-                  
-                  const proteinRatioCalc = totalMacros > 0 ? Math.max((adjustedProtein / totalMacros), 0.08) : 0.33;
-                  const carbsRatioCalc = totalMacros > 0 ? Math.max((adjustedCarbs / totalMacros), 0.08) : 0.33;
-                  const fatsRatioCalc = totalMacros > 0 ? Math.max((adjustedFats / totalMacros), 0.08) : 0.33;
-                  
+                  const proteinColor = "#3DD6C6";
+                  const carbsColor = "#5B8CFF";
+                  const fatsColor = "#B46BFF";
+
+                  const proteinRatioCalc = totalMacros > 0 ? Math.max(adjustedProtein / totalMacros, 0.08) : 0.33;
+                  const carbsRatioCalc = totalMacros > 0 ? Math.max(adjustedCarbs / totalMacros, 0.08) : 0.33;
+                  const fatsRatioCalc = totalMacros > 0 ? Math.max(adjustedFats / totalMacros, 0.08) : 0.33;
+
                   const totalRatioCalc = proteinRatioCalc + carbsRatioCalc + fatsRatioCalc;
                   const normalizedProtein = proteinRatioCalc / totalRatioCalc;
                   const normalizedCarbs = carbsRatioCalc / totalRatioCalc;
                   const normalizedFats = fatsRatioCalc / totalRatioCalc;
-                  
+
                   const proteinSize = 60 + normalizedProtein * 40;
                   const carbsSize = 60 + normalizedCarbs * 40;
                   const fatsSize = 60 + normalizedFats * 40;
-                  
+
                   return (
-                    <div 
+                    <div
                       className="relative w-full rounded-2xl overflow-hidden p-5"
                       style={{
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
                       }}
                     >
                       {/* Dark base */}
                       <div className="absolute inset-0 bg-card" />
-                      
+
                       {/* Protein blob */}
                       <motion.div
                         className="absolute rounded-full"
@@ -397,10 +406,10 @@ export const FoodDetailModal = ({
                           width: `${proteinSize}%`,
                           height: `${proteinSize * 1.5}%`,
                           background: proteinColor,
-                          filter: 'blur(40px)',
+                          filter: "blur(40px)",
                           opacity: 0.4,
-                          left: '-15%',
-                          top: '-20%',
+                          left: "-15%",
+                          top: "-20%",
                         }}
                         animate={{
                           x: [0, 20, -15, 10, 0],
@@ -410,7 +419,7 @@ export const FoodDetailModal = ({
                         transition={{
                           duration: 8,
                           repeat: Infinity,
-                          ease: 'easeInOut',
+                          ease: "easeInOut",
                         }}
                       />
                       {/* Carbs blob */}
@@ -420,10 +429,10 @@ export const FoodDetailModal = ({
                           width: `${carbsSize}%`,
                           height: `${carbsSize * 1.5}%`,
                           background: carbsColor,
-                          filter: 'blur(40px)',
+                          filter: "blur(40px)",
                           opacity: 0.4,
-                          right: '-20%',
-                          top: '-10%',
+                          right: "-20%",
+                          top: "-10%",
                         }}
                         animate={{
                           x: [0, -25, 15, -10, 0],
@@ -433,7 +442,7 @@ export const FoodDetailModal = ({
                         transition={{
                           duration: 9,
                           repeat: Infinity,
-                          ease: 'easeInOut',
+                          ease: "easeInOut",
                           delay: 0.5,
                         }}
                       />
@@ -444,10 +453,10 @@ export const FoodDetailModal = ({
                           width: `${fatsSize}%`,
                           height: `${fatsSize * 1.2}%`,
                           background: fatsColor,
-                          filter: 'blur(40px)',
+                          filter: "blur(40px)",
                           opacity: 0.4,
-                          left: '20%',
-                          bottom: '-40%',
+                          left: "20%",
+                          bottom: "-40%",
                         }}
                         animate={{
                           x: [0, 15, -20, 12, 0],
@@ -457,19 +466,22 @@ export const FoodDetailModal = ({
                         transition={{
                           duration: 7,
                           repeat: Infinity,
-                          ease: 'easeInOut',
+                          ease: "easeInOut",
                           delay: 1,
                         }}
                       />
-                      
+
                       {/* Edit pencil icon - top left */}
                       <button
                         onClick={handleManualButtonClick}
                         className="absolute top-3 left-3 z-20 hover:opacity-100 transition-opacity"
                       >
-                        <Edit2 size={14} className={isEditingManual ? "text-primary" : "text-white/50 hover:text-white/80"} />
+                        <Edit2
+                          size={14}
+                          className={isEditingManual ? "text-primary" : "text-white/50 hover:text-white/80"}
+                        />
                       </button>
-                      
+
                       {/* Content */}
                       <div className="relative z-10 flex items-center justify-between w-full pt-2">
                         {/* Calories - Left */}
@@ -488,12 +500,12 @@ export const FoodDetailModal = ({
                           )}
                           <span className="text-base font-medium text-white/80">cal</span>
                         </div>
-                        
+
                         {/* Macros - Right */}
                         <div className="flex items-center gap-4">
                           <div className="flex flex-col items-start">
                             <div className="flex items-center gap-1 mb-0.5">
-                              <span 
+                              <span
                                 className="text-[11px] font-medium uppercase tracking-wide"
                                 style={{ color: proteinColor, opacity: 0.8 }}
                               >
@@ -513,13 +525,15 @@ export const FoodDetailModal = ({
                                   className="w-10 text-base font-semibold text-white text-left bg-transparent border-b border-white/30 focus:border-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               ) : (
-                                <span className="text-base font-semibold text-white">{adjustedProtein.toFixed(0)}g</span>
+                                <span className="text-base font-semibold text-white">
+                                  {adjustedProtein.toFixed(0)}g
+                                </span>
                               )}
                             </div>
                           </div>
                           <div className="flex flex-col items-start">
                             <div className="flex items-center gap-1 mb-0.5">
-                              <span 
+                              <span
                                 className="text-[11px] font-medium uppercase tracking-wide"
                                 style={{ color: carbsColor, opacity: 0.8 }}
                               >
@@ -545,7 +559,7 @@ export const FoodDetailModal = ({
                           </div>
                           <div className="flex flex-col items-start">
                             <div className="flex items-center gap-1 mb-0.5">
-                              <span 
+                              <span
                                 className="text-[11px] font-medium uppercase tracking-wide"
                                 style={{ color: fatsColor, opacity: 0.8 }}
                               >
@@ -580,11 +594,9 @@ export const FoodDetailModal = ({
               <div className="flex items-end gap-3">
                 {/* Quantity - 80% */}
                 <div className="flex-[4]">
-                  <label className="text-sm text-muted-foreground mb-2 block">
-                    Quantity
-                  </label>
-                  <div 
-                    className={`flex items-center h-10 rounded-md border border-input bg-background select-none ${isDragging ? 'cursor-grabbing' : 'cursor-ew-resize'}`}
+                  <label className="text-sm text-muted-foreground mb-2 block">Quantity</label>
+                  <div
+                    className={`flex items-center h-10 rounded-md border border-input bg-background select-none ${isDragging ? "cursor-grabbing" : "cursor-ew-resize"}`}
                     onMouseDown={(e) => {
                       if (isEditingQuantity) return;
                       e.preventDefault();
@@ -681,9 +693,7 @@ export const FoodDetailModal = ({
 
                 {/* Unit - 20% */}
                 <div className="flex-1">
-                  <label className="text-sm text-muted-foreground mb-2 block">
-                    Unit
-                  </label>
+                  <label className="text-sm text-muted-foreground mb-2 block">Unit</label>
                   <Select value={selectedUnit} onValueChange={handleUnitChange} disabled={manualOverride}>
                     <SelectTrigger className="w-full h-10">
                       <SelectValue />
@@ -705,7 +715,8 @@ export const FoodDetailModal = ({
                 <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg text-sm">
                   <AlertCircle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
                   <div className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Approximate conversion.</span> Cup measurements vary by food density. For accuracy, consider logging in grams or ounces.
+                    <span className="font-medium text-foreground">Approximate conversion.</span> Cup measurements vary
+                    by food density. For accuracy, consider logging in grams or ounces.
                   </div>
                 </div>
               )}
