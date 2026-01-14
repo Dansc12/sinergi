@@ -269,9 +269,7 @@ const UserProfilePage = () => {
               userId={userId}
               emptyState={{
                 title: "No posts yet",
-                description: isFollowing
-                  ? `${displayName} hasn't shared any posts yet`
-                  : `${displayName} hasn't shared any public posts yet`,
+                description: `${displayName} hasn't shared any posts yet`,
                 action: "",
               }}
             />
@@ -279,12 +277,10 @@ const UserProfilePage = () => {
             <ProfileContentFeed
               contentType={activeTab as "workouts" | "meals" | "recipes" | "routines"}
               userId={userId}
-              visibility={isFollowing ? "followers" : "public"}
+              visibility="public"
               emptyState={{
                 title: `No ${activeTab} yet`,
-                description: isFollowing
-                  ? `${displayName} hasn't shared any ${activeTab} yet`
-                  : `${displayName} hasn't shared any public ${activeTab} yet`,
+                description: `${displayName} hasn't shared any ${activeTab} yet`,
                 action: "",
               }}
             />
