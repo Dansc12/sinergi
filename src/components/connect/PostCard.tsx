@@ -1,6 +1,18 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Send, Heart, Dumbbell, Utensils, ChefHat, ClipboardList, FileText, Users, UserPlus, Eye } from "lucide-react";
+import {
+  MessageCircle,
+  Send,
+  Heart,
+  Dumbbell,
+  Utensils,
+  ChefHat,
+  ClipboardList,
+  FileText,
+  Users,
+  UserPlus,
+  Eye,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +67,10 @@ interface PostCardProps {
   post: PostData;
   onPostClick?: (post: PostData) => void;
   onTagClick?: (tag: string) => void;
-  onCountChange?: (postId: string, updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean }) => void;
+  onCountChange?: (
+    postId: string,
+    updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean },
+  ) => void;
 }
 
 // Hero media component with fallback
@@ -91,7 +106,7 @@ const HeroMedia = ({
   const handleTouchEnd = () => {
     if (!hasImages || !images) return;
     const threshold = 50;
-    
+
     if (Math.abs(dragOffset) > threshold) {
       if (dragOffset < 0 && currentIndex < images.length - 1) {
         setCurrentIndex((prev) => prev + 1);
@@ -116,7 +131,7 @@ const HeroMedia = ({
   // Fallback when no images
   if (!hasImages) {
     return (
-      <div 
+      <div
         className="relative w-full aspect-[4/5] bg-gradient-to-br from-muted/80 to-muted flex items-center justify-center rounded-xl"
         onClick={handleClick}
       >
@@ -138,12 +153,12 @@ const HeroMedia = ({
       >
         <motion.div
           className="flex h-full"
-          animate={{ 
+          animate={{
             x: `calc(-${currentIndex * 100}% + ${isDragging ? dragOffset : 0}px)`,
           }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 300, 
+          transition={{
+            type: "spring",
+            stiffness: 300,
             damping: 30,
           }}
         >
@@ -190,7 +205,7 @@ const HeroMedia = ({
 const getContentTitle = (post: PostData): string => {
   const data = post.contentData as Record<string, unknown> | undefined;
   if (!data) return post.type.charAt(0).toUpperCase() + post.type.slice(1);
-  
+
   switch (post.type) {
     case "workout": {
       const title = (data.title as string) || (data.name as string);
@@ -239,15 +254,21 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
       onCountChange?.(post.id, { like_count: newCount, viewer_has_liked: newIsLiked });
     },
   });
-  
+
   // Use comments hook with initial count
-  const { comments, commentCount, addComment, fetchComments, isLoading: commentsLoading } = usePostComments(post.id, {
+  const {
+    comments,
+    commentCount,
+    addComment,
+    fetchComments,
+    isLoading: commentsLoading,
+  } = usePostComments(post.id, {
     initialCommentCount: post.commentCount ?? 0,
     onCountChange: (newCount) => {
       onCountChange?.(post.id, { comment_count: newCount });
     },
   });
-  
+
   const handleToggleComments = useCallback(() => {
     const newShowComments = !showComments;
     setShowComments(newShowComments);
@@ -255,7 +276,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
       fetchComments();
     }
   }, [showComments, fetchComments]);
-  
+
   const handleCardClick = () => {
     if (onPostClick) {
       onPostClick(post);
@@ -271,38 +292,29 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
     }
   };
 
-  const showFloatingHeart = useCallback(
-    (originX?: number, originY?: number) => {
-      const button = heartButtonRef.current;
-      const finalOriginX =
-        originX ??
-        (button
-          ? button.getBoundingClientRect().left + button.offsetWidth / 2
-          : window.innerWidth / 2);
-      const finalOriginY =
-        originY ?? (button ? button.getBoundingClientRect().top : 200);
+  const showFloatingHeart = useCallback((originX?: number, originY?: number) => {
+    const button = heartButtonRef.current;
+    const finalOriginX =
+      originX ?? (button ? button.getBoundingClientRect().left + button.offsetWidth / 2 : window.innerWidth / 2);
+    const finalOriginY = originY ?? (button ? button.getBoundingClientRect().top : 200);
 
-      const newEmoji: FloatingEmoji = {
-        id: Date.now() + Math.random(),
-        emoji: "❤️",
-        originX: finalOriginX,
-        originY: finalOriginY,
-      };
-      setFloatingEmojis((prev) => [...prev, newEmoji]);
+    const newEmoji: FloatingEmoji = {
+      id: Date.now() + Math.random(),
+      emoji: "❤️",
+      originX: finalOriginX,
+      originY: finalOriginY,
+    };
+    setFloatingEmojis((prev) => [...prev, newEmoji]);
 
-      setTimeout(() => {
-        setFloatingEmojis((prev) => prev.filter((e) => e.id !== newEmoji.id));
-      }, 1000);
-    },
-    []
-  );
+    setTimeout(() => {
+      setFloatingEmojis((prev) => prev.filter((e) => e.id !== newEmoji.id));
+    }, 1000);
+  }, []);
 
   const handleDoubleTap = useCallback(() => {
     if (!isLiked) {
       const cardRect = cardRef.current?.getBoundingClientRect();
-      const centerX = cardRect
-        ? cardRect.left + cardRect.width / 2
-        : window.innerWidth / 2;
+      const centerX = cardRect ? cardRect.left + cardRect.width / 2 : window.innerWidth / 2;
       const centerY = cardRect ? cardRect.top + cardRect.height / 2 : 300;
       showFloatingHeart(centerX, centerY);
       toggleLike();
@@ -324,7 +336,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
 
   const contentTitle = getContentTitle(post);
   const TypeIcon = typeIcons[post.type];
-  const tags = post.tags || (post.contentData as Record<string, unknown>)?.tags as string[] | undefined;
+  const tags = post.tags || ((post.contentData as Record<string, unknown>)?.tags as string[] | undefined);
 
   return (
     <>
@@ -338,21 +350,16 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
         {/* Top row: Avatar + Name + @handle + timeAgo | Follow pill */}
         <div className="flex items-center justify-between gap-3 p-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar 
+            <Avatar
               className="w-10 h-10 border border-border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all shrink-0"
               onClick={handleUserClick}
             >
               <AvatarImage src={post.user.avatar} />
-              <AvatarFallback className="bg-muted">
-                {post.user.name.charAt(0)}
-              </AvatarFallback>
+              <AvatarFallback className="bg-muted">{post.user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p 
-                  className="font-semibold text-sm hover:underline cursor-pointer truncate"
-                  onClick={handleUserClick}
-                >
+                <p className="font-semibold text-sm hover:underline cursor-pointer truncate" onClick={handleUserClick}>
                   {post.user.name}
                 </p>
                 <span className="text-sm text-muted-foreground truncate">{post.user.handle}</span>
@@ -360,7 +367,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
               <p className="text-xs text-muted-foreground">{post.timeAgo}</p>
             </div>
           </div>
-          
+
           {/* Follow pill - placeholder for now */}
           <Button
             variant="outline"
@@ -376,12 +383,8 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
         {/* Hero media area - tappable to open modal */}
         <div className="px-4 cursor-pointer" onClick={handleCardClick}>
           <div className="relative">
-            <HeroMedia 
-              images={post.images} 
-              type={post.type} 
-              onDoubleTap={handleDoubleTap} 
-            />
-            
+            <HeroMedia images={post.images} type={post.type} onDoubleTap={handleDoubleTap} />
+
             {/* Overlay: Type icon + Title at bottom-left */}
             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent rounded-b-xl">
               <div className="flex items-center gap-2">
@@ -413,26 +416,6 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
           ))}
         </AnimatePresence>
 
-        {/* Tags row */}
-        {tags && tags.length > 0 && (
-          <div className="px-4 pt-3">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {tags.slice(0, 5).map((tag, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => onTagClick?.(tag)}
-                  className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors whitespace-nowrap"
-                >
-                  #{tag}
-                </button>
-              ))}
-              {tags.length > 5 && (
-                <span className="text-xs text-muted-foreground">+{tags.length - 5}</span>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Action row: Like + Comment icons | View pill */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
@@ -447,27 +430,18 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
                   isLiked ? "fill-primary text-primary" : "text-foreground"
                 }`}
               />
-              {likeCount > 0 && (
-                <span className="text-sm font-medium">{likeCount}</span>
-              )}
+              {likeCount > 0 && <span className="text-sm font-medium">{likeCount}</span>}
             </button>
             <button
               onClick={handleToggleComments}
               className="flex items-center gap-1 transition-transform active:scale-90"
             >
               <MessageCircle size={22} className="text-foreground" />
-              {commentCount > 0 && (
-                <span className="text-sm font-medium">{commentCount}</span>
-              )}
+              {commentCount > 0 && <span className="text-sm font-medium">{commentCount}</span>}
             </button>
           </div>
-          
-          <Button
-            variant="secondary"
-            size="sm"
-            className="h-7 px-3 text-xs rounded-full"
-            onClick={handleCardClick}
-          >
+
+          <Button variant="secondary" size="sm" className="h-7 px-3 text-xs rounded-full" onClick={handleCardClick}>
             <Eye size={12} className="mr-1" />
             View
           </Button>
@@ -485,10 +459,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
         {/* Expandable Comments section */}
         <div className="px-4 pb-4">
           {commentCount > 0 && !showComments && (
-            <button
-              onClick={handleToggleComments}
-              className="text-sm text-muted-foreground"
-            >
+            <button onClick={handleToggleComments} className="text-sm text-muted-foreground">
               View all {commentCount} comment{commentCount > 1 ? "s" : ""}
             </button>
           )}
@@ -506,30 +477,29 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
                   </div>
                 )}
-                
-                {!commentsLoading && comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-2">
-                    <Avatar className="w-7 h-7">
-                      <AvatarImage src={comment.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs bg-muted">
-                        {comment.profile?.first_name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        <span className="font-semibold">
-                          {comment.profile?.first_name || "User"}
-                        </span>{" "}
-                        {comment.content}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.created_at), {
-                          addSuffix: true,
-                        })}
-                      </p>
+
+                {!commentsLoading &&
+                  comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-2">
+                      <Avatar className="w-7 h-7">
+                        <AvatarImage src={comment.profile?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs bg-muted">
+                          {comment.profile?.first_name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm">
+                          <span className="font-semibold">{comment.profile?.first_name || "User"}</span>{" "}
+                          {comment.content}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(comment.created_at), {
+                            addSuffix: true,
+                          })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
 
                 <div className="flex gap-2 pt-2">
                   <Input
@@ -544,12 +514,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
                       }
                     }}
                   />
-                  <Button
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={handleSubmitComment}
-                    disabled={!newComment.trim()}
-                  >
+                  <Button size="icon" className="h-9 w-9" onClick={handleSubmitComment} disabled={!newComment.trim()}>
                     <Send size={16} />
                   </Button>
                 </div>
@@ -558,7 +523,7 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
           </AnimatePresence>
         </div>
       </motion.article>
-      
+
       <PostDetailModal
         open={showDetailModal}
         onClose={() => setShowDetailModal(false)}
