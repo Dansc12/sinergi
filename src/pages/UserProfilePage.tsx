@@ -48,12 +48,8 @@ const UserProfilePage = () => {
   const isOwnProfile = currentUserId === userId;
 
   useEffect(() => {
-    if (isOwnProfile) {
-      navigate("/profile", { replace: true });
-      return;
-    }
-    fetchProfileData();
-  }, [userId, isOwnProfile]);
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data?.user?.id ?? null));
+  }, []);
 
   const fetchProfileData = async () => {
     if (!userId) return;
@@ -80,13 +76,6 @@ const UserProfilePage = () => {
       if (streakData) {
         setStreakCount(streakData.current_streak);
       }
-
-      // Fetch friends count
-      const { count: friendsAccepted } = await supabase
-        .from("friendships")
-        .select("*", { count: "exact", head: true })
-        .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
-        .eq("status", "accepted");
 
       // Fetch stats using database function that bypasses RLS for counting
       const { data: statsData } = await supabase.rpc("get_user_stats", { target_user_id: userId });
