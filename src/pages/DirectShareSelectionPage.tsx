@@ -43,40 +43,30 @@ const DirectShareSelectionPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
 
         // Fetch groups user is a member of
-        const { data: memberships } = await supabase
-          .from("group_members")
-          .select("group_id")
-          .eq("user_id", user.id);
+        const { data: memberships } = await supabase.from("group_members").select("group_id").eq("user_id", user.id);
 
         if (memberships && memberships.length > 0) {
-          const groupIds = memberships.map(m => m.group_id);
-          const { data: groupsData } = await supabase
-            .from("groups")
-            .select("id, name, avatar_url")
-            .in("id", groupIds);
+          const groupIds = memberships.map((m) => m.group_id);
+          const { data: groupsData } = await supabase.from("groups").select("id, name, avatar_url").in("id", groupIds);
           setGroups(groupsData || []);
         }
 
-        // Fetch friends (accepted friendships)
-        const { data: friendships } = await supabase
-          .from("friendships")
-          .select("requester_id, addressee_id")
-          .eq("status", "accepted")
-          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+        // Fetch users you follow
+        const { data: follows } = await supabase.from("follows").select("followee_id").eq("follower_id", user.id);
 
-        if (friendships && friendships.length > 0) {
-          const friendIds = friendships.map(f => 
-            f.requester_id === user.id ? f.addressee_id : f.requester_id
-          );
+        const followeeIds = (follows || []).map((f) => f.followee_id);
 
+        if (followeeIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
             .select("user_id, first_name, last_name, avatar_url, username")
-            .in("user_id", friendIds);
+            .in("user_id", followeeIds);
 
           setFriends(profiles || []);
         }
@@ -91,19 +81,11 @@ const DirectShareSelectionPage = () => {
   }, []);
 
   const toggleGroup = (groupId: string) => {
-    setSelectedGroups(prev => 
-      prev.includes(groupId) 
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
-    );
+    setSelectedGroups((prev) => (prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]));
   };
 
   const toggleUser = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
   };
 
   const handleFinish = () => {
@@ -112,8 +94,10 @@ const DirectShareSelectionPage = () => {
         ...state?.shareState,
         directShareGroups: selectedGroups,
         directShareUsers: selectedUsers,
-        directShareGroupNames: groups.filter(g => selectedGroups.includes(g.id)).map(g => g.name),
-        directShareUserNames: friends.filter(f => selectedUsers.includes(f.user_id)).map(f => f.first_name || "User"),
+        directShareGroupNames: groups.filter((g) => selectedGroups.includes(g.id)).map((g) => g.name),
+        directShareUserNames: friends
+          .filter((f) => selectedUsers.includes(f.user_id))
+          .map((f) => f.first_name || "User"),
       },
     });
   };
@@ -125,8 +109,10 @@ const DirectShareSelectionPage = () => {
         ...state?.shareState,
         directShareGroups: state?.selectedGroups || [],
         directShareUsers: state?.selectedUsers || [],
-        directShareGroupNames: groups.filter(g => (state?.selectedGroups || []).includes(g.id)).map(g => g.name),
-        directShareUserNames: friends.filter(f => (state?.selectedUsers || []).includes(f.user_id)).map(f => f.first_name || "User"),
+        directShareGroupNames: groups.filter((g) => (state?.selectedGroups || []).includes(g.id)).map((g) => g.name),
+        directShareUserNames: friends
+          .filter((f) => (state?.selectedUsers || []).includes(f.user_id))
+          .map((f) => f.first_name || "User"),
       },
     });
   };
@@ -136,13 +122,10 @@ const DirectShareSelectionPage = () => {
   // Filter based on search - strip @ from username searches
   const searchTerm = searchQuery.toLowerCase();
   const usernameSearch = searchTerm.startsWith("@") ? searchTerm.slice(1) : searchTerm;
-  
-  const filteredGroups = groups.filter(g => 
-    g.name.toLowerCase().includes(searchTerm)
-  );
-  const filteredFriends = friends.filter(f => 
-    (f.first_name?.toLowerCase().includes(searchTerm)) ||
-    (f.username?.toLowerCase().includes(usernameSearch))
+
+  const filteredGroups = groups.filter((g) => g.name.toLowerCase().includes(searchTerm));
+  const filteredFriends = friends.filter(
+    (f) => f.first_name?.toLowerCase().includes(searchTerm) || f.username?.toLowerCase().includes(usernameSearch),
   );
 
   return (
@@ -155,11 +138,7 @@ const DirectShareSelectionPage = () => {
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-lg font-semibold">Share With</h1>
-          <Button 
-            onClick={handleFinish}
-            size="sm"
-            className="glow-primary"
-          >
+          <Button onClick={handleFinish} size="sm" className="glow-primary">
             Done {totalSelected > 0 && `(${totalSelected})`}
           </Button>
         </div>
@@ -200,13 +179,11 @@ const DirectShareSelectionPage = () => {
                       className="flex flex-col items-center gap-2 flex-shrink-0"
                     >
                       <div className="relative">
-                        <div className={`w-40 h-40 rounded-xl overflow-hidden border-2 transition-colors ${isSelected ? "border-primary" : "border-border"}`}>
+                        <div
+                          className={`w-40 h-40 rounded-xl overflow-hidden border-2 transition-colors ${isSelected ? "border-primary" : "border-border"}`}
+                        >
                           {group.avatar_url ? (
-                            <img 
-                              src={group.avatar_url} 
-                              alt={group.name}
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={group.avatar_url} alt={group.name} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full bg-primary/20 flex items-center justify-center">
                               <span className="text-lg font-semibold text-primary">
@@ -225,9 +202,7 @@ const DirectShareSelectionPage = () => {
                           </motion.div>
                         )}
                       </div>
-                      <span className="text-xs text-center max-w-40 truncate font-medium">
-                        {group.name}
-                      </span>
+                      <span className="text-xs text-center max-w-40 truncate font-medium">{group.name}</span>
                     </motion.button>
                   );
                 })}
@@ -236,9 +211,7 @@ const DirectShareSelectionPage = () => {
           )}
 
           {/* Divider */}
-          {filteredGroups.length > 0 && filteredFriends.length > 0 && (
-            <div className="h-px bg-border/30 mx-4 my-2" />
-          )}
+          {filteredGroups.length > 0 && filteredFriends.length > 0 && <div className="h-px bg-border/30 mx-4 my-2" />}
 
           {/* Friends Section */}
           {filteredFriends.length > 0 && (
@@ -258,7 +231,9 @@ const DirectShareSelectionPage = () => {
                       className="flex flex-col items-center gap-2"
                     >
                       <div className="relative w-full flex justify-center">
-                        <Avatar className={`w-full aspect-square h-auto border-2 transition-colors ${isSelected ? "border-primary" : "border-transparent"}`}>
+                        <Avatar
+                          className={`w-full aspect-square h-auto border-2 transition-colors ${isSelected ? "border-primary" : "border-transparent"}`}
+                        >
                           <AvatarImage src={friend.avatar_url || undefined} />
                           <AvatarFallback className="bg-muted text-2xl">
                             {(friend.first_name || "U").slice(0, 1).toUpperCase()}
@@ -275,11 +250,15 @@ const DirectShareSelectionPage = () => {
                         )}
                       </div>
                       <div className="w-full overflow-hidden">
-                        <p className="text-xs text-center whitespace-nowrap overflow-hidden" style={{ maskImage: 'linear-gradient(to right, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)' }}>
+                        <p
+                          className="text-xs text-center whitespace-nowrap overflow-hidden"
+                          style={{
+                            maskImage: "linear-gradient(to right, black 80%, transparent 100%)",
+                            WebkitMaskImage: "linear-gradient(to right, black 80%, transparent 100%)",
+                          }}
+                        >
                           <span className="font-medium">{friend.first_name || "User"}</span>
-                          {friend.username && (
-                            <span className="text-muted-foreground"> • @{friend.username}</span>
-                          )}
+                          {friend.username && <span className="text-muted-foreground"> • @{friend.username}</span>}
                         </p>
                       </div>
                     </motion.button>
@@ -294,9 +273,7 @@ const DirectShareSelectionPage = () => {
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
               <Users size={48} className="text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No groups or friends yet</h3>
-              <p className="text-sm text-muted-foreground">
-                Join groups and add friends to share directly with them
-              </p>
+              <p className="text-sm text-muted-foreground">Join groups and add friends to share directly with them</p>
             </div>
           )}
         </ScrollArea>
