@@ -4,7 +4,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format } from "date-fns";
-import { ChevronLeft, MoreHorizontal, Heart, MessageCircle, Bookmark, Send, Dumbbell, Utensils, ChefHat, ClipboardList, FileText, Users, UserPlus, Clock, Calendar, Target, Copy } from "lucide-react";
+import {
+  ChevronLeft,
+  MoreHorizontal,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Send,
+  Dumbbell,
+  Utensils,
+  ChefHat,
+  ClipboardList,
+  FileText,
+  Users,
+  UserPlus,
+  Clock,
+  Calendar,
+  Target,
+  Copy,
+} from "lucide-react";
 import { useSavedPosts } from "@/hooks/useSavedPosts";
 import { getMuscleContributions, getMuscleDisplayName } from "@/lib/muscleContributions";
 import { useGroupJoin } from "@/hooks/useGroupJoin";
@@ -99,7 +117,10 @@ interface PostDetailModalProps {
     commentCount?: number;
     viewerHasLiked?: boolean;
   };
-  onCountChange?: (postId: string, updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean }) => void;
+  onCountChange?: (
+    postId: string,
+    updates: { like_count?: number; comment_count?: number; viewer_has_liked?: boolean },
+  ) => void;
 }
 
 // Map content types to their icons
@@ -113,20 +134,13 @@ const typeIcons = {
 } as const;
 
 // Superset colors for workout display
-const supersetColors = [
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-orange-500",
-  "bg-pink-500",
-  "bg-cyan-500",
-  "bg-yellow-500",
-];
+const supersetColors = ["bg-blue-500", "bg-green-500", "bg-orange-500", "bg-pink-500", "bg-cyan-500", "bg-yellow-500"];
 
 // Get content title based on type
 const getContentTitle = (post: PostDetailModalProps["post"]): string => {
   const data = post.contentData as Record<string, unknown> | undefined;
   if (!data) return post.type.charAt(0).toUpperCase() + post.type.slice(1);
-  
+
   switch (post.type) {
     case "workout": {
       const title = (data.title as string) || (data.name as string);
@@ -161,12 +175,18 @@ const getContentTitle = (post: PostDetailModalProps["post"]): string => {
 // Get CTA label based on post type
 const getCTALabel = (type: string): string => {
   switch (type) {
-    case "routine": return "Save Routine";
-    case "workout": return "Replicate Workout";
-    case "meal": return "Log Meal";
-    case "recipe": return "Save Recipe";
-    case "group": return "Join Group";
-    default: return "Save";
+    case "routine":
+      return "Save Routine";
+    case "workout":
+      return "Replicate Workout";
+    case "meal":
+      return "Log Meal";
+    case "recipe":
+      return "Save Recipe";
+    case "group":
+      return "Join Group";
+    default:
+      return "Save";
   }
 };
 
@@ -180,31 +200,31 @@ interface MetaChip {
 const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
   const data = post.contentData as Record<string, unknown> | undefined;
   if (!data) return [];
-  
+
   const chips: MetaChip[] = [];
-  
+
   switch (post.type) {
     case "routine": {
       const exercises = (data.exercises as RoutineExercise[]) || [];
       const scheduledDays = (data.scheduledDays as string[]) || [];
-      
+
       // Estimated time (rough: 5 min per exercise)
       const estMinutes = exercises.length * 5;
       if (estMinutes > 0) {
         chips.push({ icon: Clock, label: "Est. Time", value: `${estMinutes} min` });
       }
-      
+
       // Days per week
       if (scheduledDays.length > 0) {
         chips.push({ icon: Calendar, label: "Days/Week", value: `${scheduledDays.length}` });
       }
-      
+
       // Muscles targeted
       const musclesSet = new Set<string>();
-      exercises.forEach(ex => {
+      exercises.forEach((ex) => {
         if (ex.muscleGroup) musclesSet.add(ex.muscleGroup);
         const config = getMuscleContributions(ex.name, ex.muscleGroup || "");
-        Object.keys(config.muscleContributions).forEach(m => musclesSet.add(getMuscleDisplayName(m)));
+        Object.keys(config.muscleContributions).forEach((m) => musclesSet.add(getMuscleDisplayName(m)));
       });
       if (musclesSet.size > 0) {
         const musclesList = Array.from(musclesSet).slice(0, 2).join(", ");
@@ -214,7 +234,7 @@ const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
     }
     case "workout": {
       const exercises = (data.exercises as Exercise[]) || [];
-      
+
       // Duration if available
       const duration = data.duration as string | number | undefined;
       if (duration) {
@@ -225,17 +245,17 @@ const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
           chips.push({ icon: Clock, label: "Est. Time", value: `${estMinutes} min` });
         }
       }
-      
+
       // Muscles
       const musclesSet = new Set<string>();
-      exercises.forEach(ex => {
+      exercises.forEach((ex) => {
         if (ex.muscleGroup) musclesSet.add(ex.muscleGroup);
       });
       if (musclesSet.size > 0) {
         const musclesList = Array.from(musclesSet).slice(0, 2).join(", ");
         chips.push({ icon: Target, label: "Muscles", value: musclesList });
       }
-      
+
       // Exercise count
       if (exercises.length > 0) {
         chips.push({ icon: Dumbbell, label: "Exercises", value: `${exercises.length}` });
@@ -247,7 +267,7 @@ const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
       const totalCalories = (data.totalCalories as number) || foods.reduce((sum, f) => sum + (f.calories || 0), 0);
       const totalProtein = (data.totalProtein as number) || foods.reduce((sum, f) => sum + (f.protein || 0), 0);
       const mealType = data.mealType as string;
-      
+
       if (totalCalories > 0) {
         chips.push({ icon: Utensils, label: "Calories", value: `${Math.round(totalCalories)}` });
       }
@@ -263,8 +283,9 @@ const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
       const prepTime = data.prepTime as string;
       const servings = data.servings as string;
       const ingredients = (data.ingredients as RecipeIngredient[]) || [];
-      const totalCalories = (data.totalCalories as number) || ingredients.reduce((sum, i) => sum + (i.calories || 0), 0);
-      
+      const totalCalories =
+        (data.totalCalories as number) || ingredients.reduce((sum, i) => sum + (i.calories || 0), 0);
+
       if (prepTime) {
         chips.push({ icon: Clock, label: "Prep", value: prepTime });
       }
@@ -279,21 +300,18 @@ const getMetaChips = (post: PostDetailModalProps["post"]): MetaChip[] => {
     default:
       break;
   }
-  
+
   return chips.slice(0, 3);
 };
 
 // Meta chips row component
 const MetaChipsRow = ({ chips }: { chips: MetaChip[] }) => {
   if (chips.length === 0) return null;
-  
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {chips.map((chip, idx) => (
-        <div 
-          key={idx}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-sm"
-        >
+        <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-sm">
           <chip.icon size={14} className="text-muted-foreground" />
           <span className="text-muted-foreground">{chip.label}:</span>
           <span className="font-medium">{chip.value}</span>
@@ -304,12 +322,12 @@ const MetaChipsRow = ({ chips }: { chips: MetaChip[] }) => {
 };
 
 // Social proof row component
-const SocialProofRow = ({ 
-  likeCount, 
+const SocialProofRow = ({
+  likeCount,
   commentCount,
-  onCommentClick 
-}: { 
-  likeCount: number; 
+  onCommentClick,
+}: {
+  likeCount: number;
   commentCount: number;
   onCommentClick: () => void;
 }) => {
@@ -324,7 +342,7 @@ const SocialProofRow = ({
         )}
       </div>
       {commentCount > 0 && (
-        <button 
+        <button
           onClick={onCommentClick}
           className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
         >
@@ -339,8 +357,14 @@ const SocialProofRow = ({
 export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDetailModalProps) => {
   const navigate = useNavigate();
   const contentData = post.contentData as Record<string, unknown> | undefined;
-  const groupId = post.type === 'group' ? (contentData?.groupId as string) : undefined;
-  const { isMember, hasRequestedInvite, isLoading: joinLoading, joinPublicGroup, requestInvite } = useGroupJoin(groupId);
+  const groupId = post.type === "group" ? (contentData?.groupId as string) : undefined;
+  const {
+    isMember,
+    hasRequestedInvite,
+    isLoading: joinLoading,
+    joinPublicGroup,
+    requestInvite,
+  } = useGroupJoin(groupId);
   const { isSaved, toggleSave } = useSavedPosts(post.id, post.type);
   const { setIsPostDetailOpen } = usePostDetail();
 
@@ -353,13 +377,19 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
     },
   });
 
-  const { comments, commentCount, addComment, fetchComments, isLoading: commentsLoading } = usePostComments(post.id, {
+  const {
+    comments,
+    commentCount,
+    addComment,
+    fetchComments,
+    isLoading: commentsLoading,
+  } = usePostComments(post.id, {
     initialCommentCount: post.commentCount ?? 0,
     onCountChange: (newCount) => {
       onCountChange?.(post.id, { comment_count: newCount });
     },
   });
-  
+
   const [newComment, setNewComment] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [carouselDrag, setCarouselDrag] = useState(0);
@@ -371,13 +401,13 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   useEffect(() => {
     setIsPostDetailOpen(open);
     if (open) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
       fetchComments();
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
       setIsPostDetailOpen(false);
     };
   }, [open, setIsPostDetailOpen, fetchComments]);
@@ -389,7 +419,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   };
 
   const scrollToComments = useCallback(() => {
-    commentsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    commentsRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   // Copy workout handler
@@ -397,7 +427,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
     const exercises = (contentData?.exercises as Exercise[]) || [];
     const workoutTitle = (contentData?.title as string) || (contentData?.name as string) || "Workout";
     const workoutTags = (contentData?.tags as string[]) || post.tags || [];
-    
+
     const transformedExercises = exercises.map((ex, index) => ({
       id: `copied-${index}-${Date.now()}`,
       name: ex.name,
@@ -443,12 +473,12 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
         break;
       case "group": {
         const privacy = contentData?.privacy as string;
-        const isPublic = privacy === 'public';
+        const isPublic = privacy === "public";
         if (isPublic) {
           joinPublicGroup();
         } else if (post.userId) {
           const name = contentData?.name as string;
-          requestInvite(post.userId, name || 'the group');
+          requestInvite(post.userId, name || "the group");
         }
         break;
       }
@@ -472,7 +502,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   const handleCarouselTouchEnd = () => {
     if (!post.images) return;
     const threshold = 50;
-    
+
     if (Math.abs(carouselDrag) > threshold) {
       if (carouselDrag < 0 && currentImageIndex < post.images.length - 1) {
         setCurrentImageIndex((prev) => prev + 1);
@@ -488,9 +518,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   const TypeIcon = typeIcons[post.type];
   const metaChips = getMetaChips(post);
   const tags = post.tags || (contentData?.tags as string[] | undefined);
-  const formattedDate = post.createdAt 
-    ? format(new Date(post.createdAt), "MMM d, yyyy")
-    : post.timeAgo;
+  const formattedDate = post.createdAt ? format(new Date(post.createdAt), "MMM d, yyyy") : post.timeAgo;
   const hasImages = post.images && post.images.length > 0;
 
   // Get CTA state
@@ -503,10 +531,10 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
       if (hasRequestedInvite) return { label: "Requested", icon: Users, active: true };
       return { label: getCTALabel(post.type), icon: Users, active: false };
     }
-    return { 
-      label: isSaved ? "Saved" : getCTALabel(post.type), 
-      icon: Bookmark, 
-      active: isSaved 
+    return {
+      label: isSaved ? "Saved" : getCTALabel(post.type),
+      icon: Bookmark,
+      active: isSaved,
     };
   };
   const ctaState = getCTAState();
@@ -532,10 +560,10 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   // Workout details renderer
   const renderWorkoutDetails = () => {
     const exercises = (contentData?.exercises as Exercise[]) || [];
-    
+
     const supersetGroups = new Map<string, number>();
     let groupIndex = 0;
-    exercises.forEach(ex => {
+    exercises.forEach((ex) => {
       const ssGroup = ex.supersetGroupId ?? (ex.supersetGroup !== undefined ? String(ex.supersetGroup) : undefined);
       if (ssGroup !== undefined && !supersetGroups.has(ssGroup)) {
         supersetGroups.set(ssGroup, groupIndex++);
@@ -545,9 +573,12 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
     return (
       <div className="space-y-3">
         {exercises.map((exercise, idx) => {
-          const ssGroupKey = exercise.supersetGroupId ?? (exercise.supersetGroup !== undefined ? String(exercise.supersetGroup) : undefined);
+          const ssGroupKey =
+            exercise.supersetGroupId ??
+            (exercise.supersetGroup !== undefined ? String(exercise.supersetGroup) : undefined);
           const supersetGroupIndex = ssGroupKey !== undefined ? supersetGroups.get(ssGroupKey) : undefined;
-          const supersetColor = supersetGroupIndex !== undefined ? supersetColors[supersetGroupIndex % supersetColors.length] : null;
+          const supersetColor =
+            supersetGroupIndex !== undefined ? supersetColors[supersetGroupIndex % supersetColors.length] : null;
 
           return (
             <div key={idx} className="rounded-xl bg-card border border-border overflow-hidden">
@@ -565,20 +596,20 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                       </p>
                     </div>
                   </div>
-                  {exercise.notes && (
-                    <p className="text-sm text-muted-foreground italic">"{exercise.notes}"</p>
-                  )}
+                  {exercise.notes && <p className="text-sm text-muted-foreground italic">"{exercise.notes}"</p>}
                   {exercise.sets && exercise.sets.length > 0 && (
                     <div className="space-y-1">
                       {exercise.sets.map((set, setIdx) => {
-                        const weight = typeof set.weight === 'string' ? parseFloat(set.weight) || 0 : set.weight || 0;
-                        const reps = typeof set.reps === 'string' ? parseFloat(set.reps) || 0 : set.reps || 0;
+                        const weight = typeof set.weight === "string" ? parseFloat(set.weight) || 0 : set.weight || 0;
+                        const reps = typeof set.reps === "string" ? parseFloat(set.reps) || 0 : set.reps || 0;
                         return (
                           <div key={setIdx} className="flex items-center gap-2 text-sm">
                             <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                               {setIdx + 1}
                             </span>
-                            <span className="text-muted-foreground">{weight} lbs × {reps} reps</span>
+                            <span className="text-muted-foreground">
+                              {weight} lbs × {reps} reps
+                            </span>
                           </div>
                         );
                       })}
@@ -596,7 +627,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   // Meal details renderer
   const renderMealDetails = () => {
     const foods = (contentData?.foods as MealFood[]) || [];
-    
+
     return (
       <div className="space-y-2">
         {foods.map((food, idx) => (
@@ -630,7 +661,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
               {ingredients.map((ing, idx) => (
                 <div key={idx} className="flex items-center gap-2 py-1.5 border-b border-border last:border-0">
                   <span className="text-sm text-primary font-medium shrink-0">
-                    {ing.servings || 1} {ing.servingSize || 'serving'}
+                    {ing.servings || 1} {ing.servingSize || "serving"}
                   </span>
                   <span className="text-sm truncate">{ing.name}</span>
                 </div>
@@ -638,18 +669,20 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
             </div>
           </div>
         )}
-        {instructions.length > 0 && instructions.some(i => i.trim()) && (
+        {instructions.length > 0 && instructions.some((i) => i.trim()) && (
           <div>
             <h4 className="font-semibold mb-3">Instructions</h4>
             <div className="space-y-3">
-              {instructions.filter(i => i.trim()).map((step, idx) => (
-                <div key={idx} className="flex gap-3">
-                  <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm flex items-center justify-center shrink-0 font-medium">
-                    {idx + 1}
-                  </span>
-                  <p className="text-sm pt-0.5">{step}</p>
-                </div>
-              ))}
+              {instructions
+                .filter((i) => i.trim())
+                .map((step, idx) => (
+                  <div key={idx} className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm flex items-center justify-center shrink-0 font-medium">
+                      {idx + 1}
+                    </span>
+                    <p className="text-sm pt-0.5">{step}</p>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -660,10 +693,10 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
   // Routine details renderer
   const renderRoutineDetails = () => {
     const exercises = (contentData?.exercises as RoutineExercise[]) || [];
-    
+
     const supersetGroups = new Map<string, number>();
     let groupIndex = 0;
-    exercises.forEach(ex => {
+    exercises.forEach((ex) => {
       const ssGroup = ex.supersetGroupId ?? (ex.supersetGroup !== undefined ? String(ex.supersetGroup) : undefined);
       if (ssGroup !== undefined && !supersetGroups.has(ssGroup)) {
         supersetGroups.set(ssGroup, groupIndex++);
@@ -673,9 +706,12 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
     return (
       <div className="space-y-3">
         {exercises.map((exercise, idx) => {
-          const ssGroupKey = exercise.supersetGroupId ?? (exercise.supersetGroup !== undefined ? String(exercise.supersetGroup) : undefined);
+          const ssGroupKey =
+            exercise.supersetGroupId ??
+            (exercise.supersetGroup !== undefined ? String(exercise.supersetGroup) : undefined);
           const supersetGroupIndex = ssGroupKey !== undefined ? supersetGroups.get(ssGroupKey) : undefined;
-          const supersetColor = supersetGroupIndex !== undefined ? supersetColors[supersetGroupIndex % supersetColors.length] : null;
+          const supersetColor =
+            supersetGroupIndex !== undefined ? supersetColors[supersetGroupIndex % supersetColors.length] : null;
           const setsArray = Array.isArray(exercise.sets) ? exercise.sets : [];
 
           return (
@@ -694,9 +730,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                       </p>
                     </div>
                   </div>
-                  {exercise.notes && (
-                    <p className="text-sm text-muted-foreground italic">"{exercise.notes}"</p>
-                  )}
+                  {exercise.notes && <p className="text-sm text-muted-foreground italic">"{exercise.notes}"</p>}
                   {setsArray.length > 0 && (
                     <div className="space-y-1">
                       {setsArray.map((set, setIdx) => (
@@ -704,7 +738,9 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                           <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                             {setIdx + 1}
                           </span>
-                          <span className="text-muted-foreground">{set.minReps}-{set.maxReps} reps</span>
+                          <span className="text-muted-foreground">
+                            {set.minReps}-{set.maxReps} reps
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -736,9 +772,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
             {privacy === "public" ? "Public" : "Private"}
           </span>
         </div>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
     );
   };
@@ -760,9 +794,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
               <button onClick={onClose} className="p-1 -ml-1">
                 <ChevronLeft size={24} />
               </button>
-              <h1 className="font-semibold text-base truncate flex-1 text-center mx-4">
-                {contentTitle}
-              </h1>
+              <h1 className="font-semibold text-base truncate flex-1 text-center mx-4">{contentTitle}</h1>
               <button className="p-1 -mr-1">
                 <MoreHorizontal size={24} />
               </button>
@@ -775,9 +807,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <Avatar className="w-10 h-10 border border-border shrink-0">
                     <AvatarImage src={post.user.avatar} />
-                    <AvatarFallback className="bg-muted">
-                      {post.user.name.charAt(0)}
-                    </AvatarFallback>
+                    <AvatarFallback className="bg-muted">{post.user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -787,11 +817,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                     <p className="text-xs text-muted-foreground">{formattedDate}</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-3 text-xs rounded-full shrink-0"
-                >
+                <Button variant="outline" size="sm" className="h-7 px-3 text-xs rounded-full shrink-0">
                   <UserPlus size={12} className="mr-1" />
                   Follow
                 </Button>
@@ -806,7 +832,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                       onTouchStart={handleCarouselTouchStart}
                       onTouchMove={handleCarouselTouchMove}
                       onTouchEnd={handleCarouselTouchEnd}
-                      animate={{ 
+                      animate={{
                         x: `calc(-${currentImageIndex * 100}% + ${isDragging ? carouselDrag : 0}px)`,
                       }}
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -849,9 +875,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                   onClick={handleCTAClick}
                   disabled={joinLoading}
                   className={`w-full h-12 text-base font-semibold rounded-xl ${
-                    ctaState.active 
-                      ? "bg-primary/20 text-primary border border-primary hover:bg-primary/30" 
-                      : ""
+                    ctaState.active ? "bg-primary/20 text-primary border border-primary hover:bg-primary/30" : ""
                   }`}
                   variant={ctaState.active ? "outline" : "default"}
                 >
@@ -867,22 +891,6 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                 </div>
               )}
 
-              {/* Tags */}
-              {tags && tags.length > 0 && (
-                <div className="px-4 pb-4">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {tags.map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* (F) Description */}
               {post.content && post.content.trim() && (
                 <div className="px-4 pb-4">
@@ -891,17 +899,11 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
               )}
 
               {/* (G) Content block */}
-              <div className="px-4 pb-4">
-                {renderContentDetails()}
-              </div>
+              <div className="px-4 pb-4">{renderContentDetails()}</div>
 
               {/* (H) Social proof row */}
               <div className="px-4">
-                <SocialProofRow 
-                  likeCount={likeCount} 
-                  commentCount={commentCount}
-                  onCommentClick={scrollToComments}
-                />
+                <SocialProofRow likeCount={likeCount} commentCount={commentCount} onCommentClick={scrollToComments} />
               </div>
 
               {/* Action buttons */}
@@ -928,24 +930,21 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
               {/* (I) Comments section */}
               <div ref={commentsRef} className="px-4 pb-24">
                 <h3 className="font-semibold mb-4">Comments {commentCount > 0 && `(${commentCount})`}</h3>
-                
+
                 {commentsLoading && (
                   <div className="flex justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
                   </div>
                 )}
-                
+
                 {!commentsLoading && comments.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">No comments yet. Be the first!</p>
                 )}
-                
+
                 {!commentsLoading && comments.length > 0 && (
                   <div className="space-y-4">
                     {comments.map((comment, idx) => (
-                      <div 
-                        key={comment.id} 
-                        className={`flex gap-3 p-3 rounded-xl ${idx === 0 ? 'bg-muted/50' : ''}`}
-                      >
+                      <div key={comment.id} className={`flex gap-3 p-3 rounded-xl ${idx === 0 ? "bg-muted/50" : ""}`}>
                         <Avatar className="w-8 h-8 shrink-0">
                           <AvatarImage src={comment.profile?.avatar_url || undefined} />
                           <AvatarFallback className="text-xs bg-muted">
@@ -954,9 +953,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm">
-                            <span className="font-semibold">
-                              {comment.profile?.first_name || "User"}
-                            </span>{" "}
+                            <span className="font-semibold">{comment.profile?.first_name || "User"}</span>{" "}
                             {comment.content}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -985,12 +982,7 @@ export const PostDetailModal = ({ open, onClose, post, onCountChange }: PostDeta
                     }
                   }}
                 />
-                <Button
-                  size="icon"
-                  className="h-10 w-10"
-                  onClick={handleSubmitComment}
-                  disabled={!newComment.trim()}
-                >
+                <Button size="icon" className="h-10 w-10" onClick={handleSubmitComment} disabled={!newComment.trim()}>
                   <Send size={18} />
                 </Button>
               </div>
