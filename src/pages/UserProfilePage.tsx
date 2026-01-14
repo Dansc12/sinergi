@@ -45,11 +45,25 @@ const UserProfilePage = () => {
   const [stats, setStats] = useState({ meals: 0, days: 0, workouts: 0 });
 
   const { isFollowing, isLoading, follow, unfollow } = useFollow(userId || null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const isOwnProfile = currentUserId === userId;
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data?.user?.id ?? null));
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserId(data?.user?.id ?? null);
+    };
+    fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (!isOwnProfile) {
+      fetchProfileData();
+    } else if (isOwnProfile && currentUserId) {
+      navigate("/profile", { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, isOwnProfile, currentUserId]);
 
   const fetchProfileData = async () => {
     if (!userId) return;
@@ -144,7 +158,7 @@ const UserProfilePage = () => {
             </Avatar>
 
             <div className="flex flex-col justify-start flex-1">
-              <h2 className="text-xl font-bold">{fullName}</h2>
+              <h2 className="text-xl font-bold">{display}</h2>
               {profile.username && <p className="text-muted-foreground text-sm mb-2">@{profile.username}</p>}
 
               {/* Stats - Instagram style */}
