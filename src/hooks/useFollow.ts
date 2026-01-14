@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function useFollow(otherUserId: string | null) {
@@ -10,7 +10,9 @@ export function useFollow(otherUserId: string | null) {
   const checkFollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !otherUserId) return setIsFollowing(false);
       setCurrentUserId(user.id);
 
@@ -31,9 +33,7 @@ export function useFollow(otherUserId: string | null) {
     if (!currentUserId || !otherUserId) return;
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from("follows")
-        .insert({ follower_id: currentUserId, followee_id: otherUserId });
+      const { error } = await supabase.from("follows").insert({ follower_id: currentUserId, followee_id: otherUserId });
       if (error) throw error;
       setIsFollowing(true);
       toast.success("Started following!");
@@ -47,11 +47,7 @@ export function useFollow(otherUserId: string | null) {
     if (!currentUserId || !otherUserId) return;
     setIsLoading(true);
     try {
-      await supabase
-        .from("follows")
-        .delete()
-        .eq("follower_id", currentUserId)
-        .eq("followee_id", otherUserId);
+      await supabase.from("follows").delete().eq("follower_id", currentUserId).eq("followee_id", otherUserId);
       setIsFollowing(false);
       toast.success("Unfollowed");
     } catch {
