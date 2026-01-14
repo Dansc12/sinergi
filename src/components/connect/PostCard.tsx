@@ -395,27 +395,6 @@ export const PostCard = ({ post, onPostClick, onTagClick, onCountChange }: PostC
           </div>
         </div>
 
-        {/* Floating hearts animation */}
-        <AnimatePresence>
-          {floatingEmojis.map((floating) => (
-            <motion.span
-              key={floating.id}
-              initial={{ opacity: 1, y: 0, scale: 1 }}
-              animate={{ opacity: 0, y: -60, scale: 1.3 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="fixed text-2xl pointer-events-none z-50"
-              style={{
-                left: floating.originX,
-                top: floating.originY,
-                transform: "translate(-50%, -50%)",
-              }}
-            >
-              {floating.emoji}
-            </motion.span>
-          ))}
-        </AnimatePresence>
-
         {/* Action row: Like + Comment icons | View pill */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
